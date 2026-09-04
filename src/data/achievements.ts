@@ -1,4 +1,5 @@
-import { levelLessons, levels } from './curriculum';
+import { levels } from './curriculum';
+import { levelLessons } from '../services/progressService';
 import { Achievement, PlayerStats } from '../types';
 
 const l0 = levels[0];
