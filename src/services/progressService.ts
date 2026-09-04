@@ -25,7 +25,7 @@ export function getLessonProgress(stats: PlayerStats, lesson: Lesson): number {
   const answered = all.filter(q => stats.practice[q.id]).length;
   const visited = stats.visitedLessons.includes(lesson.id) ? 25 : 0;
   if (all.length === 0) return visited;
-  return Math.min(95, visited + Math.round((answered / all.length) * 70);
+  return Math.min(95, visited + Math.round((answered / all.length) * 70));
 }
 export function getLevelProgress(stats: PlayerStats, level: CurriculumLevel): number {
   const ls = levelLessons(level);
