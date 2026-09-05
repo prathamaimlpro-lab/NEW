@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 import { lastNDays, todayKey } from '../../services/xpService';
 import { DayActivity } from '../../types';
 import { Icon } from './Icon';
@@ -27,7 +27,7 @@ export function EmptyState({ icon, title, message, action }: { icon: string; tit
   );
 }
 
-export function CadenceChart({ activity }: { activity: Record<string, DayActivity> }) {
+export const CadenceChart = memo(function CadenceChart({ activity }: { activity: Record<string, DayActivity> }) {
   const days = lastNDays(activity, 7);
   const max = Math.max(20, ...days.map(d => d.minutes));
   return (
@@ -42,9 +42,9 @@ export function CadenceChart({ activity }: { activity: Record<string, DayActivit
       ))}
     </div>
   );
-}
+});
 
-export function ActivityHeatmap({ activity }: { activity: Record<string, DayActivity> }) {
+export const ActivityHeatmap = memo(function ActivityHeatmap({ activity }: { activity: Record<string, DayActivity> }) {
   const weeks = 16; const total = weeks * 7; const end = new Date();
   const days: { key: string; v: number }[] = [];
   for (let i = total - 1; i >= 0; i--) {
@@ -58,4 +58,4 @@ export function ActivityHeatmap({ activity }: { activity: Record<string, DayActi
       {days.map(d => <div key={d.key} title={d.key} style={{ width: 12, height: 12, borderRadius: 3, background: color(d.v) }} />)}
     </div>
   );
-}
+});
