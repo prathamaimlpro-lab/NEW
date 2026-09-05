@@ -2,10 +2,11 @@ import { createContext, ReactNode, useContext, useEffect, useState } from 'react
 import { achievementsData } from '../data/achievements';
 import { storageService } from '../services/storageService';
 import { calculatePlayerLevel, computeStreak, todayKey } from '../services/xpService';
-import { DayActivity, PlayerStats, Problem, Question } from '../types';
+import { DayActivity, PlayerStats, Problem, ProblemRecord, Question } from '../types';
 
 const KEY = 'it_quest_player_v2';
 const emptyDay = (): DayActivity => ({ minutes: 0, problemsSolved: 0, submissions: 0, xpEarned: 0 });
+const emptyRecord = (): ProblemRecord => ({ attempts: 0, solved: false, favourite: false, review: false, notes: '', timeSpent: 0, lastAttempted: null });
 
 const defaults: PlayerStats = {
   xp: 0, level: 1, streak: 0, bestStreak: 0,
@@ -91,7 +92,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   });
 
   const solveProblem = (p: Problem, correct: boolean) => setStats(prev => {
-    const rec = prev.problems[p.id] ?? { attempts: 0, solved: false, favourite: false, review: false, notes: '', timeSpent: 0, lastAttempted: null };
+    const rec = prev.problems[p.id] ?? emptyRecord();
     const firstSolve = correct && !rec.solved;
     return finalize({
       ...prev,
@@ -101,9 +102,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     });
   });
 
-  const patchProblem = (id: string, patch: Partial<import('../types').ProblemRecord>) => setStats(prev => {
-    const rec = prev.problems[id] ?? { attempts: 0, solved: false, favourite: false, review: false, notes: '', timeSpent: 0, lastAttempted: null };
-    return { ...prev, problems: { ...prev.problems, [id]: { ...rec, ...patch } } };
+  const patchProblem = (id: string, fn: (rec: ProblemRecord) => ProblemRecord) => setStats(prev => {
+    const rec = prev.problems[id] ?? emptyRecord();
+    return { ...prev, problems: { ...prev.problems, [id]: fn(rec) } };
   });
 
   const completeVisualization = (id: string, xp: number) => setStats(prev => {
@@ -114,7 +115,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const resetProgress = () => setStats(finalize({ ...defaults }));
 
   return (
-    <PlayerContext.Provider value={{ stats, visitLesson, answerQuestion, completeLesson, solveProblem, toggleFavourite: id => patchProblem(id, {}), toggleReview: id => patchProblem(id, {}), setProblemNotes: (id, notes) => patchProblem(id, { notes }), completeVisualization, resetProgress }}>
+    <PlayerContext.Provider value={{
+      stats, visitLesson, answerQuestion, completeLesson, solveProblem, completeVisualization, resetProgress,
+      toggleFavourite: id => patchProblem(id, rec => ({ ...rec, favourite: !rec.favourite })),
+      toggleReview: id => patchProblem(id, rec => ({ ...rec, review: !rec.review })),
+      setProblemNotes: (id, notes) => patchProblem(id, rec => ({ ...rec, notes })),
+    }}>
       {children}
     </PlayerContext.Provider>
   );
