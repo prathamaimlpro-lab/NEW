@@ -1,13 +1,15 @@
 import { ReactNode } from 'react';
+import { usePlayer } from '../../store/PlayerContext';
 import { ContentBlock } from '../../types';
 import { Icon } from '../common/Icon';
-import { ComputerProcessingViz } from '../visualization/ComputerProcessingViz';
+import { VisualizationRenderer } from '../visualization/registry';
 
 function inline(text: string): ReactNode[] {
   return text.split(/\*\*(.+?)\*\*/g).map((part, i) => (i % 2 === 1 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>));
 }
 
 export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
+  const { completeVisualization } = usePlayer();
   return (
     <div className="block-stack">
       {blocks.map((b, i) => {
@@ -72,7 +74,7 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
               </div>
             );
           case 'visualization':
-            return b.vizType === 'computer-processing' ? <ComputerProcessingViz key={i} /> : null;
+            return <VisualizationRenderer key={i} id={b.vizType ?? ''} onCompleted={(id, xp) => completeVisualization(id, xp)} />;
           case 'summary':
             return (
               <div key={i} className="card" style={{ borderLeft: '2px solid var(--success)' }}>
