@@ -2,130 +2,126 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/common/Icon';
 import { Chip, Progress } from '../components/common/ui';
-import { levels } from '../data/curriculum';
-import { getLevelProgress, getNextLesson, getOverallProgress, getTotalEstimatedHours, isLevelUnlocked, levelLessons } from '../services/progressService';
+import { levels, worlds } from '../data/curriculum';
+import { getCompletedLevelCount, getLevelProgress, getNextLesson, getOverallProgress, getTotalEstimatedHours, isLevelCompleted, isLevelUnlocked, publishedLessons } from '../services/progressService';
 import { usePlayer } from '../store/PlayerContext';
-import { LevelGroup } from '../types';
-
-const TABS: { id: 'all' | LevelGroup; label: string }[] = [
-  { id: 'all', label: 'All 14 Levels' }, { id: 'foundations', label: 'Foundations (0–3)' },
-  { id: 'systems', label: 'Systems & Data (4–6)' }, { id: 'software', label: 'Software Eng (7–9)' },
-  { id: 'advanced', label: 'Advanced & AI (10–13)' },
-];
 
 export default function Curriculum() {
   const { stats } = usePlayer();
-  const [tab, setTab] = useState<'all' | LevelGroup>('all');
+  const [worldFilter, setWorldFilter] = useState<'all' | number>('all');
   const [filter, setFilter] = useState('');
   const [specOpen, setSpecOpen] = useState(false);
 
-  const overall = getOverallProgress(stats);
-  const completedLevels = levels.filter(l => levelLessons(l).length > 0 && getLevelProgress(stats, l) === 100).length;
-  const current = levels.find(l => { const p = getLevelProgress(stats, l); return levelLessons(l).length > 0 && p < 100 && isLevelUnlocked(stats, l.id); });
   const next = getNextLesson(stats);
+  const currentLevel = next ? levels.find(l => l.id === next.levelId) : undefined;
+  const visibleWorlds = worlds.filter(w => worldFilter === 'all' || w.number === worldFilter);
 
-  const visible = useMemo(() => levels.filter(l =>
-    (tab === 'all' || l.group === tab) &&
-    (filter.trim() === '' || (l.title + l.description).toLowerCase().includes(filter.toLowerCase()))
-  ), [tab, filter]);
+  const levelState = (n: number) => {
+    const l = levels.find(x => x.number === n)!;
+    if (isLevelCompleted(stats, l)) return 'completed';
+    if (!isLevelUnlocked(stats, l)) return 'locked';
+    if (publishedLessons(l).length === 0) return 'authoring';
+    if (getLevelProgress(stats, l) > 0) return 'in-progress';
+    return 'available';
+  };
+
+  const shown = useMemo(() => levels.filter(l => filter.trim() === '' || (l.title + l.description).toLowerCase().includes(filter.toLowerCase())), [filter]);
 
   return (
     <>
       <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(280px,1fr)', gap: 24, alignItems: 'center' }} className="curr-head">
         <div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-            <Chip tone="success">● Active Track</Chip><span className="label-mono">/ FOUNDATIONS STAGE</span>
+            <Chip tone="success">● Active Track</Chip><span className="label-mono">/ 13 WORLDS · 100 LEVELS</span>
           </div>
           <h1 className="t-display" style={{ marginBottom: 12 }}>Curriculum Roadmap</h1>
           <p className="t-body-lg" style={{ maxWidth: 560 }}>Methodical, systems-first engineering roadmap from fundamental architecture up to distributed systems.</p>
         </div>
         <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: 24, justifyContent: 'space-between' }}>
-          <div><div className="label-mono">OVERALL TRACK</div><div className="t-hmd" style={{ marginTop: 8 }}>{completedLevels} <span className="t-body-sm" style={{ color: 'var(--fg-muted)' }}>/ 14 Levels</span></div></div>
-          <div><div className="label-mono">COMPLETED</div><div className="t-hmd" style={{ marginTop: 8, color: 'var(--success)' }}>{overall}%</div></div>
+          <div><div className="label-mono">OVERALL TRACK</div><div className="t-hmd" style={{ marginTop: 8 }}>{getCompletedLevelCount(stats)} <span className="t-body-sm" style={{ color: 'var(--fg-muted)' }}>/ 100 Levels</span></div></div>
+          <div><div className="label-mono">COMPLETED</div><div className="t-hmd" style={{ marginTop: 8, color: 'var(--success)' }}>{getOverallProgress(stats)}%</div></div>
           <div><div className="label-mono">EST. DURATION</div><div className="t-hmd" style={{ marginTop: 8 }}>{getTotalEstimatedHours()} <span className="t-body-sm" style={{ color: 'var(--fg-muted)' }}>Hours</span></div></div>
         </div>
       </section>
 
       <section style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {TABS.map(t => (
-            <button key={t.id} className={`btn btn-sm ${tab === t.id ? 'btn-secondary' : 'btn-ghost'}`}
-              style={tab === t.id ? { background: 'var(--overlay)', borderColor: 'var(--border-strong)' } : {}}
-              onClick={() => setTab(t.id)} aria-pressed={tab === t.id}>{t.label}</button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', overflowX: 'auto', maxWidth: '100%' }}>
+          <button className={`btn btn-sm ${worldFilter === 'all' ? 'btn-secondary' : 'btn-ghost'}`} style={worldFilter === 'all' ? { background: 'var(--overlay)', borderColor: 'var(--border-strong)' } : {}} onClick={() => setWorldFilter('all')}>All Worlds</button>
+          {worlds.map(w => (
+            <button key={w.id} className={`btn btn-sm ${worldFilter === w.number ? 'btn-secondary' : 'btn-ghost'}`} style={worldFilter === w.number ? { background: 'var(--overlay)', borderColor: 'var(--border-strong)' } : {}} onClick={() => setWorldFilter(w.number)} aria-pressed={worldFilter === w.number}>W{String(w.number).padStart(2, '0')}</button>
           ))}
         </div>
         <div style={{ position: 'relative', minWidth: 220, flex: '0 1 260px' }}>
-          <input className="input" placeholder="Filter syllabus…" value={filter} onChange={e => setFilter(e.target.value)} aria-label="Filter syllabus" />
-          <span className="chip" style={{ position: 'absolute', right: 8, top: 10 }}>⌘F</span>
+          <input className="input" placeholder="Filter levels…" value={filter} onChange={e => setFilter(e.target.value)} aria-label="Filter levels" />
         </div>
       </section>
 
-      {current && (
+      {currentLevel && (
         <section className="card" style={{ borderColor: 'var(--primary)', boxShadow: '0 0 0 1px var(--primary)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 24, alignItems: 'center' }} className="curr-current">
             <div>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
                 <Chip tone="primary">● CURRENT IN-PROGRESS</Chip>
-                <span className="label-mono">LEVEL {String(current.id).padStart(2, '0')} · {current.group.toUpperCase()}</span>
+                <span className="label-mono">LEVEL {String(currentLevel.number).padStart(2, '0')} · WORLD {String(worlds.find(w => w.id === currentLevel.worldId)?.number).padStart(2, '0')}</span>
               </div>
-              <h2 className="t-hlg" style={{ marginBottom: 8 }}>{current.title}</h2>
-              <p className="t-body clamp-2" style={{ maxWidth: 640 }}>{current.description}</p>
+              <h2 className="t-hlg" style={{ marginBottom: 8 }}>{currentLevel.title}</h2>
+              <p className="t-body clamp-2" style={{ maxWidth: 640 }}>{currentLevel.description}</p>
               <div style={{ display: 'flex', gap: 20, marginTop: 16, flexWrap: 'wrap' }} className="t-body-sm">
-                <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--fg-muted)' }}><Icon name="clock" size={14} /> {current.estimatedHours} Hours estimated</span>
-                <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--fg-muted)' }}><Icon name="check-circle" size={14} /> {levelLessons(current).filter(l => stats.completedLessons.includes(l.id)).length} of {levelLessons(current).length} Modules complete</span>
-                <span style={{ color: 'var(--success)' }}>{getLevelProgress(stats, current)}% Done</span>
+                <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--fg-muted)' }}><Icon name="clock" size={14} /> {currentLevel.estimatedHours} Hours estimated</span>
+                <span style={{ color: 'var(--success)' }}>{getLevelProgress(stats, currentLevel)}% Done</span>
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-end', textAlign: 'right' }}>
               {next && <><span className="t-caption" style={{ color: 'var(--fg-muted)' }}>Next milestone</span><span className="t-body" style={{ color: 'var(--fg-primary)', maxWidth: 220 }}>{next.title}</span></>}
-              <Link className="btn btn-primary" to={next ? `/learn/lesson/${next.id}` : `/learn/level/${current.id}`}>Resume Study <Icon name="arrow-right" size={16} /></Link>
+              <Link className="btn btn-primary" to={next ? `/learn/lesson/${next.id}` : `/learn/level/${currentLevel.id}`}>Resume Study <Icon name="arrow-right" size={16} /></Link>
             </div>
           </div>
         </section>
       )}
 
-      <section className="grid-3">
-        {visible.filter(l => l.id !== current?.id && l.id !== 13).map(l => {
-          const unlocked = isLevelUnlocked(stats, l.id);
-          const prog = getLevelProgress(stats, l);
-          const upNext = !unlocked && l.id === (current ? current.id + 1 : 1) || (unlocked && prog === 0 && levelLessons(l).length > 0 && l.id !== current?.id);
-          return (
-            <div key={l.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12, opacity: unlocked ? 1 : .6 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span className="label-mono">LEVEL {String(l.id).padStart(2, '0')}</span>
-                {unlocked ? (upNext && <Chip>UP NEXT</Chip>) : <span style={{ color: 'var(--fg-muted)' }}><Icon name="lock" size={14} /></span>}
-              </div>
-              <h3 className="t-hsm">{l.title}</h3>
-              <p className="t-body-sm clamp-3" style={{ flex: 1 }}>{l.description}</p>
-              <hr className="divider" />
-              <div style={{ display: 'flex', justifyContent: 'space-between' }} className="t-caption">
-                <span>{l.estimatedHours} Hours</span>
-                <span style={{ color: unlocked ? 'var(--success)' : 'var(--fg-muted)' }}>{unlocked ? (prog === 100 ? 'Completed' : `${prog}%`) : `Requires Level ${l.id - 1}`}</span>
-              </div>
-              {unlocked && <Link className="btn btn-secondary btn-sm" to={`/learn/level/${l.id}`}>{levelLessons(l).length > 0 ? 'Open Workspace' : 'Preview Workspace'} <Icon name="chevron-right" size={14} /></Link>}
+      {visibleWorlds.map(w => {
+        const wLevels = shown.filter(l => l.worldId === w.id);
+        if (wLevels.length === 0) return null;
+        return (
+          <section key={w.id}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+              <div><span className="label-mono">WORLD {String(w.number).padStart(2, '0')} · LEVELS {w.levelRange[0]}–{w.levelRange[1]}</span><h2 className="t-hmd" style={{ marginTop: 4 }}>{w.title}</h2></div>
+              <div style={{ minWidth: 180, flex: '0 1 220px' }}><Progress value={wLevels.filter(l => levelState(l.number) === 'completed').length / wLevels.length * 100} /></div>
             </div>
-          );
-        })}
-      </section>
-
-      <section className="card" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 24, alignItems: 'center' }} className="curr-cap">
-        <div>
-          <div className="label-mono" style={{ marginBottom: 8 }}>CAPSTONE · LEVEL 13 · MASTERY GATE</div>
-          <h2 className="t-hmd" style={{ marginBottom: 8 }}>Production Distributed Application Capstone</h2>
-          <p className="t-body clamp-2" style={{ maxWidth: 640 }}>{levels[13].description}</p>
-        </div>
-        <Chip icon="lock">Unlocks upon completing Levels 0–12</Chip>
-      </section>
+            <p className="t-body-sm" style={{ marginBottom: 16, maxWidth: 720, color: 'var(--fg-muted)' }}>{w.description}</p>
+            <div className="grid-3">
+              {wLevels.map(l => {
+                const st = levelState(l.number);
+                return (
+                  <Link key={l.id} to={st === 'locked' ? '#' : `/learn/level/${l.id}`} aria-disabled={st === 'locked'} className="card card-interactive" style={{ display: 'flex', flexDirection: 'column', gap: 12, opacity: st === 'locked' ? .6 : 1, cursor: st === 'locked' ? 'not-allowed' : 'pointer' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span className="label-mono">LEVEL {String(l.number).padStart(2, '0')}</span>
+                      {st === 'completed' ? <Chip tone="success" icon="check">DONE</Chip> : st === 'in-progress' ? <Chip tone="primary">IN PROGRESS</Chip> : st === 'authoring' ? <Chip tone="warning">IN AUTHORING</Chip> : st === 'locked' ? <span style={{ color: 'var(--fg-muted)' }}><Icon name="lock" size={14} /></span> : <Chip>UP NEXT</Chip>}
+                    </div>
+                    <h3 className="t-hsm">{l.title}</h3>
+                    <p className="t-body-sm clamp-3" style={{ flex: 1 }}>{l.description}</p>
+                    <hr className="divider" />
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }} className="t-caption">
+                      <span>{l.estimatedHours} Hours · {publishedLessons(l).length} lessons</span>
+                      <span style={{ color: st === 'locked' ? 'var(--fg-muted)' : 'var(--success)' }}>{st === 'locked' ? `Requires Level ${l.number - 1}` : `${getLevelProgress(stats, l)}%`}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
 
       <section className="card" style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0,1fr) auto', gap: 20, alignItems: 'center' }} className="curr-foot">
         <span className="chip" style={{ padding: 10 }}><Icon name="cpu" size={18} /></span>
         <div>
           <h3 className="t-hsm" style={{ marginBottom: 6 }}>Deterministic Mastery Engine</h3>
-          <p className="t-body-sm clamp-2">Each level contains isolated Linux containers, real compiler test harnesses, and zero guesswork. Progression is unlocked solely through verified completion of prior modules.</p>
+          <p className="t-body-sm clamp-2">Progression across 100 levels is unlocked solely through verified completion of prior modules. Levels without published lessons are marked “In Authoring”.</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={() => setSpecOpen(true)}>Read Syllabus Spec</button>
-          {current && <Link className="btn btn-primary" to={`/learn/level/${current.id}`}>Continue Level {String(current.id).padStart(2, '0')}</Link>}
+          {currentLevel && <Link className="btn btn-primary" to={`/learn/level/${currentLevel.id}`}>Continue Level {String(currentLevel.number).padStart(2, '0')}</Link>}
         </div>
       </section>
 
@@ -133,21 +129,20 @@ export default function Curriculum() {
         <div className="dialog-scrim" onClick={() => setSpecOpen(false)}>
           <div className="dialog" onClick={e => e.stopPropagation()} role="dialog" aria-label="Syllabus specification">
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: 16, borderBottom: '1px solid var(--border-subtle)' }}>
-              <span className="label-mono">SYLLABUS SPEC // 14 LEVELS</span>
+              <span className="label-mono">SYLLABUS SPEC // 13 WORLDS · 100 LEVELS</span>
               <button className="btn btn-ghost btn-sm" onClick={() => setSpecOpen(false)} aria-label="Close"><Icon name="x" size={16} /></button>
             </div>
             <div style={{ padding: 12 }}>
-              {levels.map(l => (
-                <div key={l.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 8px', borderBottom: '1px solid var(--border-subtle)' }}>
-                  <span className="t-body" style={{ color: 'var(--fg-secondary)' }}><span className="mono" style={{ color: 'var(--fg-muted)' }}>L{String(l.id).padStart(2, '0')}</span> · {l.title}</span>
-                  <span className="mono t-caption" style={{ color: 'var(--fg-muted)' }}>{l.estimatedHours}h</span>
+              {worlds.map(w => (
+                <div key={w.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 8px', borderBottom: '1px solid var(--border-subtle)' }}>
+                  <span className="t-body" style={{ color: 'var(--fg-secondary)' }}><span className="mono" style={{ color: 'var(--fg-muted)' }}>W{String(w.number).padStart(2, '0')}</span> · {w.title} <span className="mono t-caption" style={{ color: 'var(--fg-subtle)' }}>L{w.levelRange[0]}–{w.levelRange[1]}</span></span>
                 </div>
               ))}
             </div>
           </div>
         </div>
       )}
-      <style>{`@media (max-width: 1023px){ .curr-head,.curr-current,.curr-cap{grid-template-columns:1fr !important;} .curr-foot{grid-template-columns:auto minmax(0,1fr) !important;} } @media (max-width: 767px){ .curr-foot{grid-template-columns:1fr !important;} }`}</style>
+      <style>{`@media (max-width: 1023px){ .curr-head,.curr-current{grid-template-columns:1fr !important;} .curr-foot{grid-template-columns:1fr !important;} }`}</style>
     </>
   );
 }
