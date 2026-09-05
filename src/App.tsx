@@ -8,8 +8,10 @@ import Level from './pages/Level';
 import Lesson from './pages/Lesson';
 import NotFound from './pages/NotFound';
 import Practice from './pages/Practice';
+import ProblemDetail from './pages/ProblemDetail';
 import Profile from './pages/Profile';
 import ProgressPage from './pages/Progress';
+import VisualizationPage from './pages/VisualizationPage';
 
 export default function App() {
   return (
@@ -20,10 +22,12 @@ export default function App() {
         <Route path="learn/level/:levelId" element={<Level />} />
         <Route path="learn/lesson/:lessonId" element={<Lesson />} />
         <Route path="practice" element={<Practice />} />
+        <Route path="practice/problems/:problemId" element={<ProblemDetail />} />
         <Route path="progress" element={<ProgressPage />} />
         <Route path="achievements" element={<Achievements />} />
         <Route path="profile" element={<Profile />} />
         <Route path="explore" element={<Explore />} />
+        <Route path="explore/viz/:vizId" element={<VisualizationPage />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
