@@ -10,7 +10,7 @@ const STEPS = [
   { n: '06', name: 'Display', sub: 'Render', title: 'Display Render', desc: 'The finished frame is written to the display buffer and the screen lights up with the open document.' },
 ];
 
-export function ComputerProcessingViz() {
+export function ComputerProcessingViz({ onComplete }: { onComplete?: () => void }) {
   const [step, setStep] = useState(0);
   const [auto, setAuto] = useState(false);
   const timer = useRef<number | null>(null);
@@ -25,6 +25,8 @@ export function ComputerProcessingViz() {
     }, 1600);
     return () => { if (timer.current) window.clearInterval(timer.current); };
   }, [auto]);
+
+  useEffect(() => { if (step === STEPS.length - 1) onComplete?.(); }, [step, onComplete]);
 
   return (
     <div className="card" style={{ background: 'var(--canvas)' }}>
