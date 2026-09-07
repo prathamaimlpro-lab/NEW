@@ -51,7 +51,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0 }} className="grid-3">
+      <section className="card grid-3">
         <div style={{ padding: '4px 20px' }}>
           <div className="label-mono" style={{ marginBottom: 10 }}>DAILY LEARNING</div>
           <div className="t-hmd">{todayMin} <span className="t-body-sm" style={{ color: 'var(--fg-2)' }}>/ {goal} min</span></div>
