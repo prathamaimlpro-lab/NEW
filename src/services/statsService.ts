@@ -39,7 +39,7 @@ export function getTopicMastery(stats: PlayerStats): TopicMastery[] {
 
 export function getOverallMastery(stats: PlayerStats): number {
   const list = getTopicMastery(stats);
-  const total = list.reduce((s, t) => s + t.total, 0);
+  const total = list.reduce((s, t) => s + t.activity, 0);
   if (total === 0) return 0;
   const score = list.reduce((s, t) => s + (t.pct / 100) * t.activity, 0);
   return Math.round((score / total) * 100);
