@@ -17,6 +17,20 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
           case 'heading': return <h3 key={i} className="t-hsm">{b.content}</h3>;
           case 'paragraph': return <p key={i} className="t-body-lg">{inline(b.content ?? '')}</p>;
           case 'explanation': return <p key={i} className="t-body-lg" style={{ color: 'var(--fg-primary)' }}>{inline(b.content ?? '')}</p>;
+          case 'why':
+            return (
+              <div key={i} className="card" style={{ borderLeft: '2px solid var(--info)' }}>
+                <div className="label-mono" style={{ marginBottom: 8, color: 'var(--info)' }}>WHY IT MATTERS</div>
+                <p className="t-body-lg">{inline(b.content ?? '')}</p>
+              </div>
+            );
+          case 'example':
+            return (
+              <div key={i} className="card" style={{ borderLeft: '2px solid var(--border-strong)' }}>
+                <div className="label-mono" style={{ marginBottom: 8 }}>EXAMPLE {b.title ? `// ${b.title.toUpperCase()}` : ''}</div>
+                <p className="t-body-lg">{inline(b.content ?? '')}</p>
+              </div>
+            );
           case 'analogy':
             return (
               <div key={i} className="card" style={{ borderLeft: '2px solid var(--warning)' }}>
