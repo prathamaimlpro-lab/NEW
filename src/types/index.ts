@@ -3,8 +3,8 @@ export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface AnalogyItem { icon: string; tag: string; title: string; description: string }
 export interface TableBlock { title?: string; columns: string[]; rows: string[][] }
-export type BlockType = 'heading' | 'paragraph' | 'explanation' | 'objective' | 'why' | 'example' | 'analogy' | 'analogyCards' | 'callout' | 'tip' | 'warning' | 'code' | 'table' | 'visualization' | 'summary';
-export interface ContentBlock { type: BlockType; content?: string; title?: string; language?: string; vizType?: string; items?: AnalogyItem[]; table?: TableBlock }
+export type BlockType = 'heading' | 'paragraph' | 'explanation' | 'objective' | 'why' | 'example' | 'analogy' | 'analogyCards' | 'callout' | 'tip' | 'warning' | 'code' | 'table' | 'visualization' | 'summary' | 'image' | 'video';
+export interface ContentBlock { type: BlockType; content?: string; title?: string; language?: string; vizType?: string; items?: AnalogyItem[]; table?: TableBlock; url?: string; alt?: string }
 export interface Question { id: string; lessonId: string; question: string; hint?: string; difficulty: Difficulty; options: string[]; correctAnswer: string; explanation: string; xp: number; reference?: TableBlock }
 export interface LessonSection { id: string; label?: string; title?: string; blocks: ContentBlock[] }
 
@@ -39,6 +39,8 @@ export interface ProblemRecord {
 export interface DayActivity { minutes: number; problemsSolved: number; submissions: number; xpEarned: number; count: number }
 export interface PracticeRecord { difficulty: Difficulty; correct: boolean; tries: number }
 
+export interface AchievementRule { kind: 'lessons' | 'questions' | 'problems' | 'streak' | 'playerLevel' | 'xp' | 'visualizations'; value: number }
+
 export interface PlayerStats {
   xp: number; level: number; streak: number; bestStreak: number;
   completedLessons: string[]; completedQuestions: string[]; unlockedAchievements: string[]; visitedLessons: string[];
@@ -47,6 +49,9 @@ export interface PlayerStats {
   completedVisualizations: string[]; activity: Record<string, DayActivity>; firstActiveDate: string | null;
 }
 
-export interface Achievement { id: string; title: string; description: string; icon: string; xp: number; condition: (s: PlayerStats) => boolean }
+export interface Achievement { id: string; title: string; description: string; icon: string; xp: number; rule?: AchievementRule; condition?: (s: PlayerStats) => boolean }
 export type VizCategory = 'Algorithm' | 'Data Structure' | 'Memory' | 'CPU' | 'Operating System' | 'Networking' | 'Database' | 'Git' | 'Programming' | 'System Design';
 export interface ComplexityInfo { time: string; space: string }
+export interface ThemeSettings { primary: string; primaryHover: string; success: string; warning: string; error: string; info: string; radiusMd: number }
+export interface AppSettings { dailyGoalMinutes: number; xpLesson: number; xpEasy: number; xpMedium: number; xpHard: number; xpViz: number }
+export interface VisualizerMeta { xpReward: number }
