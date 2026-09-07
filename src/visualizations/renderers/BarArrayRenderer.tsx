@@ -1,6 +1,6 @@
 import { ArrayVizStep } from '../types';
 
-export function BarArrayRenderer({ step }: { step: ArrayVizStep }) {
+export function BarArrayRenderer({ step, calm }: { step: ArrayVizStep; calm?: boolean }) {
   const n = step.items.length;
   const max = Math.max(...step.items.map(i => i.value));
   const isActive = (slot: number) => !!step.active && (slot === step.active[0] || slot === step.active[1]);
@@ -15,12 +15,13 @@ export function BarArrayRenderer({ step }: { step: ArrayVizStep }) {
     if (step.active && slot === step.active[1]) return 'B';
     return '·';
   };
+  const noTransition = calm ? 'none' : undefined;
   return (
-    <div className="viz-stage" role="img" aria-label={`Array: ${step.items.map(i => i.value).join(', ')}. ${step.explanation}`}>
+    <div className="viz-stage viz-canvas" role="img" aria-label={`Array: ${step.items.map(i => i.value).join(', ')}. ${step.explanation}`}>
       {step.items.map((it, slot) => (
-        <div key={it.id} className="viz-slot" style={{ width: `${100 / n}%`, transform: `translateX(${slot * 100}%)` }}>
+        <div key={it.id} className="viz-slot" style={{ width: `${100 / n}%`, transform: `translateX(${slot * 100}%)`, transition: noTransition }}>
           <span className="viz-val mono">{it.value}</span>
-          <div className="viz-bar" style={{ height: `${(it.value / max) * 70}%`, background: colorFor(slot), boxShadow: isActive(slot) ? '0 0 0 1px var(--fg-primary)' : undefined }} />
+          <div className="viz-bar" style={{ height: `${(it.value / max) * 70}%`, background: colorFor(slot), boxShadow: isActive(slot) ? '0 0 0 1px var(--fg-primary)' : undefined, transition: noTransition }} />
           <span className="viz-val mono" style={{ minHeight: 14, color: labelFor(slot) === '·' ? 'transparent' : 'var(--fg-primary)' }}>{labelFor(slot)}</span>
         </div>
       ))}
