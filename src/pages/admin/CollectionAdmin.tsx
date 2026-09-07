@@ -4,7 +4,7 @@ import { listVisualizations } from '../../components/visualization/registry';
 import { achievementsData } from '../../data/achievements';
 import { levels } from '../../data/curriculum';
 import { problems } from '../../data/problems';
-import { admin, getVizMeta } from '../../services/contentStore';
+import { admin, getVizXp } from '../../services/contentStore';
 import { Achievement, Difficulty, Problem } from '../../types';
 
 const DIFFS = ['EASY', 'MEDIUM', 'HARD'].map(d => ({ value: d, label: d }));
@@ -103,7 +103,7 @@ export default function CollectionAdmin() {
           {listVisualizations().map(v => (
             <div key={v.id} style={{ border: '1px solid var(--border-subtle)', borderRadius: 8, padding: 12, display: 'grid', gridTemplateColumns: 'minmax(0,2fr) 100px auto', gap: 10, alignItems: 'center' }}>
               <div><div className="t-body" style={{ color: 'var(--fg-primary)' }}>{v.title}</div><div className="t-caption" style={{ color: 'var(--fg-muted)' }}>{v.category} · controls: {v.controls.join(', ')}</div></div>
-              <NumInput value={getVizMeta(v.id, { xpReward: v.xpReward }).xpReward} onChange={val => admin.setVizMeta(v.id, { xpReward: val })} />
+              <NumInput value={getVizXp(v.id, v.xpReward)} onChange={val => admin.setVizMeta(v.id, { xpReward: val })} />
               <span className="chip">{v.difficulty}</span>
             </div>
           ))}
