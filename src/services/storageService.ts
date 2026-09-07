@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'it_quest_player_data';
+
 
 export const storageService = {
   get: <T>(key: string, fallback: T): T => {
