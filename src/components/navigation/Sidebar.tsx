@@ -12,7 +12,7 @@ const LINKS = [
   { to: '/profile', label: 'Profile', icon: 'profile', end: false },
 ];
 
-export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function Sidebar({ open }: { open: boolean; onClose?: () => void }) {
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`} aria-label="Primary navigation">
       <div className="sb-head">
