@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Icon } from '../components/common/Icon';
-import { Chip, EmptyState, Progress } from '../components/common/ui';
+import { EmptyState, Progress } from '../components/common/ui';
 import { ContentRenderer } from '../components/lesson/ContentRenderer';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { VisualizationRenderer } from '../components/visualization/registry';
