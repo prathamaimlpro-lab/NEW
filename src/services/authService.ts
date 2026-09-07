@@ -22,7 +22,8 @@ export async function bootstrapAdmin(email: string, password: string): Promise<b
 
 export async function login(email: string, password: string): Promise<Role | null> {
   const accounts = storageService.get<Account[]>(AKEY, []);
-  const acc = accounts.find(a => a.email === email && a.hash === await sha(password + email));
+  const hash = await sha(password + email);
+  const acc = accounts.find(a => a.email === email && a.hash === hash);
   if (!acc) return null;
   storageService.set(SKEY, { email: acc.email, role: acc.role, at: Date.now() });
   return acc.role;
