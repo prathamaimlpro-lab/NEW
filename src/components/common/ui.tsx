@@ -19,7 +19,7 @@ export function Progress({ value, tone = 'primary' }: { value: number; tone?: 'p
 export function EmptyState({ icon, title, message, action }: { icon: string; title: string; message: string; action?: ReactNode }) {
   return (
     <div className="card" style={{ textAlign: 'center', padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-      <div style={{ color: 'var(--fg-subtle)' }}><Icon name={icon} size={32} /></div>
+      <div style={{ color: 'var(--fg-3)' }}><Icon name={icon} size={32} /></div>
       <h3 className="t-hsm">{title}</h3>
       <p className="t-body clamp-3" style={{ maxWidth: 420 }}>{message}</p>
       {action}
@@ -34,8 +34,8 @@ export const CadenceChart = memo(function CadenceChart({ activity }: { activity:
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, alignItems: 'end' }} aria-label="Last 7 days of study time">
       {days.map(d => (
         <div key={d.key} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: '100%', height: 56, borderRadius: 'var(--r-md)', display: 'grid', placeItems: 'center', background: d.minutes > 0 ? `rgba(79,70,229,${0.25 + 0.65 * (d.minutes / max)})` : 'var(--elevated)', border: '1px solid var(--border-subtle)' }}>
-            <span className="mono" style={{ fontSize: 11, color: d.minutes > 0 ? '#e0e0ff' : 'var(--fg-subtle)' }}>{d.minutes > 0 ? `${d.minutes}m` : '—'}</span>
+          <div style={{ width: '100%', height: 56, borderRadius: 'var(--r-md)', display: 'grid', placeItems: 'center', background: d.minutes > 0 ? `rgba(123,208,255,${0.22 + 0.6 * (d.minutes / max)})` : 'rgba(255,255,255,.07)', border: '1px solid var(--border-soft)' }}>
+            <span className="mono" style={{ fontSize: 11, color: d.minutes > 0 ? '#eaf7ff' : 'var(--fg-3)' }}>{d.minutes > 0 ? `${d.minutes}m` : '—'}</span>
           </div>
           <span className="label-mono">{d.label}</span>
         </div>
@@ -52,7 +52,7 @@ export const ActivityHeatmap = memo(function ActivityHeatmap({ activity }: { act
     const key = todayKey(d);
     days.push({ key, v: activity[key]?.count ?? 0 });
   }
-  const color = (v: number) => v <= 0 ? 'var(--elevated)' : v <= 2 ? 'rgba(79,70,229,.35)' : v <= 5 ? 'rgba(79,70,229,.6)' : v <= 10 ? 'rgba(99,102,241,.85)' : '#818cf8';
+  const color = (v: number) => v <= 0 ? 'rgba(255,255,255,.07)' : v <= 2 ? 'rgba(123,208,255,.35)' : v <= 5 ? 'rgba(123,208,255,.6)' : v <= 10 ? 'rgba(123,208,255,.85)' : '#bfe9ff';
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${weeks}, 12px)`, gridTemplateRows: 'repeat(7, 12px)', gridAutoFlow: 'column', gap: 3 }}>
       {days.map(d => <div key={d.key} title={`${d.key} — ${d.v} activities`} style={{ width: 12, height: 12, borderRadius: 3, background: color(d.v) }} />)}
