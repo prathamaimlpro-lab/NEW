@@ -1,5 +1,6 @@
 import { getLevel, getWorld, levels, lessons } from '../data/curriculum';
-import { Level, Lesson, PlayerStats, World } from '../types';
+import { problems } from '../data/problems';
+import { Level, Lesson, PlayerStats } from '../types';
 
 export { getLevel, getWorld };
 export const levelLessons = (level: Level): Lesson[] => level.lessons.map(id => lessons[id]).filter(Boolean);
@@ -28,8 +29,8 @@ export function getLevelProgress(stats: PlayerStats, level: Level): number {
   if (ls.length === 0) return 0;
   return Math.round((ls.filter(l => stats.completedLessons.includes(l.id)).length / ls.length) * 100);
 }
-export function getWorldProgress(stats: PlayerStats, world: World): number {
-  const ls = levels.filter(l => l.worldId === world.id).flatMap(publishedLessons);
+export function getWorldProgress(stats: PlayerStats, worldId: string): number {
+  const ls = levels.filter(l => l.worldId === worldId).flatMap(publishedLessons);
   if (ls.length === 0) return 0;
   return Math.round((ls.filter(l => stats.completedLessons.includes(l.id)).length / ls.length) * 100);
 }
@@ -55,3 +56,16 @@ export function getLessonState(stats: PlayerStats, lesson: Lesson): LessonState 
 }
 export function getTotalEstimatedHours(): number { return levels.reduce((s, l) => s + l.estimatedHours, 0); }
 export function getCompletedLevelCount(stats: PlayerStats): number { return levels.filter(l => isLevelCompleted(stats, l)).length; }
+
+export interface RevisionItem { kind: 'lesson' | 'problem'; id: string; title: string; days: number }
+export function getRevisionDue(stats: PlayerStats): RevisionItem[] {
+  const out: RevisionItem[] = [];
+  for (const [id, date] of Object.entries(stats.lessonCompletedAt ?? {})) {
+    const days = Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+    if (days >= 7) out.push({ kind: 'lesson', id, title: lessons[id]?.title ?? id, days });
+  }
+  for (const [id, rec] of Object.entries(stats.problems)) {
+    if (rec.review && rec.solved) out.push({ kind: 'problem', id, title: problems.find(p => p.id === id)?.title ?? id, days: 0 });
+  }
+  return out;
+}
