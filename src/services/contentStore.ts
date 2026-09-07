@@ -11,7 +11,7 @@ const KEY = 'it_quest_content_v1';
 let version = 0;
 const listeners = new Set<() => void>();
 
-export const defaultTheme: ThemeSettings = { primary: '#4f46e5', primaryHover: '#6366f1', success: '#10b981', warning: '#f59e0b', error: '#ef4444', info: '#38bdf8', radiusMd: 8 };
+export const defaultTheme: ThemeSettings = { primary: '#7bd0ff', primaryHover: '#a5dfff', success: '#4edea3', warning: '#f2a35c', error: '#ef6b6b', info: '#7bd0ff', radiusMd: 14 };
 export const defaultSettings: AppSettings = { dailyGoalMinutes: 20, xpLesson: 10, xpEasy: 20, xpMedium: 40, xpHard: 80, xpViz: 15 };
 let theme: ThemeSettings = { ...defaultTheme };
 let settings: AppSettings = { ...defaultSettings };
