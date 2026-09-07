@@ -10,7 +10,7 @@ export interface LessonSection { id: string; label?: string; title?: string; blo
 
 export interface Lesson {
   id: string; levelId: string; order: number; title: string; slug: string; description: string;
-  objectives: string[]; estimatedMinutes: number; difficulty: Difficulty; prerequisites: string[];
+  objectives: string[]; topics: string[]; estimatedMinutes: number; difficulty: Difficulty; prerequisites: string[];
   sections: LessonSection[]; visualizationId?: string;
   practice: Question[]; masteryTest: Question[]; xpReward: number;
   status: ContentStatus; version: number; updatedAt: string;
@@ -23,19 +23,25 @@ export interface Level {
   prerequisites: string[]; lessons: string[]; projects: string[]; xpReward: number;
 }
 
+export interface ProblemExample { input: string; output: string; note?: string }
 export interface Problem {
   id: string; title: string; slug: string; difficulty: Difficulty; topics: string[]; subtopics: string[];
-  source: string; collection: string; description: string; status: ContentStatus;
+  pattern: string; source: string; collection: string; description: string; status: ContentStatus;
   xp: number; hints: string[]; solution: string; options: string[]; correctAnswer: string; explanation: string;
-  relatedLessons: string[]; relatedProblems: string[];
+  examples: ProblemExample[]; constraints: string[];
+  relatedLessons: string[]; relatedProblems: string[]; relatedLevel: string;
 }
-export interface ProblemRecord { attempts: number; solved: boolean; favourite: boolean; review: boolean; notes: string; timeSpent: number; lastAttempted: string | null }
-export interface DayActivity { minutes: number; problemsSolved: number; submissions: number; xpEarned: number }
+export interface ProblemRecord {
+  attempts: number; solved: boolean; solvedDate: string | null; favourite: boolean; review: boolean;
+  mastered: boolean; confidence: 0 | 1 | 2 | 3; notes: string; scratchCode: string; timeSpent: number; lastAttempted: string | null;
+}
+export interface DayActivity { minutes: number; problemsSolved: number; submissions: number; xpEarned: number; count: number }
 export interface PracticeRecord { difficulty: Difficulty; correct: boolean; tries: number }
 
 export interface PlayerStats {
   xp: number; level: number; streak: number; bestStreak: number;
   completedLessons: string[]; completedQuestions: string[]; unlockedAchievements: string[]; visitedLessons: string[];
+  lessonCompletedAt: Record<string, string>;
   practice: Record<string, PracticeRecord>; problems: Record<string, ProblemRecord>;
   completedVisualizations: string[]; activity: Record<string, DayActivity>; firstActiveDate: string | null;
 }
