@@ -12,30 +12,22 @@ const LINKS = [
   { to: '/profile', label: 'Profile', icon: 'profile', end: false },
 ];
 
-export function Sidebar({ open }: { open: boolean; onClose?: () => void }) {
+export function Sidebar() {
   return (
-    <aside className={`sidebar ${open ? 'open' : ''}`} aria-label="Primary navigation">
-      <div className="sb-head">
-        <Emblem size={36} />
-        <span className="sb-brand">IT QUEST</span>
-        <span className="chip" style={{ marginLeft: 'auto' }}>V2 OS</span>
-      </div>
+    <aside className="sidebar" aria-label="Primary navigation">
+      <div className="sb-head"><Emblem size={34} /><span className="sb-brand">IT QUEST</span></div>
       <QuickFind />
       <nav className="sb-nav">
         {LINKS.map(l => (
-          <NavLink key={l.to} to={l.to} end={l.end}
-            className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
-            <Icon name={l.icon} size={18} /> {l.label}
+          <NavLink key={l.to} to={l.to} end={l.end} className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
+            <Icon name={l.icon} size={19} /> <span className="sb-label">{l.label}</span>
           </NavLink>
         ))}
       </nav>
       <div className="sb-foot">
         <div className="sb-env">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="t-body-sm" style={{ color: 'var(--fg-secondary)' }}>Environment</span>
-            <span className="chip chip-success">● Online</span>
-          </div>
-          <div className="mono t-caption" style={{ marginTop: 8, color: 'var(--fg-muted)' }}>local build · ready</div>
+          <span className="t-caption">Environment</span>
+          <span className="chip chip-success">● Online</span>
         </div>
       </div>
     </aside>
