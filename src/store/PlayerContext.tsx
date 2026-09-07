@@ -1,5 +1,6 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { achievementsData } from '../data/achievements';
+import { evaluateAchievement } from '../services/achievementService';
 import { storageService } from '../services/storageService';
 import { calculatePlayerLevel, computeStreak, todayKey } from '../services/xpService';
 import { DayActivity, PlayerStats, Problem, ProblemRecord, Question } from '../types';
@@ -34,7 +35,7 @@ function finalize(s: PlayerStats): PlayerStats {
   next.bestStreak = Math.max(next.bestStreak, next.streak);
   if (!next.firstActiveDate) next.firstActiveDate = todayKey();
   for (let i = 0; i < 3; i++) {
-    const newly = achievementsData.filter(a => !next.unlockedAchievements.includes(a.id) && a.condition(next));
+    const newly = achievementsData.filter(a => !next.unlockedAchievements.includes(a.id) && evaluateAchievement(a, next));
     if (newly.length === 0) break;
     next.unlockedAchievements = [...next.unlockedAchievements, ...newly.map(a => a.id)];
     next.xp += newly.reduce((sum, a) => sum + a.xp, 0);
