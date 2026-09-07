@@ -32,10 +32,10 @@ export default function Curriculum() {
       <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(280px,1fr)', gap: 24, alignItems: 'center' }} className="curr-head">
         <div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-            <Chip tone="success">● Active Track</Chip><span className="label-mono">/ 13 WORLDS · 100 LEVELS</span>
+            <Chip tone="success">● Active Track</Chip><span className="label-mono">/ 10 WORLDS · 100 LEVELS</span>
           </div>
           <h1 className="t-display" style={{ marginBottom: 12 }}>Curriculum Roadmap</h1>
-          <p className="t-body-lg" style={{ maxWidth: 560 }}>Methodical, systems-first engineering roadmap from fundamental architecture up to distributed systems.</p>
+          <p className="t-body-lg" style={{ maxWidth: 560 }}>Methodical, systems-first engineering roadmap from fundamental architecture up to production engineering.</p>
         </div>
         <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, auto)', gap: 24, justifyContent: 'space-between' }}>
           <div><div className="label-mono">OVERALL TRACK</div><div className="t-hmd" style={{ marginTop: 8 }}>{getCompletedLevelCount(stats)} <span className="t-body-sm" style={{ color: 'var(--fg-muted)' }}>/ 100 Levels</span></div></div>
@@ -85,7 +85,10 @@ export default function Curriculum() {
         return (
           <section key={w.id}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
-              <div><span className="label-mono">WORLD {String(w.number).padStart(2, '0')} · LEVELS {w.levelRange[0]}–{w.levelRange[1]}</span><h2 className="t-hmd" style={{ marginTop: 4 }}>{w.title}</h2></div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <span className="chip" style={{ padding: 8 }}><Icon name={w.icon ?? 'explore'} size={16} /></span>
+                <div><span className="label-mono">WORLD {String(w.number).padStart(2, '0')} · LEVELS {w.levelRange[0]}–{w.levelRange[1]}</span><h2 className="t-hmd" style={{ marginTop: 4 }}>{w.title}</h2></div>
+              </div>
               <div style={{ minWidth: 180, flex: '0 1 220px' }}><Progress value={wLevels.filter(l => levelState(l.number) === 'completed').length / wLevels.length * 100} /></div>
             </div>
             <p className="t-body-sm" style={{ marginBottom: 16, maxWidth: 720, color: 'var(--fg-muted)' }}>{w.description}</p>
@@ -129,7 +132,7 @@ export default function Curriculum() {
         <div className="dialog-scrim" onClick={() => setSpecOpen(false)}>
           <div className="dialog" onClick={e => e.stopPropagation()} role="dialog" aria-label="Syllabus specification">
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: 16, borderBottom: '1px solid var(--border-subtle)' }}>
-              <span className="label-mono">SYLLABUS SPEC // 13 WORLDS · 100 LEVELS</span>
+              <span className="label-mono">SYLLABUS SPEC // 10 WORLDS · 100 LEVELS</span>
               <button className="btn btn-ghost btn-sm" onClick={() => setSpecOpen(false)} aria-label="Close"><Icon name="x" size={16} /></button>
             </div>
             <div style={{ padding: 12 }}>
