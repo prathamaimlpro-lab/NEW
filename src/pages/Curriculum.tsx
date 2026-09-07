@@ -116,7 +116,7 @@ export default function Curriculum() {
         );
       })}
 
-      <section className="card" style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0,1fr) auto', gap: 20, alignItems: 'center' }} className="curr-foot">
+      <section className="card curr-foot" style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0,1fr) auto', gap: 20, alignItems: 'center' }}>
         <span className="chip" style={{ padding: 10 }}><Icon name="cpu" size={18} /></span>
         <div>
           <h3 className="t-hsm" style={{ marginBottom: 6 }}>Deterministic Mastery Engine</h3>
