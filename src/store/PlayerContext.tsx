@@ -5,22 +5,25 @@ import { calculatePlayerLevel, computeStreak, todayKey } from '../services/xpSer
 import { DayActivity, PlayerStats, Problem, ProblemRecord, Question } from '../types';
 
 const KEY = 'it_quest_player_v2';
-const emptyDay = (): DayActivity => ({ minutes: 0, problemsSolved: 0, submissions: 0, xpEarned: 0 });
-const emptyRecord = (): ProblemRecord => ({ attempts: 0, solved: false, favourite: false, review: false, notes: '', timeSpent: 0, lastAttempted: null });
+const emptyDay = (): DayActivity => ({ minutes: 0, problemsSolved: 0, submissions: 0, xpEarned: 0, count: 0 });
+const emptyRecord = (): ProblemRecord => ({ attempts: 0, solved: false, solvedDate: null, favourite: false, review: false, mastered: false, confidence: 0, notes: '', scratchCode: '', timeSpent: 0, lastAttempted: null });
 
 const defaults: PlayerStats = {
   xp: 0, level: 1, streak: 0, bestStreak: 0,
   completedLessons: [], completedQuestions: [], unlockedAchievements: [], visitedLessons: [],
-  practice: {}, problems: {}, completedVisualizations: [], activity: {}, firstActiveDate: null,
+  lessonCompletedAt: {}, practice: {}, problems: {}, completedVisualizations: [], activity: {}, firstActiveDate: null,
 };
 
 function migrate(raw: Partial<PlayerStats>): PlayerStats {
-  const base: PlayerStats = { ...defaults, ...raw, problems: raw.problems ?? {}, completedVisualizations: raw.completedVisualizations ?? [] };
+  const base: PlayerStats = { ...defaults, ...raw, lessonCompletedAt: raw.lessonCompletedAt ?? {}, completedVisualizations: raw.completedVisualizations ?? [] };
   const activity: Record<string, DayActivity> = {};
   for (const [k, v] of Object.entries(raw.activity ?? {})) {
-    activity[k] = typeof v === 'number' ? { ...emptyDay(), minutes: v } : (v as DayActivity);
+    activity[k] = typeof v === 'number' ? { ...emptyDay(), minutes: v } : { ...emptyDay(), ...(v as Partial<DayActivity>) };
   }
   base.activity = activity;
+  const problems: Record<string, ProblemRecord> = {};
+  for (const [k, v] of Object.entries(raw.problems ?? {})) problems[k] = { ...emptyRecord(), ...(v as Partial<ProblemRecord>) };
+  base.problems = problems;
   return base;
 }
 
@@ -42,7 +45,7 @@ function finalize(s: PlayerStats): PlayerStats {
 
 const bumpDay = (s: PlayerStats, patch: Partial<DayActivity>): Record<string, DayActivity> => {
   const t = todayKey(); const cur = s.activity[t] ?? emptyDay();
-  return { ...s.activity, [t]: { minutes: cur.minutes + (patch.minutes ?? 0), problemsSolved: cur.problemsSolved + (patch.problemsSolved ?? 0), submissions: cur.submissions + (patch.submissions ?? 0), xpEarned: cur.xpEarned + (patch.xpEarned ?? 0) } };
+  return { ...s.activity, [t]: { minutes: cur.minutes + (patch.minutes ?? 0), problemsSolved: cur.problemsSolved + (patch.problemsSolved ?? 0), submissions: cur.submissions + (patch.submissions ?? 0), xpEarned: cur.xpEarned + (patch.xpEarned ?? 0), count: cur.count + (patch.count ?? 0) } };
 };
 
 interface Ctx {
@@ -53,7 +56,10 @@ interface Ctx {
   solveProblem: (p: Problem, correct: boolean) => void;
   toggleFavourite: (id: string) => void;
   toggleReview: (id: string) => void;
+  toggleMastered: (id: string) => void;
+  setConfidence: (id: string, v: 0 | 1 | 2 | 3) => void;
   setProblemNotes: (id: string, notes: string) => void;
+  setScratchCode: (id: string, code: string) => void;
   completeVisualization: (id: string, xp: number) => void;
   resetProgress: () => void;
 }
@@ -82,13 +88,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       practice: { ...prev.practice, [q.id]: { difficulty: q.difficulty, correct: everCorrect, tries: (rec?.tries ?? 0) + 1 } },
       completedQuestions: everCorrect && !prev.completedQuestions.includes(q.id) ? [...prev.completedQuestions, q.id] : prev.completedQuestions,
       xp: prev.xp + gained,
-      activity: gained ? bumpDay(prev, { xpEarned: gained }) : prev.activity,
+      activity: bumpDay(prev, gained ? { xpEarned: gained, count: 1 } : {}),
     });
   });
 
   const completeLesson = (id: string, xp: number) => setStats(prev => {
     if (prev.completedLessons.includes(id)) return prev;
-    return finalize({ ...prev, completedLessons: [...prev.completedLessons, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp }) });
+    return finalize({ ...prev, completedLessons: [...prev.completedLessons, id], lessonCompletedAt: { ...prev.lessonCompletedAt, [id]: todayKey() }, xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }) });
   });
 
   const solveProblem = (p: Problem, correct: boolean) => setStats(prev => {
@@ -96,9 +102,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const firstSolve = correct && !rec.solved;
     return finalize({
       ...prev,
-      problems: { ...prev.problems, [p.id]: { ...rec, attempts: rec.attempts + 1, solved: rec.solved || correct, lastAttempted: todayKey() } },
+      problems: { ...prev.problems, [p.id]: { ...rec, attempts: rec.attempts + 1, solved: rec.solved || correct, solvedDate: firstSolve ? todayKey() : rec.solvedDate, lastAttempted: todayKey() } },
       xp: prev.xp + (firstSolve ? p.xp : 0),
-      activity: bumpDay(prev, { submissions: 1, problemsSolved: firstSolve ? 1 : 0, xpEarned: firstSolve ? p.xp : 0 }),
+      activity: bumpDay(prev, { submissions: 1, problemsSolved: firstSolve ? 1 : 0, xpEarned: firstSolve ? p.xp : 0, count: firstSolve ? 1 : 0 }),
     });
   });
 
@@ -109,7 +115,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const completeVisualization = (id: string, xp: number) => setStats(prev => {
     if (prev.completedVisualizations.includes(id) || xp === 0) return prev;
-    return finalize({ ...prev, completedVisualizations: [...prev.completedVisualizations, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp }) });
+    return finalize({ ...prev, completedVisualizations: [...prev.completedVisualizations, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }) });
   });
 
   const resetProgress = () => setStats(finalize({ ...defaults }));
@@ -117,9 +123,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   return (
     <PlayerContext.Provider value={{
       stats, visitLesson, answerQuestion, completeLesson, solveProblem, completeVisualization, resetProgress,
-      toggleFavourite: id => patchProblem(id, rec => ({ ...rec, favourite: !rec.favourite })),
-      toggleReview: id => patchProblem(id, rec => ({ ...rec, review: !rec.review })),
-      setProblemNotes: (id, notes) => patchProblem(id, rec => ({ ...rec, notes })),
+      toggleFavourite: id => patchProblem(id, r => ({ ...r, favourite: !r.favourite })),
+      toggleReview: id => patchProblem(id, r => ({ ...r, review: !r.review })),
+      toggleMastered: id => patchProblem(id, r => ({ ...r, mastered: !r.mastered })),
+      setConfidence: (id, v) => patchProblem(id, r => ({ ...r, confidence: v })),
+      setProblemNotes: (id, notes) => patchProblem(id, r => ({ ...r, notes })),
+      setScratchCode: (id, code) => patchProblem(id, r => ({ ...r, scratchCode: code })),
     }}>
       {children}
     </PlayerContext.Provider>
