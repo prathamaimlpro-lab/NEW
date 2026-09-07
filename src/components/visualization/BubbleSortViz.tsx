@@ -10,16 +10,16 @@ import { Chip } from '../common/ui';
 import '../../styles/vizlab.css';
 
 const LEGEND: VizLegendItem[] = [
-  { color: 'var(--warning)', label: 'COMPARING (A & B)', desc: 'The two neighbours being examined right now.' },
-  { color: 'var(--error)', label: 'SWAPPING', desc: 'Out of order — the two values exchange places.' },
+  { color: 'var(--info)', label: 'COMPARING (A & B)', desc: 'The two neighbours being examined right now.' },
+  { color: 'var(--warning)', label: 'SWAPPING', desc: 'Out of order — the two values exchange places.' },
   { color: 'var(--success)', label: 'SORTED (✓)', desc: 'Locked in its final position by a completed pass.' },
-  { color: 'var(--primary)', label: 'UNSORTED', desc: 'Not yet finalized — still part of the working region.' },
+  { color: 'rgba(147, 167, 181, 0.45)', label: 'UNSORTED', desc: 'Not yet finalized — still part of the working region.' },
 ];
 
-const LIVE: Record<string, { label: string; tone: 'default' | 'primary' | 'success' | 'warning' | 'error' }> = {
+const LIVE: Record<string, { label: string; tone: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' }> = {
   initial: { label: 'READY', tone: 'default' },
-  compare: { label: 'COMPARING', tone: 'warning' },
-  swap: { label: 'SWAPPING', tone: 'error' },
+  compare: { label: 'COMPARING', tone: 'info' },
+  swap: { label: 'SWAPPING', tone: 'warning' },
   'no-swap': { label: 'NO SWAP', tone: 'success' },
   'pass-complete': { label: 'PASS COMPLETE', tone: 'primary' },
   sorted: { label: 'SORTED', tone: 'success' },
@@ -66,7 +66,7 @@ export function BubbleSortViz({ onComplete }: { onComplete?: () => void }) {
           <BarArrayRenderer step={viz.current} calm={calm} />
           <div className="vizlab-live" aria-live="polite">
             <Chip tone={live.tone}>{live.label}</Chip>
-            <p className="t-body" style={{ color: 'var(--fg-secondary)' }}>{viz.current.explanation}</p>
+            <p className="t-body" style={{ color: 'var(--fg-1)' }}>{viz.current.explanation}</p>
           </div>
         </div>
 
