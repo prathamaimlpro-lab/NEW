@@ -39,7 +39,7 @@ export function ProblemTracker() {
     if (level !== 'ALL' && p.relatedLevel !== level) return false;
     if (status === 'favourite') return !!rec?.favourite;
     if (status === 'recent') return !!rec?.lastAttempted && (Date.now() - new Date(rec.lastAttempted).getTime()) < 7 * 86400000;
-    if (status !== 'ALL' && status !== 'favourite' && status !== 'recent' && st !== status) return false;
+    if (status !== 'ALL' && st !== status) return false;
     return true;
   });
 
