@@ -1,44 +1,54 @@
-  import { Level, Lesson, World } from '../types';
+import { Level, Lesson, World } from '../types';
 
 const W = (number: number, title: string, description: string, range: [number, number]): World => ({ id: `world-${number}`, number, title, description, levelRange: range });
 
 export const worlds: World[] = [
-  W(1, 'Computer Foundations', 'How machines turn electricity into information: hardware, OS basics and terminal first steps.', [1, 7]),
-  W(2, 'Programming Foundations', 'Control flow, functions, types, recursion and memory-aware thinking across Python and C.', [8, 15]),
-  W(3, 'Linux & Terminal', 'Shell semantics, POSIX streams, permissions, scripting and filesystem fluency.', [16, 22]),
-  W(4, 'Git & GitHub', 'Atomic commits, branching models, merge mechanics and collaborative workflows.', [23, 28]),
-  W(5, 'Data Structures & Algorithms', 'Complexity analysis, arrays to graphs, sorting, searching and dynamic programming.', [29, 38]),
-  W(6, 'Databases & SQL', 'Relational modeling, normalization, indexes, transactions and query planning.', [39, 46]),
-  W(7, 'Operating Systems', 'Processes, threads, scheduling, virtual memory, concurrency and syscalls.', [47, 54]),
-  W(8, 'Computer Networking', 'OSI layers, TCP/TLS, UDP datagrams, HTTP/2–3, routing and sockets.', [55, 62]),
-  W(9, 'Web Development', 'Browser pipeline, DOM, event loop, frameworks, SSR/CSR and hydration.', [63, 72]),
-  W(10, 'Software Engineering', 'Clean boundaries, testing strategy, CI pipelines, reviews and static analysis.', [73, 79]),
-  W(11, 'Cloud & DevOps', 'Containers, orchestration, infrastructure as code, observability and deploys.', [80, 87]),
-  W(12, 'Cybersecurity + AI/ML', 'Threat modeling, cryptography basics, ML fundamentals and model serving.', [88, 94]),
-  W(13, 'System Design + Advanced Engineering', 'Distributed consensus, scaling patterns and production capstone systems.', [95, 100]),
+  W(1, 'Computer Foundations', 'How machines turn electricity into information: hardware, memory, storage, OS basics and troubleshooting.', [1, 10]),
+  W(2, 'Programming Foundations', 'What programming is, languages, variables, types, operators, I/O, conditions, loops, functions and debugging.', [11, 20]),
+  W(3, 'Programming — Intermediate', 'Scope, strings, collections, recursion, error handling, modules and object-oriented programming.', [21, 30]),
+  W(4, 'Linux + Terminal + Dev Tools', 'Linux fundamentals, filesystem, terminal, commands, permissions, processes, scripting and environment setup.', [31, 40]),
+  W(5, 'Git + GitHub + Workflow', 'Version control theory, Git mechanics, branches, merges, remotes and professional GitHub workflows.', [41, 50]),
+  W(6, 'Data Structures', 'Big-O, arrays, linked lists, stacks, queues, hash tables, trees, BSTs, heaps and graphs.', [51, 60]),
+  W(7, 'Algorithms', 'Searching, sorting, two pointers, sliding window, backtracking, divide & conquer, greedy, DP and graph algorithms.', [61, 70]),
+  W(8, 'Databases + SQL', 'Relational modeling, keys, SQL, joins, normalization, transactions, indexes and database projects.', [71, 80]),
+  W(9, 'Systems + Networking + Web', 'OS architecture, threads, memory, scheduling, networking, TCP/UDP/DNS/HTTP and web fundamentals.', [81, 90]),
+  W(10, 'Professional Software Engineering', 'APIs, testing, security, cloud, DevOps, system design, AI foundations and the final capstone.', [91, 100]),
 ];
 
-const LEVEL_META: Record<number, { title: string; description: string; hours: number; lessons: string[] }> = {
-  1: { title: 'What Is a Computer?', description: 'How machines turn raw signals into computation, memory and output.', hours: 3, lessons: ['what-is-a-computer'] },
-  2: { title: 'Bits, Bytes & Binary', description: 'How binary states encode instructions, text and multimedia.', hours: 3, lessons: ['bits-bytes-binary'] },
-  3: { title: 'Operating Systems & The Kernel', description: 'Process management, memory paging and hardware orchestration.', hours: 4, lessons: ['operating-systems-kernel'] },
-  4: { title: 'The Terminal & File Systems', description: 'Shell commands, relative pathing and directory tree navigation.', hours: 4, lessons: ['terminal-file-systems'] },
-  5: { title: 'CPU — How Processors Work', description: 'Caches, pipelines and the arithmetic logic unit.', hours: 4, lessons: [] },
-  6: { title: 'Memory & RAM', description: 'Volatility, addressing and the memory hierarchy.', hours: 3, lessons: [] },
-  7: { title: 'Storage, Files & Paths', description: 'Blocks, filesystems and path resolution.', hours: 3, lessons: [] },
-};
+const T: string[] = [
+  'What Is a Computer?', 'Hardware Fundamentals', 'CPU and How Instructions Execute', 'RAM, ROM and Memory', 'Storage and File Systems',
+  'Files, Folders and Paths', 'Operating System Fundamentals', 'Applications and Processes', 'Input, Output and Peripherals', 'Computer Troubleshooting Fundamentals',
+  'What Is Programming?', 'Programming Languages', 'Variables and Data', 'Data Types', 'Operators',
+  'Input and Output', 'Conditions', 'Loops', 'Functions', 'Debugging Fundamentals',
+  'Scope and Lifetime', 'Strings', 'Arrays / Lists', 'Dictionaries / Maps', 'Sets',
+  'Tuples / Structured Data', 'Recursion', 'Error Handling', 'Modules and Packages', 'Object-Oriented Programming',
+  'Linux Fundamentals', 'Linux Filesystem', 'Terminal Fundamentals', 'Essential Linux Commands', 'Permissions and Ownership',
+  'Processes and Jobs', 'Shell Scripting', 'Environment Variables', 'Package Management', 'Developer Environment Setup',
+  'Why Version Control Exists', 'Git Fundamentals', 'Repository Structure', 'Working Tree and Staging', 'Commits',
+  'Branches', 'Merging', 'Remote Repositories', 'GitHub Workflow', 'Professional Git Workflow',
+  'Complexity and Big-O', 'Arrays', 'Linked Lists', 'Stacks', 'Queues',
+  'Hash Tables', 'Trees', 'Binary Search Trees', 'Heaps and Priority Queues', 'Graphs',
+  'Searching', 'Sorting', 'Two Pointers', 'Sliding Window', 'Recursion and Backtracking',
+  'Divide and Conquer', 'Greedy Algorithms', 'Dynamic Programming', 'Graph Algorithms', 'Advanced Algorithmic Problem Solving',
+  'What Is a Database?', 'Relational Databases', 'Tables, Rows and Columns', 'Primary and Foreign Keys', 'SQL Fundamentals',
+  'Filtering, Sorting and Aggregation', 'JOINs', 'Database Design and Normalization', 'Transactions and Indexes', 'Database Projects',
+  'Operating System Architecture', 'Processes and Threads', 'Memory Management', 'CPU Scheduling', 'Networking Fundamentals',
+  'IP Addresses and Routing', 'TCP, UDP, DNS and HTTP', 'HTML and CSS', 'JavaScript and Browser Fundamentals', 'Full-Stack Web Fundamentals',
+  'Software Engineering Principles', 'APIs and Backend Development', 'Testing and Debugging', 'Security Fundamentals', 'Cloud Computing',
+  'DevOps and CI/CD', 'System Design', 'AI and Machine Learning Foundations', 'Production-Grade Engineering', 'IT QUEST CAPSTONE — Build a Real System',
+];
+
+const LESSON_MAP: Record<number, string[]> = { 1: ['what-is-a-computer'], 2: ['bits-bytes-binary'], 7: ['operating-systems-kernel'], 33: ['terminal-file-systems'] };
 
 export const levels: Level[] = worlds.flatMap(w => {
   const out: Level[] = [];
   for (let n = w.levelRange[0]; n <= w.levelRange[1]; n++) {
-    const m = LEVEL_META[n];
     out.push({
-      id: `level-${n}`, number: n, worldId: w.id,
-      title: m?.title ?? `${w.title} — Stage ${n - w.levelRange[0] + 1}`,
-      description: m?.description ?? 'Structured level in authoring. Lessons publish here after review.',
-      difficulty: n <= 4 ? 'EASY' : n <= 40 ? 'MEDIUM' : 'HARD',
-      estimatedHours: m?.hours ?? 6, status: 'PUBLISHED',
-      prerequisites: n > 1 ? [`level-${n - 1}`] : [], lessons: m?.lessons ?? [], projects: [], xpReward: 50,
+      id: `level-${n}`, number: n, worldId: w.id, title: T[n - 1],
+      description: LESSON_MAP[n] ? 'Published level — lessons available now.' : 'Structured level in authoring. Lessons publish here after review.',
+      difficulty: n <= 20 ? 'EASY' : n <= 60 ? 'MEDIUM' : 'HARD',
+      estimatedHours: n === 100 ? 80 : 5, status: 'PUBLISHED',
+      prerequisites: n > 1 ? [`level-${n - 1}`] : [], lessons: LESSON_MAP[n] ?? [], projects: [], xpReward: 50,
     });
   }
   return out;
@@ -54,7 +64,8 @@ export const lessons: Record<string, Lesson> = {
     id: 'what-is-a-computer', levelId: 'level-1', order: 1, title: 'What is a Computer?', slug: 'what-is-a-computer',
     description: 'Discover how physical silicon chips translate electricity into modern software architectures and interactive user interfaces.',
     objectives: ['Explain the Input → Computation → Output model', 'Distinguish the roles of storage, RAM and CPU'],
-    estimatedMinutes: 12, difficulty: 'EASY', prerequisites: [], xpReward: 10, status: 'PUBLISHED', version: 3, updatedAt: '2026-09-05', visualizationId: 'computer-processing',
+    topics: ['Architecture', 'Hardware'],
+    estimatedMinutes: 12, difficulty: 'EASY', prerequisites: [], xpReward: 10, status: 'PUBLISHED', version: 4, updatedAt: '2026-09-05', visualizationId: 'computer-processing',
     sections: [
       { id: 's1', label: 'FOUNDATIONAL ARCHITECTURE', title: 'Deterministic by Design', blocks: [
         { type: 'paragraph', content: 'At its fundamental essence, a computer is a deterministic machine designed to turn physical reality into information. It receives raw signals (**Input**), carries out mathematical rules upon them (**Computation**), and returns practical results (**Output** or permanent **Storage**).' },
@@ -68,8 +79,7 @@ export const lessons: Record<string, Lesson> = {
       { id: 's3', label: 'TECHNICAL DEPTH', title: 'Why Speed Is Everything', blocks: [
         { type: 'explanation', content: 'The entire architecture above exists to solve one problem: the CPU is millions of times faster than storage. Every layer of the memory hierarchy is a compromise between speed, size, and cost — which is exactly why files are copied into RAM before programs run.' },
         { type: 'table', table: latencyTable }] },
-      { id: 's4', label: 'SUMMARY', title: 'Lesson Summary', blocks: [
-        { type: 'summary', content: 'A computer is a deterministic Input → Computation → Output machine. Storage keeps data permanently but slowly, RAM keeps working data fast, and the CPU only computes on what RAM hands it. Every interaction you make travels this exact path.' }] },
+      { id: 's4', label: 'SUMMARY', title: 'Lesson Summary', blocks: [{ type: 'summary', content: 'A computer is a deterministic Input → Computation → Output machine. Storage keeps data permanently but slowly, RAM keeps working data fast, and the CPU only computes on what RAM hands it. Every interaction you make travels this exact path.' }] },
     ],
     practice: [
       { id: 'wiac-q1', lessonId: 'what-is-a-computer', difficulty: 'EASY', xp: 20, question: 'Why does a computer copy files from persistent Storage into RAM before running them?', hint: 'Think back to the analogy of the Pantry versus the Prep Counter.', options: ['Because storage drives automatically delete files immediately once read to conserve disk capacity.', 'RAM operates thousands of times faster, delivering the nanosecond access speeds needed for the processor to work without waiting.', 'Because CPU arithmetic registers cannot read data files that exceed 1 kilobyte in file size.'], correctAnswer: 'RAM operates thousands of times faster, delivering the nanosecond access speeds needed for the processor to work without waiting.', explanation: 'RAM delivers direct nanosecond bus access, allowing the CPU to execute instructions without stalling. Storage is permanent but ~500× slower.', reference: latencyTable },
@@ -84,8 +94,8 @@ export const lessons: Record<string, Lesson> = {
   'bits-bytes-binary': {
     id: 'bits-bytes-binary', levelId: 'level-2', order: 1, title: 'Bits, Bytes & Binary', slug: 'bits-bytes-binary',
     description: 'How binary states encode complex instructions, text strings, and multimedia.',
-    objectives: ['Define bit and byte', 'Convert small binary values to decimal'],
-    estimatedMinutes: 18, difficulty: 'EASY', prerequisites: ['what-is-a-computer'], xpReward: 10, status: 'PUBLISHED', version: 1, updatedAt: '2026-09-05',
+    objectives: ['Define bit and byte', 'Convert small binary values to decimal'], topics: ['Hardware', 'Binary'],
+    estimatedMinutes: 18, difficulty: 'EASY', prerequisites: ['what-is-a-computer'], xpReward: 10, status: 'PUBLISHED', version: 2, updatedAt: '2026-09-05',
     sections: [
       { id: 's1', label: 'THE ATOM OF INFORMATION', title: 'One Bit, Two States', blocks: [
         { type: 'paragraph', content: 'A **bit** is the smallest unit of information: a single switch that is either 0 or 1. Physically, it is a voltage level — low or high — stored in a transistor.' },
@@ -102,10 +112,10 @@ export const lessons: Record<string, Lesson> = {
     masteryTest: [{ id: 'bbb-m1', lessonId: 'bits-bytes-binary', difficulty: 'EASY', xp: 20, question: 'How many unique patterns can one byte represent?', options: ['8', '64', '256', '1024'], correctAnswer: '256', explanation: '2⁸ = 256 unique combinations.' }],
   },
   'operating-systems-kernel': {
-    id: 'operating-systems-kernel', levelId: 'level-3', order: 1, title: 'Operating Systems & The Kernel', slug: 'operating-systems-kernel',
+    id: 'operating-systems-kernel', levelId: 'level-7', order: 1, title: 'Operating Systems & The Kernel', slug: 'operating-systems-kernel',
     description: 'Process management, memory paging, and hardware orchestration abstractions.',
-    objectives: ['Describe the OS as hardware arbitrator', 'Explain the kernel and system calls'],
-    estimatedMinutes: 25, difficulty: 'MEDIUM', prerequisites: ['bits-bytes-binary'], xpReward: 10, status: 'PUBLISHED', version: 1, updatedAt: '2026-09-05',
+    objectives: ['Describe the OS as hardware arbitrator', 'Explain the kernel and system calls'], topics: ['Operating Systems'],
+    estimatedMinutes: 25, difficulty: 'MEDIUM', prerequisites: ['bits-bytes-binary'], xpReward: 10, status: 'PUBLISHED', version: 2, updatedAt: '2026-09-05',
     sections: [
       { id: 's1', label: 'THE MANAGER', title: 'What the OS Actually Does', blocks: [
         { type: 'paragraph', content: 'The **operating system** is the software layer that arbitrates hardware: it decides which program uses the CPU, where data lives in RAM, and what may touch disks and network cards.' },
@@ -121,10 +131,10 @@ export const lessons: Record<string, Lesson> = {
     masteryTest: [{ id: 'osk-m1', lessonId: 'operating-systems-kernel', difficulty: 'EASY', xp: 20, question: 'Applications talk to the kernel through…', options: ['System calls', 'Magic packets', 'Voltage spikes', 'CSS'], correctAnswer: 'System calls', explanation: 'Syscalls are the controlled interface into kernel space.' }],
   },
   'terminal-file-systems': {
-    id: 'terminal-file-systems', levelId: 'level-4', order: 1, title: 'The Terminal & File Systems', slug: 'terminal-file-systems',
+    id: 'terminal-file-systems', levelId: 'level-33', order: 1, title: 'The Terminal & File Systems', slug: 'terminal-file-systems',
     description: 'Shell commands, relative pathing, and directory tree navigation.',
-    objectives: ['Use core shell commands', 'Reason with absolute and relative paths'],
-    estimatedMinutes: 30, difficulty: 'MEDIUM', prerequisites: ['operating-systems-kernel'], xpReward: 10, status: 'PUBLISHED', version: 1, updatedAt: '2026-09-05',
+    objectives: ['Use core shell commands', 'Reason with absolute and relative paths'], topics: ['Linux', 'Terminal'],
+    estimatedMinutes: 30, difficulty: 'MEDIUM', prerequisites: ['operating-systems-kernel'], xpReward: 10, status: 'PUBLISHED', version: 2, updatedAt: '2026-09-05',
     sections: [
       { id: 's1', label: 'TEXT IS POWER', title: 'Driving the OS With Words', blocks: [
         { type: 'paragraph', content: 'The **terminal** is a text interface to the operating system: you type commands, the shell interprets them, and the kernel executes them.' },
