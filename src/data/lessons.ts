@@ -120,5 +120,27 @@ export const lessons: Record<string, Lesson> = {
     practice: [
       { id: 'osk-q1b', lessonId: 'operating-systems-kernel', difficulty: 'EASY', xp: 20, question: 'The kernel is…', options: ['The always-running core of the OS', 'A type of SSD', 'A browser extension', 'A programming language'], correctAnswer: 'The always-running core of the OS', explanation: 'The kernel stays resident in memory and arbitrates all hardware access.' },
       { id: 'osk-q2', lessonId: 'operating-systems-kernel', difficulty: 'MEDIUM', xp: 40, question: 'Which of these is an operating system?', options: ['Linux', 'Chrome', 'Excel', 'HTTP'], correctAnswer: 'Linux', explanation: 'Linux is a kernel/OS; Chrome and Excel are applications, HTTP is a protocol.' },
-      { id: 'osk-q3b', lessonId: 'operating-systems-kernel', difficulty: 'HARD', xp: 80, question: 'Why do applications never touch hardware directly on a modern OS?', options: ['Safety and fairness: the kernel arbitrates every request.', 'Hardware refuses connections.', 'Apps are too small.', 'It would use more battery only.'], correctAnswer: 'Safety and fairness: the kernel arbitrates every request.', explanation: 'Direct access would let any app corrupt or monopolize hardware; the kernel enforces isolation.' },
+      { id: 'osk-q3b', lessonId: 'operating-systems-kernel', difficulty: 'HARD', xp: 80, question: 'Why do applications never touch hardware directly on a modern OS?', options: ['Safety and fairness: the kernel arbitrates every request.', 'Hardware refuses connections.', 'Apps are too small.', 'It would only use more battery.'], correctAnswer: 'Safety and fairness: the kernel arbitrates every request.', explanation: 'Direct access would let any app corrupt or monopolize hardware; the kernel enforces isolation.' },
     ],
+    masteryTest: [{ id: 'osk-m1b', lessonId: 'operating-systems-kernel', difficulty: 'EASY', xp: 20, question: 'Virtual memory gives each process…', options: ['Its own address space view', 'A second CPU', 'Permanent storage', 'Faster network'], correctAnswer: 'Its own address space view', explanation: 'Virtual memory isolates processes and maps their views onto physical RAM.' }],
+  },
+  'terminal-file-systems': {
+    id: 'terminal-file-systems', levelId: 'level-33', order: 1, title: 'The Terminal & File Systems', slug: 'terminal-file-systems',
+    description: 'Shell commands, relative pathing, and directory tree navigation.',
+    objectives: ['Use core shell commands', 'Reason with absolute and relative paths'], topics: ['Linux', 'Terminal'],
+    estimatedMinutes: 30, difficulty: 'MEDIUM', prerequisites: ['operating-systems-kernel'], xpReward: 10, status: 'PUBLISHED', version: 2, updatedAt: '2026-09-05',
+    sections: [
+      { id: 's1', label: 'TEXT IS POWER', title: 'Driving the OS With Words', blocks: [
+        { type: 'paragraph', content: 'The **terminal** is a text interface to the operating system: you type commands, the shell interprets them, and the kernel executes them.' },
+        { type: 'code', language: 'bash', title: 'shell-session', content: '$ pwd\n/home/quest\n$ ls\ndocs  projects  notes.md\n$ cd docs\n$ ls\nlesson-01.txt' },
+        { type: 'explanation', content: 'Files live in a **tree**. An absolute path starts at the root (`/home/quest/docs`); a relative path starts where you stand (`cd ..` moves up one level).' }] },
+      { id: 's2', label: 'SUMMARY', title: 'Lesson Summary', blocks: [{ type: 'summary', content: 'The terminal turns text into OS actions; the file system organizes data as a tree navigated with absolute and relative paths.' }] },
+    ],
+    practice: [
+      { id: 'tfs-q1', lessonId: 'terminal-file-systems', difficulty: 'EASY', xp: 20, question: 'Which command lists the files in the current directory?', options: ['cd', 'ls', 'pwd', 'rm'], correctAnswer: 'ls', explanation: '`ls` lists directory contents.' },
+      { id: 'tfs-q2', lessonId: 'terminal-file-systems', difficulty: 'MEDIUM', xp: 40, question: 'What does `cd ..` do?', options: ['Deletes a directory', 'Moves up one directory level', 'Copies the current directory', 'Moves to the home directory'], correctAnswer: 'Moves up one directory level', explanation: '`..` is the parent directory in the tree.' },
+      { id: 'tfs-q3', lessonId: 'terminal-file-systems', difficulty: 'HARD', xp: 80, question: 'You are in `/home/quest/docs`. Which relative path reaches `/home/quest/projects`?', options: ['../projects', './docs/projects', '/projects', 'cd projects'], correctAnswer: '../projects', explanation: 'Up one level to `/home/quest`, then down into `projects`.' },
+    ],
+    masteryTest: [{ id: 'tfs-m1', lessonId: 'terminal-file-systems', difficulty: 'EASY', xp: 20, question: 'Which command prints your current directory?', options: ['pwd', 'ls', 'cat', 'mv'], correctAnswer: 'pwd', explanation: '`pwd` = print working directory.' }],
+  },
+};
