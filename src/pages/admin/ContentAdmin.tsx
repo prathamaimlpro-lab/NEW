@@ -18,7 +18,7 @@ export default function ContentAdmin() {
   const levelLessons = levelSel ? (lessons[levelSel]?.levelId === levelSel ? Object.values(lessons).filter(x => x.levelId === levelSel) : []) : [];
 
   const addWorld = () => { const n = worlds.length + 1; admin.createWorld({ id: `world-${Date.now()}`, number: n, title: 'New World', description: '', levelRange: [1, 10], icon: 'explore' } as World); };
-  const addLevel = () => admin.createLevel({ id: `level-${Date.now()}`, number: (worldLevels.at(-1)?.number ?? 0) + 1, worldId: worldSel, title: 'New Level', description: '', difficulty: 'EASY', estimatedHours: 5, status: 'PUBLISHED', prerequisites: [], lessons: [], projects: [], xpReward: 50 } as Level);
+  const addLevel = () => admin.createLevel({ id: `level-${Date.now()}`, number: (worldLevels.length ? worldLevels[worldLevels.length - 1].number : 0) + 1, worldId: worldSel, title: 'New Level', description: '', difficulty: 'EASY', estimatedHours: 5, status: 'PUBLISHED', prerequisites: [], lessons: [], projects: [], xpReward: 50 } as Level);
 
   return (
     <>
