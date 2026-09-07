@@ -1,4 +1,5 @@
 import { ComponentType } from 'react';
+import { getVizXp } from '../../services/contentStore';
 import { ComplexityInfo, Difficulty, VizCategory } from '../../types';
 import { EmptyState } from '../common/ui';
 import { BubbleSortViz } from './BubbleSortViz';
@@ -18,9 +19,9 @@ export function listVisualizations() { return [...registry.values()]; }
 
 export function VisualizationRenderer({ id, onCompleted }: { id: string; onCompleted?: (id: string, xp: number) => void }) {
   const def = registry.get(id);
-  if (!def) return <EmptyState icon="explore" title="Visualization unavailable" message="This visualization is not registered yet. New visualizations register here without engine changes." />;
-  return <def.Component onComplete={onCompleted ? () => onCompleted(def.id, def.xpReward) : undefined} />;
+  if (!def) return <EmptyState icon="explore" title="Visualization unavailable" message="This visualization is not registered yet." />;
+  return <def.Component onComplete={onCompleted ? () => onCompleted(def.id, getVizXp(def.id, def.xpReward)) : undefined} />;
 }
 
 registerVisualization({ id: 'computer-processing', title: 'How a Computer Processes a Task', category: 'CPU', topic: 'Computer Workflow', description: 'Follow a user action through OS, storage, RAM, CPU and output.', difficulty: 'EASY', controls: ['Prev', 'Next', 'Autoplay'], xpReward: 10, Component: ComputerProcessingViz });
-registerVisualization({ id: 'bubble-sort', title: 'Bubble Sort', category: 'Algorithm', topic: 'Sorting', description: 'Watch adjacent comparisons and swaps move values into order, step by step.', difficulty: 'MEDIUM', controls: ['Play', 'Pause', 'Step', 'Reset', 'Randomize', 'Speed', 'Direction'], complexity: { time: 'O(n²)', space: 'O(1)' }, legend: [{ color: 'var(--primary)', label: 'Unsorted' }, { color: 'var(--warning)', label: 'Comparing' }, { color: 'var(--error)', label: 'Swapping' }, { color: 'var(--success)', label: 'Sorted' }], xpReward: 15, Component: BubbleSortViz });
+registerVisualization({ id: 'bubble-sort', title: 'Bubble Sort', category: 'Algorithm', topic: 'Sorting', description: 'Watch adjacent comparisons and swaps move values into order, step by step.', difficulty: 'MEDIUM', controls: ['Play', 'Pause', 'Step', 'Back', 'Reset', 'Randomize', 'Speed', 'Size'], complexity: { time: 'O(n²)', space: 'O(1)' }, legend: [{ color: 'var(--info)', label: 'Comparing' }, { color: 'var(--warning)', label: 'Swapping' }, { color: 'var(--success)', label: 'Sorted' }, { color: 'rgba(147, 167, 181, 0.45)', label: 'Unsorted' }], xpReward: 15, Component: BubbleSortViz });
