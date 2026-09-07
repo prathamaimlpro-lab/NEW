@@ -16,7 +16,7 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
         switch (b.type) {
           case 'heading': return <h3 key={i} className="t-hsm">{b.content}</h3>;
           case 'paragraph': return <p key={i} className="t-body-lg">{inline(b.content ?? '')}</p>;
-          case 'explanation': return <p key={i} className="t-body-lg" style={{ color: 'var(--fg-primary)' }}>{inline(b.content ?? '')}</p>;
+          case 'explanation': return <p key={i} className="t-body-lg" style={{ color: 'var(--fg-0)' }}>{inline(b.content ?? '')}</p>;
           case 'why':
             return (
               <div key={i} className="card" style={{ borderLeft: '2px solid var(--info)' }}>
@@ -41,10 +41,10 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
           case 'objective':
             return (
               <div key={i} className="card">
-                <div className="label-mono" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, color: 'var(--fg-secondary)' }}>
+                <div className="label-mono" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, color: 'var(--fg-1)' }}>
                   <Icon name="flag" size={14} /> LESSON OBJECTIVE
                 </div>
-                <p className="t-body-lg" style={{ color: 'var(--fg-secondary)' }}>{b.content}</p>
+                <p className="t-body-lg" style={{ color: 'var(--fg-1)' }}>{b.content}</p>
               </div>
             );
           case 'analogyCards':
@@ -52,11 +52,11 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
               <div key={i} className="grid-3">
                 {(b.items ?? []).map(item => (
                   <div key={item.title} className="card" style={{ padding: 20 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, color: 'var(--fg-muted)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, color: 'var(--fg-2)' }}>
                       <Icon name={item.icon} size={18} />
                       <span className="label-mono">{item.tag}</span>
                     </div>
-                    <div className="t-body" style={{ color: 'var(--fg-primary)', fontWeight: 600, marginBottom: 6 }}>{item.title}</div>
+                    <div className="t-body" style={{ color: 'var(--fg-0)', fontWeight: 600, marginBottom: 6 }}>{item.title}</div>
                     <p className="t-body-sm">{item.description}</p>
                   </div>
                 ))}
@@ -87,13 +87,15 @@ export function ContentRenderer({ blocks }: { blocks: ContentBlock[] }) {
                 </div>
               </div>
             );
+          case 'image': return <img key={i} src={b.url} alt={b.alt ?? ''} style={{ maxWidth: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border-subtle)' }} />;
+          case 'video': return <video key={i} src={b.url} controls style={{ maxWidth: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border-subtle)' }} />;
           case 'visualization':
             return <VisualizationRenderer key={i} id={b.vizType ?? ''} onCompleted={(id, xp) => completeVisualization(id, xp)} />;
           case 'summary':
             return (
               <div key={i} className="card" style={{ borderLeft: '2px solid var(--success)' }}>
                 <div className="label-mono" style={{ color: 'var(--success)', marginBottom: 8 }}>SUMMARY</div>
-                <p className="t-body-lg" style={{ color: 'var(--fg-primary)' }}>{b.content}</p>
+                <p className="t-body-lg" style={{ color: 'var(--fg-0)' }}>{b.content}</p>
               </div>
             );
           default: return null;
