@@ -33,7 +33,7 @@ export default function LessonEditor() {
     <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span className="label-mono">{label}</span>
-        <div style={{ display: 'flex', gap: 6 }}>{DIFFS.map(d => <button key={d.value} className="btn btn-ghost btn-sm" onClick={() => addQuestion(kind, d as Difficulty)}>+ {d.label}</button>)}</div>
+        <div style={{ display: 'flex', gap: 6 }}>{DIFFS.map(d => <button key={d.value} className="btn btn-ghost btn-sm" onClick={() => addQuestion(kind, d.value as Difficulty)}>+ {d.label}</button>)}</div>
       </div>
       {draft[kind].map((q, qi) => (
         <div key={q.id} style={{ border: '1px solid var(--border-subtle)', borderRadius: 8, padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
