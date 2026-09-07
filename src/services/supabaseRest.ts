@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 const URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? '';
 const KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? '';
 
