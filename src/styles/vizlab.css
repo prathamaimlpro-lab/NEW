@@ -1,4 +1,4 @@
-/* ============ VISUALIZATION LAB WORKSPACE ============ */
+/* ============ VISUALIZATION LAB — GLASS WORKSPACE ============ */
 .vizlab-root { display: flex; flex-direction: column; gap: 16px; }
 .vizlab-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .vizlab { display: grid; gap: 16px; grid-template-columns: 1fr; }
@@ -6,18 +6,17 @@
 .vizlab-controls { order: 2; }
 .vizlab-inspector { order: 3; }
 @media (min-width: 1024px) {
-  .vizlab { grid-template-columns: 250px minmax(0, 1fr) 290px; align-items: start; }
+  .vizlab { grid-template-columns: 252px minmax(0, 1fr) 292px; align-items: start; }
   .vizlab-controls { order: 1; }
   .vizlab-canvas-wrap { order: 2; }
   .vizlab-inspector { order: 3; }
 }
-.vizlab-panel { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.vizlab-panel { border-radius: 24px; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
 .vizlab-section { display: flex; flex-direction: column; gap: 10px; }
-.vizlab-live { display: flex; gap: 10px; align-items: flex-start; background: var(--elevated); border: 1px solid var(--border-subtle); border-radius: var(--r-md); padding: 12px; }
-.vizlab .viz-stage { height: clamp(240px, 42vh, 420px); }
+.vizlab-live { display: flex; gap: 10px; align-items: flex-start; background: rgba(255, 255, 255, .07); border: 1px solid var(--border-soft); border-radius: 16px; padding: 12px 14px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.vizlab .viz-stage { height: clamp(240px, 42vh, 430px); }
 .viz-canvas { padding: 14px 8px 10px; }
-.viz-canvas .viz-bar { width: min(calc(100% - 10px), 64px); }
-.vizlab-focus { position: fixed; inset: 0; z-index: 80; background: var(--canvas); overflow: auto; padding: 16px; }
+.vizlab-focus { position: fixed; inset: 0; z-index: 80; background: rgba(27, 31, 34, .92); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); overflow: auto; padding: 18px; }
 .vizlab-focus .vizlab-root { max-width: 1600px; margin: 0 auto; }
 .vizlab-focus .viz-stage { height: clamp(280px, 52vh, 560px); }
 .vizlab-legend-row { display: flex; gap: 10px; align-items: flex-start; }
