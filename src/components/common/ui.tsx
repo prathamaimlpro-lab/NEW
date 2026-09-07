@@ -49,13 +49,13 @@ export const ActivityHeatmap = memo(function ActivityHeatmap({ activity }: { act
   const days: { key: string; v: number }[] = [];
   for (let i = total - 1; i >= 0; i--) {
     const d = new Date(end); d.setDate(d.getDate() - i);
-    const key = todayKey(d); const a = activity[key];
-    days.push({ key, v: a ? a.xpEarned + a.minutes : 0 });
+    const key = todayKey(d);
+    days.push({ key, v: activity[key]?.count ?? 0 });
   }
-  const color = (v: number) => v <= 0 ? 'var(--elevated)' : v < 20 ? 'rgba(79,70,229,.35)' : v < 50 ? 'rgba(79,70,229,.6)' : v < 100 ? 'rgba(99,102,241,.85)' : '#818cf8';
+  const color = (v: number) => v <= 0 ? 'var(--elevated)' : v <= 2 ? 'rgba(79,70,229,.35)' : v <= 5 ? 'rgba(79,70,229,.6)' : v <= 10 ? 'rgba(99,102,241,.85)' : '#818cf8';
   return (
     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${weeks}, 12px)`, gridTemplateRows: 'repeat(7, 12px)', gridAutoFlow: 'column', gap: 3 }}>
-      {days.map(d => <div key={d.key} title={d.key} style={{ width: 12, height: 12, borderRadius: 3, background: color(d.v) }} />)}
+      {days.map(d => <div key={d.key} title={`${d.key} — ${d.v} activities`} style={{ width: 12, height: 12, borderRadius: 3, background: color(d.v) }} />)}
     </div>
   );
 });
