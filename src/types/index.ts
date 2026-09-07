@@ -3,7 +3,7 @@ export type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface AnalogyItem { icon: string; tag: string; title: string; description: string }
 export interface TableBlock { title?: string; columns: string[]; rows: string[][] }
-export type BlockType = 'heading' | 'paragraph' | 'explanation' | 'objective' | 'analogy' | 'analogyCards' | 'callout' | 'tip' | 'warning' | 'code' | 'table' | 'visualization' | 'summary';
+export type BlockType = 'heading' | 'paragraph' | 'explanation' | 'objective' | 'why' | 'example' | 'analogy' | 'analogyCards' | 'callout' | 'tip' | 'warning' | 'code' | 'table' | 'visualization' | 'summary';
 export interface ContentBlock { type: BlockType; content?: string; title?: string; language?: string; vizType?: string; items?: AnalogyItem[]; table?: TableBlock }
 export interface Question { id: string; lessonId: string; question: string; hint?: string; difficulty: Difficulty; options: string[]; correctAnswer: string; explanation: string; xp: number; reference?: TableBlock }
 export interface LessonSection { id: string; label?: string; title?: string; blocks: ContentBlock[] }
@@ -16,11 +16,12 @@ export interface Lesson {
   status: ContentStatus; version: number; updatedAt: string;
 }
 
-export interface World { id: string; number: number; title: string; description: string; levelRange: [number, number] }
+export interface World { id: string; number: number; title: string; description: string; levelRange: [number, number]; icon?: string }
 export interface Level {
   id: string; number: number; worldId: string; title: string; description: string;
   difficulty: Difficulty; estimatedHours: number; status: ContentStatus;
   prerequisites: string[]; lessons: string[]; projects: string[]; xpReward: number;
+  concepts?: string[]; project?: string; masteryRequirement?: string; revision?: string;
 }
 
 export interface ProblemExample { input: string; output: string; note?: string }
