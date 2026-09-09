@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DSection, EmptyNote, HBar, StatMetric } from '../components/dashboard/blocks';
 import { BarBucket, ChartFrame, HeatDay, LearningHeatmap, StackedBarChart } from '../components/dashboard/charts';
+import { SkillMap } from '../components/dashboard/SkillMap';
 import { Icon } from '../components/common/Icon';
 import { listVisualizations } from '../components/visualization/registry';
 import { levels, worlds } from '../data/curriculum';
@@ -10,8 +11,9 @@ import { problems } from '../data/problems';
 import { projects } from '../data/projects';
 import { getSession } from '../services/authService';
 import { getSettings } from '../services/contentStore';
-import { getTopicCompletion, hasMasteryHistory } from '../services/masteryService';
+import { getMasteryBreakdown, hasMasteryHistory } from '../services/masteryService';
 import { getLevel, getLessonProgress, getLevelProgress, getNextLesson, getRevisionDue, getWorld, isLevelCompleted, isLevelUnlocked, publishedLessons } from '../services/progressService';
+import { buildSkillGraph, recommendFromMastery } from '../services/skillService';
 import { getCodingStats, getTopicMastery } from '../services/statsService';
 import { todayKey } from '../services/xpService';
 import { usePlayer } from '../store/PlayerContext';
@@ -64,7 +66,9 @@ export default function Home() {
   const todayMin = stats.activity[todayKey()]?.minutes ?? 0;
 
   const mastery = useMemo(() => getTopicMastery(stats).filter(t => t.activity > 0).slice(0, 6), [stats]);
-  const completion = useMemo(() => getTopicCompletion(stats).slice(0, 6), [stats]);
+  const breakdown = useMemo(() => getMasteryBreakdown(stats), [stats]);
+  const graph = useMemo(() => buildSkillGraph(stats), [stats]);
+  const recommendation = useMemo(() => recommendFromMastery(stats, graph), [stats, graph]);
   const coding = getCodingStats(stats);
 
   const buckets = useMemo(() => buildBuckets(stats.activity, stats.lessonCompletedAt, range), [stats.activity, stats.lessonCompletedAt, range]);
@@ -129,9 +133,11 @@ export default function Home() {
       ? { label: `Start Level ${level?.number}: ${next.title}`, desc: 'Your first lesson — beginner-friendly, no prerequisites.', to: `/learn/lesson/${next.id}` }
       : revision
         ? { label: `Revision due: ${revision.title}`, desc: 'Spaced revision keeps mastery stable.', to: revision.kind === 'lesson' ? `/learn/lesson/${revision.id}` : `/practice/problems/${revision.id}` }
-        : (stats.activity[todayKey()]?.count ?? 0) === 0
-          ? { label: "Complete today's practice", desc: 'No learning activity recorded today yet.', to: '/practice' }
-          : { label: `Continue ${next.title}`, desc: `Lesson ${idx} of ${levelList.length} · ${prog}% complete.`, to: `/learn/lesson/${next.id}` };
+        : recommendation
+          ? { label: recommendation.label, desc: recommendation.detail, to: recommendation.to }
+          : (stats.activity[todayKey()]?.count ?? 0) === 0
+            ? { label: "Complete today's practice", desc: 'No learning activity recorded today yet.', to: '/practice' }
+            : { label: `Continue ${next.title}`, desc: `Lesson ${idx} of ${levelList.length} · ${prog}% complete.`, to: `/learn/lesson/${next.id}` };
 
   const levelState = (l: Level): 'completed' | 'current' | 'available' | 'locked' => {
     if (isLevelCompleted(stats, l)) return 'completed';
@@ -190,10 +196,17 @@ export default function Home() {
           <Link className="btn btn-secondary" to={action.to}>Open</Link>
         </DSection>
 
-        <DSection className="dc-journey" title={`CURRICULUM · LEVEL ${next ? level?.number : levelsCompleted} / ${levels.length} · WORLD ${world?.number ?? worlds.length} / ${worlds.length}`} action={<Link className="t-caption" style={{ color: 'var(--d-blue)' }} to="/learn">Curriculum →</Link>}>
+        <DSection className="dc-journey" title={`LEARNING JOURNEY · LEVEL ${next ? level?.number : levelsCompleted} / ${levels.length} · WORLD ${world?.number ?? worlds.length} / ${worlds.length}`} action={<Link className="t-caption" style={{ color: 'var(--d-blue)' }} to="/learn">Curriculum →</Link>}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 10 }} className="t-caption">
+            <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--d-muted)' }}><span className="pip pip-completed" style={{ width: 10, height: 10 }} /> completed</span>
+            <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--d-muted)' }}><span className="pip pip-current" style={{ width: 10, height: 10 }} /> current</span>
+            <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--d-muted)' }}><span className="pip pip-available" style={{ width: 10, height: 10 }} /> available</span>
+            <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--d-muted)' }}><span className="pip pip-locked" style={{ width: 10, height: 10 }} /> locked</span>
+            <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--d-muted)' }}><span className="pip pip-milestone" style={{ width: 10, height: 10 }} /> milestone (every 10)</span>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 14 }}>
             <StatMetric label="COMPLETED" value={levelsCompleted} unit="levels" />
-            <StatMetric label="CURRENT" value={next ? level?.number ?? 0 : levelsCompleted} unit={`L`} />
+            <StatMetric label="CURRENT" value={next ? level?.number ?? 0 : levelsCompleted} unit="L" />
             <StatMetric label="WORLD" value={world?.number ?? worlds.length} unit={`/ ${worlds.length}`} />
             <StatMetric label="OVERALL" value={overallPct} unit="%" tone={overallPct > 0 ? 'var(--d-green)' : undefined} />
           </div>
@@ -209,7 +222,7 @@ export default function Home() {
                 <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   {wl.map(l => {
                     const st = levelState(l);
-                    return <Link key={l.id} to={`/learn/level/${l.id}`} className={`pip pip-${st}`} title={`Level ${l.number}: ${l.title} (${st})`} aria-label={`Level ${l.number} ${st}`} />;
+                    return <Link key={l.id} to={`/learn/level/${l.id}`} className={`pip pip-${st} ${l.number % 10 === 0 ? 'pip-milestone' : ''}`} title={`Level ${l.number}: ${l.title} (${st})`} aria-label={`Level ${l.number} ${st}`} />;
                   })}
                 </div>
                 <span className="mono t-caption" style={{ color: 'var(--d-fg2)', textAlign: 'right' }}>{Math.round((done / wl.length) * 100)}%</span>
@@ -221,12 +234,27 @@ export default function Home() {
         <DSection className="dc-mastery" title="MASTERY vs COMPLETION">
           {mastery.length === 0 ? <EmptyNote>Not enough data yet. Mastery is computed from completed lessons, correct checks and solved problems.</EmptyNote> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {mastery.map(t => {
-                const c = completion.find(x => x.topic === t.topic);
-                return <HBar key={t.topic} label={t.topic} value={t.pct} tone={t.pct >= 70 ? 'var(--d-green)' : t.pct >= 40 ? 'var(--d-blue)' : 'var(--d-orange)'} caption={`completion ${c?.pct ?? 0}%`} />;
-              })}
-              {!hasMasteryHistory() && <p className="t-caption" style={{ color: 'var(--d-muted)' }}>Mastery history not recorded yet — trend deltas appear once snapshots exist.</p>}
+              {mastery.map(t => <HBar key={t.topic} label={t.topic} value={t.pct} tone={t.pct >= 75 ? 'var(--d-green)' : t.pct >= 50 ? 'var(--d-blue)' : 'var(--d-orange)'} />)}
+              {!hasMasteryHistory() && <p className="t-caption" style={{ color: 'var(--d-muted)' }}>Mastery trend will appear as you build learning history.</p>}
             </div>
+          )}
+        </DSection>
+
+        <DSection className="dc-skill" title="SKILL MAP · CONCEPT RELATIONSHIPS" action={<span className="t-caption" style={{ color: 'var(--d-muted)' }}>tap a concept</span>}>
+          <SkillMap graph={graph} />
+        </DSection>
+
+        <DSection className="dc-insight" title="MASTERY INTELLIGENCE">
+          {breakdown.strongest.length === 0 && breakdown.attention.length === 0 ? (
+            <EmptyNote>Build more learning history to unlock mastery insights.</EmptyNote>
+          ) : (
+            <>
+              <div className="dsec" style={{ marginBottom: 8 }}>STRONGEST</div>
+              {breakdown.strongest.length === 0 ? <EmptyNote>No strong concepts yet.</EmptyNote> : breakdown.strongest.map(t => <HBar key={t.topic} label={t.topic} value={t.pct} tone="var(--d-green)" />)}
+              <div className="dsec" style={{ margin: '14px 0 8px' }}>NEEDS ATTENTION</div>
+              {breakdown.attention.length === 0 ? <p className="t-caption" style={{ color: 'var(--d-muted)' }}>No weak concepts detected in your current history.</p> : breakdown.attention.map(t => <HBar key={t.topic} label={t.topic} value={t.pct} tone="var(--d-orange)" />)}
+              <p className="t-caption" style={{ marginTop: 14, color: 'var(--d-muted)' }}>Mastery trend will appear as you build learning history.</p>
+            </>
           )}
         </DSection>
 
@@ -234,7 +262,7 @@ export default function Home() {
           <div className="drange">{(['7D', '30D', '90D', '1Y'] as Range[]).map(r => <button key={r} type="button" className={range === r ? 'on' : ''} onClick={() => setRange(r)} aria-pressed={range === r}>{r}</button>)}</div>
         }>
           <ChartFrame status={activityStatus} emptyMessage="No activity in this range yet. Lessons and practice you complete will populate this chart." onRetry={retrySync} minHeight={140}>
-            <StackedBarChart buckets={buckets} height={120} ariaLabel={`Learning activity per ${range === '7D' ? 'day' : 'period'}, ${range}`} />
+            <StackedBarChart buckets={buckets} height={120} ariaLabel={`Learning activity per period, ${range}`} />
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 14 }}>
               <StatMetric label="EVENTS" value={rangeEvents} sub={range} />
               <StatMetric label="MINUTES" value={rangeMinutes} sub={range} />
@@ -267,47 +295,4 @@ export default function Home() {
 
         <DSection className="dc-heat" title="LEARNING HEATMAP · 16 WEEKS">
           <ChartFrame status={syncState === 'loading' ? 'loading' : heatTotal === 0 ? 'empty' : 'success'} emptyMessage="No learning history yet. Every lesson, practice session and visualization you complete adds real activity here." onRetry={retrySync} minHeight={120}>
-            <LearningHeatmap days={heatDays} selected={selDay?.date ?? null} onSelect={setSelDay} />
-            {selDay && <p className="t-caption" style={{ color: 'var(--d-fg2)', marginTop: 8 }}><span className="mono" style={{ color: 'var(--d-fg)' }}>{selDay.date}</span> — {selDay.value} {selDay.value === 1 ? 'activity' : 'activities'}</p>}
-          </ChartFrame>
-        </DSection>
-
-        <DSection className="dc-timeline" title="ACTIVITY TIMELINE">
-          {timeline.length === 0 ? <EmptyNote>No events yet. Complete a lesson or solve a problem to start your timeline.</EmptyNote> : timeline.map((e, i) => (
-            <div key={i} className="drow" style={{ alignItems: 'flex-start' }}>
-              <div style={{ minWidth: 0 }}>
-                <div className="t-body-sm" style={{ color: 'var(--d-fg)' }}>{e.title}</div>
-                <div className="dsec" style={{ marginTop: 2 }}>{e.kind}</div>
-              </div>
-              <span className="mono t-caption" style={{ color: 'var(--d-muted)' }}>{e.date}</span>
-            </div>
-          ))}
-        </DSection>
-
-        <DSection className="dc-projects" title="PROJECTS">
-          {pubProjects.length === 0 ? <EmptyNote>No projects published yet.</EmptyNote> : pubProjects.map(p => {
-            const doneP = stats.completedProjects.includes(p.id);
-            const relLevel = levels.find(l => l.id === p.levelId);
-            return (
-              <div key={p.id} className="drow" style={{ alignItems: 'flex-start' }}>
-                <div style={{ minWidth: 0 }}>
-                  <div className="t-body-sm" style={{ color: 'var(--d-fg)' }}>{p.title}</div>
-                  <div className="t-caption" style={{ color: 'var(--d-muted)', marginTop: 2 }}>
-                    {relLevel ? `Level ${relLevel.number} · ` : ''}{p.difficulty.toLowerCase()} · next: {p.requirements[0] ?? '—'}
-                  </div>
-                </div>
-                <span className={`chip ${doneP ? 'chip-success' : 'chip-info'}`}>{doneP ? 'DONE' : `+${p.xp} XP`}</span>
-              </div>
-            );
-          })}
-        </DSection>
-
-        <DSection className="dc-viz" title="VISUALIZATION PROGRESS" action={<Link className="t-caption" style={{ color: 'var(--d-blue)' }} to="/explore">Lab →</Link>}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 10 }}>
-            <StatMetric label="COMPLETED" value={stats.completedVisualizations.length} unit={`/ ${viz.length}`} />
-            <StatMetric label="AVAILABLE" value={viz.length} unit="engines" />
-          </div>
-          {viz.map(v => (
-            <div key={v.id} className="drow">
-              <div style={{ minWidth: 0 }}>
-                <div className="t-body-sm" style={{ color: 'var(--d-fg)' }}>{v.title}
+            <LearningHeatmap days={heatDays} selec
