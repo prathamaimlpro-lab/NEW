@@ -41,11 +41,14 @@
 .pip-current { background: var(--d-blue); border-color: var(--d-blue); box-shadow: 0 0 0 2px rgba(56,189,248,.25); }
 .pip-available { background: var(--d-elevated); }
 .pip-locked { opacity: .35; }
+.pip-milestone { outline: 1px solid rgba(255, 255, 255, .35); outline-offset: 1px; }
 
 .dc-continue { grid-column: span 8; }
 .dc-next { grid-column: span 4; }
 .dc-journey { grid-column: span 8; }
 .dc-mastery { grid-column: span 4; }
+.dc-skill { grid-column: span 8; }
+.dc-insight { grid-column: span 4; }
 .dc-activity { grid-column: span 8; }
 .dc-practice { grid-column: span 4; }
 .dc-heat { grid-column: span 8; }
@@ -53,8 +56,8 @@
 .dc-projects { grid-column: span 6; }
 .dc-viz { grid-column: span 6; }
 @media (max-width: 1279px) {
-  .dc-continue, .dc-journey, .dc-activity, .dc-heat { grid-column: span 12; }
-  .dc-next, .dc-mastery, .dc-practice, .dc-timeline, .dc-projects, .dc-viz { grid-column: span 6; }
+  .dc-continue, .dc-journey, .dc-skill, .dc-activity, .dc-heat { grid-column: span 12; }
+  .dc-next, .dc-mastery, .dc-insight, .dc-practice, .dc-timeline, .dc-projects, .dc-viz { grid-column: span 6; }
 }
 @media (max-width: 767px) {
   .dash-grid > * { grid-column: span 12 !important; }
@@ -69,7 +72,6 @@
 .drow:first-of-type { border-top: none; }
 .dchart { display: flex; align-items: flex-end; gap: 3px; }
 
-/* charts */
 .dbar-col { flex: 1; border: none; background: transparent; padding: 0; margin: 0; cursor: pointer; min-width: 0; border-radius: 4px; }
 .dbar-col.on { background: rgba(255, 255, 255, .05); }
 .dtooltip { position: absolute; top: 0; left: 8px; z-index: 6; pointer-events: none; background: var(--d-elevated); border: 1px solid var(--d-border); border-radius: 8px; padding: 8px 10px; min-width: 150px; box-shadow: 0 8px 16px -4px rgba(0, 0, 0, .5); }
@@ -81,3 +83,15 @@
 .dheat-2 { background: rgba(56, 189, 248, .55); border-color: transparent; }
 .dheat-3 { background: #38BDF8; border-color: transparent; }
 .dheat.sel { outline: 1px solid var(--d-fg); outline-offset: 1px; }
+
+/* skill map */
+.dmap { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
+.dmap-col { min-width: 176px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 6px; scroll-snap-align: start; }
+.dnode { display: flex; justify-content: space-between; gap: 8px; align-items: center; width: 100%; padding: 9px 10px; border: 1px solid var(--d-border); border-radius: 8px; background: var(--d-elevated); color: var(--d-fg2); font-size: 13px; cursor: pointer; transition: border-color .15s ease, background .15s ease, opacity .15s ease; }
+.dnode:hover { border-color: var(--d-fg3, #39404d); background: #1f242c; }
+.dnode.sel { border-color: var(--d-blue); background: rgba(56, 189, 248, .10); color: var(--d-fg); }
+.dnode.rel { border-color: #39404d; background: rgba(255, 255, 255, .06); color: var(--d-fg); }
+.dnode.dim { opacity: .45; }
+.dnode.cur { box-shadow: 0 0 0 1px var(--d-indigo); }
+.dnode-dot { width: 8px; height: 8px; border-radius: 2px; flex: none; display: inline-block; }
+.dmap-detail { border: 1px solid var(--d-border); border-radius: 8px; background: var(--d-elevated); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
