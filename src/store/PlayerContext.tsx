@@ -1,10 +1,12 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { achievementsData } from '../data/achievements';
+import { lessons } from '../data/lessons';
+import { projects } from '../data/projects';
 import { evaluateAchievement } from '../services/achievementService';
 import { loadRemoteProgress, saveRemoteProgress } from '../services/progressRepository';
 import { storageService } from '../services/storageService';
 import { calculatePlayerLevel, computeStreak, todayKey } from '../services/xpService';
-import { DayActivity, PlayerStats, Problem, ProblemRecord, Question } from '../types';
+import { ActivityEvent, DayActivity, PlayerStats, Problem, ProblemRecord, Question } from '../types';
 
 const KEY = 'it_quest_player_v2';
 const UPDATED_KEY = 'it_quest_player_v2_updated';
@@ -14,11 +16,12 @@ const emptyRecord = (): ProblemRecord => ({ attempts: 0, solved: false, solvedDa
 const defaults: PlayerStats = {
   xp: 0, level: 1, streak: 0, bestStreak: 0,
   completedLessons: [], completedQuestions: [], unlockedAchievements: [], visitedLessons: [],
-  lessonCompletedAt: {}, completedProjects: [], practice: {}, problems: {}, completedVisualizations: [], activity: {}, firstActiveDate: null,
+  lessonCompletedAt: {}, completedProjects: [], practice: {}, problems: {}, completedVisualizations: [],
+  activity: {}, events: [], firstActiveDate: null,
 };
 
 function migrate(raw: Partial<PlayerStats>): PlayerStats {
-  const base: PlayerStats = { ...defaults, ...raw, lessonCompletedAt: raw.lessonCompletedAt ?? {}, completedProjects: raw.completedProjects ?? [], completedVisualizations: raw.completedVisualizations ?? [] };
+  const base: PlayerStats = { ...defaults, ...raw, lessonCompletedAt: raw.lessonCompletedAt ?? {}, completedProjects: raw.completedProjects ?? [], completedVisualizations: raw.completedVisualizations ?? [], events: raw.events ?? [] };
   const activity: Record<string, DayActivity> = {};
   for (const [k, v] of Object.entries(raw.activity ?? {})) {
     activity[k] = typeof v === 'number' ? { ...emptyDay(), minutes: v } : { ...emptyDay(), ...(v as Partial<DayActivity>) };
@@ -50,6 +53,8 @@ const bumpDay = (s: PlayerStats, patch: Partial<DayActivity>): Record<string, Da
   const t = todayKey(); const cur = s.activity[t] ?? emptyDay();
   return { ...s.activity, [t]: { minutes: cur.minutes + (patch.minutes ?? 0), problemsSolved: cur.problemsSolved + (patch.problemsSolved ?? 0), submissions: cur.submissions + (patch.submissions ?? 0), xpEarned: cur.xpEarned + (patch.xpEarned ?? 0), count: cur.count + (patch.count ?? 0) } };
 };
+
+const pushEvent = (s: PlayerStats, ev: ActivityEvent): ActivityEvent[] => [...s.events, ev].slice(-300);
 
 export type SyncState = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -124,12 +129,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const completeLesson = (id: string, xp: number) => setStats(prev => {
     if (prev.completedLessons.includes(id)) return prev;
-    return finalize({ ...prev, completedLessons: [...prev.completedLessons, id], lessonCompletedAt: { ...prev.lessonCompletedAt, [id]: todayKey() }, xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }) });
+    return finalize({
+      ...prev,
+      completedLessons: [...prev.completedLessons, id],
+      lessonCompletedAt: { ...prev.lessonCompletedAt, [id]: todayKey() },
+      xp: prev.xp + xp,
+      activity: bumpDay(prev, { xpEarned: xp, count: 1 }),
+      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'lesson_completed', id, title: lessons[id]?.title ?? id, to: `/learn/lesson/${id}` }),
+    });
   });
 
   const completeProject = (id: string, xp: number) => setStats(prev => {
     if (prev.completedProjects.includes(id)) return prev;
-    return finalize({ ...prev, completedProjects: [...prev.completedProjects, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }) });
+    return finalize({
+      ...prev,
+      completedProjects: [...prev.completedProjects, id],
+      xp: prev.xp + xp,
+      activity: bumpDay(prev, { xpEarned: xp, count: 1 }),
+      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'project_completed', id, title: projects.find(p => p.id === id)?.title ?? id }),
+    });
   });
 
   const solveProblem = (p: Problem, correct: boolean) => setStats(prev => {
@@ -140,6 +158,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       problems: { ...prev.problems, [p.id]: { ...rec, attempts: rec.attempts + 1, solved: rec.solved || correct, solvedDate: firstSolve ? todayKey() : rec.solvedDate, lastAttempted: todayKey() } },
       xp: prev.xp + (firstSolve ? p.xp : 0),
       activity: bumpDay(prev, { submissions: 1, problemsSolved: firstSolve ? 1 : 0, xpEarned: firstSolve ? p.xp : 0, count: firstSolve ? 1 : 0 }),
+      events: firstSolve ? pushEvent(prev, { at: new Date().toISOString(), kind: 'problem_solved', id: p.id, title: p.title, to: `/practice/problems/${p.id}` }) : prev.events,
     });
   });
 
@@ -150,7 +169,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const completeVisualization = (id: string, xp: number) => setStats(prev => {
     if (prev.completedVisualizations.includes(id) || xp === 0) return prev;
-    return finalize({ ...prev, completedVisualizations: [...prev.completedVisualizations, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }) });
+    return finalize({
+      ...prev,
+      completedVisualizations: [...prev.completedVisualizations, id],
+      xp: prev.xp + xp,
+      activity: bumpDay(prev, { xpEarned: xp, count: 1 }),
+      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'visualization_completed', id }),
+    });
   });
 
   const resetProgress = () => setStats(finalize({ ...defaults }));
