@@ -22,7 +22,7 @@ export default function AdminDashboard() {
     const blob = new Blob([exportContent()], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'it-quest-content.json';
+    a.download = 'pixel-content.json';
     a.click();
     URL.revokeObjectURL(a.href);
     setMsg('Content exported.');
