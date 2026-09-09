@@ -10,8 +10,13 @@ import { Problem } from '../../types';
 import { EmptyNote, HBar } from './blocks';
 
 const STATE_COLOR: Record<ConceptNode['state'], string> = {
-  mastered: 'var(--d-green)', strong: 'var(--d-blue)', developing: '#94A3B8',
-  weak: 'var(--d-orange)', locked: '#39404d', unknown: '#39404d', current: 'var(--d-indigo)',
+  mastered: 'var(--d-green)',
+  strong: 'var(--d-blue)',
+  developing: '#94A3B8',
+  weak: 'var(--d-orange)',
+  locked: '#475569',
+  unknown: '#475569',
+  current: 'var(--d-indigo)',
 };
 
 export function SkillMap({ graph }: { graph: SkillGraph }) {
@@ -23,6 +28,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {!anyData && <EmptyNote>New learner — this map is built from the real curriculum structure. Mastery states appear as you complete lessons and practice.</EmptyNote>}
+
       <div className="dmap" aria-label="Skill map">
         {worlds.map(w => {
           const nodes = graph.nodes.filter(n => n.worldId === w.id);
@@ -33,9 +39,15 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
               {nodes.map(n => {
                 const cls = sel?.id === n.id ? 'sel' : relIds ? (relIds.has(n.id) ? 'rel' : 'dim') : '';
                 return (
-                  <button key={n.id} type="button" className={`dnode ${cls} ${n.state === 'current' ? 'cur' : ''}`} onClick={() => setSelId(sel?.id === n.id ? null : n.id)} aria-pressed={sel?.id === n.id}>
+                  <button
+                    key={n.id}
+                    type="button"
+                    className={`dnode ${cls} ${n.state === 'current' ? 'cur' : ''}`}
+                    onClick={() => setSelId(sel?.id === n.id ? null : n.id)}
+                    aria-pressed={sel?.id === n.id}
+                  >
                     <span style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 0 }}>
-                      <span className="dnode-dot" style={{ background: STATE_COLOR[n.state] }} />
+                      <span className="dnode-dot" style={{ background: STATE_COLOR[n.state] }} aria-hidden="true" />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.name}</span>
                     </span>
                     {n.hasData && <span className="mono t-caption">{n.mastery}%</span>}
@@ -46,16 +58,18 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
           );
         })}
       </div>
+
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }} className="t-caption">
         {(['mastered', 'strong', 'developing', 'weak', 'locked'] as const).map(s => (
           <span key={s} style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--d-muted)' }}>
-            <span className="dnode-dot" style={{ background: STATE_COLOR[s] }} /> {s}
+            <span className="dnode-dot" style={{ background: STATE_COLOR[s] }} aria-hidden="true" /> {s}
           </span>
         ))}
         <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', color: 'var(--d-muted)' }}>
-          <span className="dnode-dot" style={{ background: STATE_COLOR.current }} /> current focus
+          <span className="dnode-dot" style={{ background: STATE_COLOR.current }} aria-hidden="true" /> current focus
         </span>
       </div>
+
       {sel && <SkillDetail node={sel} graph={graph} onNavigate={setSelId} />}
     </div>
   );
@@ -79,38 +93,52 @@ function SkillDetail({ node, graph, onNavigate }: { node: ConceptNode; graph: Sk
         <span className="t-body" style={{ color: 'var(--d-fg)', fontWeight: 600 }}>{node.name}</span>
         <span className="chip" style={{ textTransform: 'uppercase' }}>{node.state}</span>
       </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <HBar label="Mastery" value={node.mastery} tone={node.mastery >= 75 ? 'var(--d-green)' : node.mastery >= 50 ? 'var(--d-blue)' : 'var(--d-orange)'} />
         <HBar label="Completion" value={node.completion} tone="#94A3B8" />
       </div>
+
       {prereq.length > 0 && (
         <div>
           <div className="dsec" style={{ marginBottom: 6 }}>PREREQUISITES</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {prereq.map(p => <button key={p.id} type="button" className="chip" onClick={() => onNavigate(p.id)}>{p.name} {p.hasData ? `${p.mastery}%` : ''}</button>)}
+            {prereq.map(p => (
+              <button key={p.id} type="button" className="chip" onClick={() => onNavigate(p.id)}>
+                {p.name} {p.hasData ? `${p.mastery}%` : ''}
+              </button>
+            ))}
           </div>
         </div>
       )}
+
       {deps.length > 0 && (
         <div>
           <div className="dsec" style={{ marginBottom: 6 }}>UNLOCKS</div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {deps.map(p => <button key={p.id} type="button" className="chip" onClick={() => onNavigate(p.id)}>{p.name}</button>)}
+            {deps.map(p => (
+              <button key={p.id} type="button" className="chip" onClick={() => onNavigate(p.id)}>{p.name}</button>
+            ))}
           </div>
         </div>
       )}
+
       <div>
         <div className="dsec" style={{ marginBottom: 6 }}>RELATED LESSONS</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {relLessons.map(l => (
-            <Link key={l.id} className="t-body-sm" style={{ color: 'var(--d-blue)' }} to={`/learn/lesson/${l.id}`}>Level {l.levelId.replace('level-', '')} · {l.title}</Link>
+            <Link key={l.id} className="t-body-sm" style={{ color: 'var(--d-blue)' }} to={`/learn/lesson/${l.id}`}>
+              Level {l.levelId.replace('level-', '')} · {l.title}
+            </Link>
           ))}
         </div>
       </div>
+
       <div className="t-caption" style={{ color: 'var(--d-fg2)' }}>
         Practice: {attempted} attempted · {solved} solved{attempted > 0 ? ` · ${Math.round((solved / attempted) * 100)}% accuracy` : ''}
         {revision ? ' · revision due' : ''}
       </div>
+
       {(node.hasData && node.mastery < 75) || openLesson ? (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <Link className="btn btn-secondary btn-sm" to={openLesson ? `/learn/lesson/${openLesson.id}` : '/practice'}>
