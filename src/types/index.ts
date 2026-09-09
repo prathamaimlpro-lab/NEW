@@ -11,7 +11,7 @@ export interface LessonSection { id: string; label?: string; title?: string; blo
 export interface Lesson {
   id: string; levelId: string; order: number; title: string; slug: string; description: string;
   objectives: string[]; topics: string[]; estimatedMinutes: number; difficulty: Difficulty; prerequisites: string[];
-  sections: LessonSection[]; visualizationId?: string;
+  sections: LessonSection[]; visualizationId?: string; revision?: string[];
   practice: Question[]; masteryTest: Question[]; xpReward: number;
   status: ContentStatus; version: number; updatedAt: string;
 }
@@ -22,6 +22,11 @@ export interface Level {
   difficulty: Difficulty; estimatedHours: number; status: ContentStatus;
   prerequisites: string[]; lessons: string[]; projects: string[]; xpReward: number;
   concepts?: string[]; project?: string; masteryRequirement?: string; revision?: string;
+}
+
+export interface Project {
+  id: string; title: string; description: string; worldId?: string; levelId?: string; lessonId?: string;
+  difficulty: Difficulty; xp: number; requirements: string[]; status: ContentStatus;
 }
 
 export interface ProblemExample { input: string; output: string; note?: string }
@@ -44,7 +49,7 @@ export interface AchievementRule { kind: 'lessons' | 'questions' | 'problems' | 
 export interface PlayerStats {
   xp: number; level: number; streak: number; bestStreak: number;
   completedLessons: string[]; completedQuestions: string[]; unlockedAchievements: string[]; visitedLessons: string[];
-  lessonCompletedAt: Record<string, string>;
+  lessonCompletedAt: Record<string, string>; completedProjects: string[];
   practice: Record<string, PracticeRecord>; problems: Record<string, ProblemRecord>;
   completedVisualizations: string[]; activity: Record<string, DayActivity>; firstActiveDate: string | null;
 }
