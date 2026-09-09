@@ -1,24 +1,30 @@
-/// <reference types="vite/client" />
-const URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? '';
-const KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? '';
+import { getSupabase, isSupabaseConfigured } from './supabaseClient';
 
-export const sbEnabled = () => !!URL && !!KEY;
+export const sbEnabled = isSupabaseConfigured;
 
-async function req(path: string, init: RequestInit = {}, token?: string) {
-  const res = await fetch(`${URL}/rest/v1/${path}`, {
-    ...init,
-    headers: { apikey: KEY, Authorization: `Bearer ${token ?? KEY}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates', ...(init.headers ?? {}) },
-  });
-  if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`);
-  return res.json().catch(() => null);
+export async function sbSelect<T = Record<string, unknown>>(table: string, query = ''): Promise<T[]> {
+  const sb = getSupabase();
+  if (!sb) return [];
+  let req = sb.from(table).select('*');
+  for (const part of query.split('&').filter(Boolean)) {
+    const [k, v] = part.split('=');
+    if (k && v) req = req.eq(k, decodeURIComponent(v));
+  }
+  const { data, error } = await req;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as T[];
 }
 
-export const sbSelect = (table: string, query = '') => req(`${table}?${query}`);
-export const sbUpsert = (table: string, rows: unknown[]) => req(table, { method: 'POST', body: JSON.stringify(rows) });
-export const sbDelete = (table: string, id: string) => req(`${table}?id=eq.${id}`, { method: 'DELETE' });
+export async function sbUpsert(table: string, rows: unknown[]): Promise<void> {
+  const sb = getSupabase();
+  if (!sb || rows.length === 0) return;
+  const { error } = await sb.from(table).upsert(rows);
+  if (error) throw new Error(error.message);
+}
 
-export async function sbSignIn(email: string, password: string): Promise<{ access_token: string }> {
-  const res = await fetch(`${URL}/auth/v1/token?grant_type=password`, { method: 'POST', headers: { apikey: KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
-  if (!res.ok) throw new Error('Authentication failed');
-  return res.json();
+export async function sbDelete(table: string, id: string): Promise<void> {
+  const sb = getSupabase();
+  if (!sb) return;
+  const { error } = await sb.from(table).delete().eq('id', id);
+  if (error) throw new Error(error.message);
 }
