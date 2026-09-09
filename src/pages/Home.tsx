@@ -19,6 +19,7 @@ import { todayKey } from '../services/xpService';
 import { usePlayer } from '../store/PlayerContext';
 import { DayActivity, Level } from '../types';
 import '../styles/dashboard.css';
+import '../styles/dashboard-motion.css';
 
 type Range = '7D' | '30D' | '90D' | '1Y';
 const RANGE_DAYS: Record<Range, number> = { '7D': 7, '30D': 30, '90D': 90, '1Y': 364 };
