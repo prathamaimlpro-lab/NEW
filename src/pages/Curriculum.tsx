@@ -14,7 +14,7 @@ export default function Curriculum() {
 
   const next = getNextLesson(stats);
   const currentLevel = next ? levels.find(l => l.id === next.levelId) : undefined;
-  const visibleWorlds = worlds.filter(w => worldFilter === 'all' || w.number === worldFilter);
+  const visibleWorlds = worlds.filter(w => (worldFilter === 'all' || w.number === worldFilter) && levels.some(l => l.worldId === w.id && l.status === 'PUBLISHED'));
 
   const levelState = (n: number) => {
     const l = levels.find(x => x.number === n)!;
@@ -25,7 +25,7 @@ export default function Curriculum() {
     return 'available';
   };
 
-  const shown = useMemo(() => levels.filter(l => filter.trim() === '' || (l.title + l.description).toLowerCase().includes(filter.toLowerCase())), [filter]);
+  const shown = useMemo(() => levels.filter(l => l.status === 'PUBLISHED' && (filter.trim() === '' || (l.title + l.description).toLowerCase().includes(filter.toLowerCase()))), [filter]);
 
   return (
     <>
