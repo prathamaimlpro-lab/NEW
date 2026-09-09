@@ -174,7 +174,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       completedVisualizations: [...prev.completedVisualizations, id],
       xp: prev.xp + xp,
       activity: bumpDay(prev, { xpEarned: xp, count: 1 }),
-      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'visualization_completed', id }),
+      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'visualization_completed', id, to: `/explore/viz/${id}` }),
     });
   });
 
