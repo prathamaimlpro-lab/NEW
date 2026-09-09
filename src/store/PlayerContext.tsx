@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { achievementsData } from '../data/achievements';
 import { evaluateAchievement } from '../services/achievementService';
 import { loadRemoteProgress, saveRemoteProgress } from '../services/progressRepository';
@@ -51,8 +51,12 @@ const bumpDay = (s: PlayerStats, patch: Partial<DayActivity>): Record<string, Da
   return { ...s.activity, [t]: { minutes: cur.minutes + (patch.minutes ?? 0), problemsSolved: cur.problemsSolved + (patch.problemsSolved ?? 0), submissions: cur.submissions + (patch.submissions ?? 0), xpEarned: cur.xpEarned + (patch.xpEarned ?? 0), count: cur.count + (patch.count ?? 0) } };
 };
 
+export type SyncState = 'idle' | 'loading' | 'ready' | 'error';
+
 interface Ctx {
   stats: PlayerStats;
+  syncState: SyncState;
+  retrySync: () => void;
   visitLesson: (id: string) => void;
   answerQuestion: (q: Question, correct: boolean) => void;
   completeLesson: (id: string, xp: number) => void;
@@ -71,6 +75,7 @@ const PlayerContext = createContext<Ctx | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<PlayerStats>(() => finalize(migrate(storageService.get<Partial<PlayerStats>>(KEY, {}))));
+  const [syncState, setSyncState] = useState<SyncState>('idle');
 
   useEffect(() => {
     storageService.set(KEY, stats);
@@ -79,15 +84,20 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(t);
   }, [stats]);
 
-  useEffect(() => {
-    let alive = true;
-    void loadRemoteProgress().then(remote => {
-      if (!alive || !remote) return;
-      const localUpdatedAt = storageService.get<number>(UPDATED_KEY, 0);
-      if (remote.updatedAt > localUpdatedAt) setStats(finalize(migrate(remote.stats)));
-    });
-    return () => { alive = false; };
+  const retrySync = useCallback(() => {
+    setSyncState('loading');
+    loadRemoteProgress()
+      .then(remote => {
+        if (remote) {
+          const localUpdatedAt = storageService.get<number>(UPDATED_KEY, 0);
+          if (remote.updatedAt > localUpdatedAt) setStats(finalize(migrate(remote.stats)));
+        }
+        setSyncState('ready');
+      })
+      .catch(() => setSyncState('error'));
   }, []);
+
+  useEffect(() => { retrySync(); }, [retrySync]);
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -147,7 +157,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   return (
     <PlayerContext.Provider value={{
-      stats, visitLesson, answerQuestion, completeLesson, completeProject, solveProblem, completeVisualization, resetProgress,
+      stats, syncState, retrySync,
+      visitLesson, answerQuestion, completeLesson, completeProject, solveProblem, completeVisualization, resetProgress,
       toggleFavourite: id => patchProblem(id, r => ({ ...r, favourite: !r.favourite })),
       toggleReview: id => patchProblem(id, r => ({ ...r, review: !r.review })),
       toggleMastered: id => patchProblem(id, r => ({ ...r, mastered: !r.mastered })),
