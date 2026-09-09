@@ -296,7 +296,7 @@ export default function Home() {
         </DSection>
 
         <DSection className="dc-heat" title="YOUR LEARNING ACTIVITY · 16 WEEKS">
-          <ChartFrame status={syncState === 'loading' ? 'loading' : heatTotal === 0 ? 'empty' : 'success'} emptyMessage="Complete lessons, solve problems, and revise concepts to build your learning history." onRetry={retrySync} minHeight={120}>
+          <ChartFrame status={syncState === 'loading' ? 'loading' : syncState === 'error' && heatTotal === 0 ? 'error' : heatTotal === 0 ? 'empty' : 'success'} emptyMessage="Complete lessons, solve problems, and revise concepts to build your learning history." onRetry={retrySync} minHeight={120}>
             <LearningHeatmap days={heatDays} selected={selDay?.date ?? null} onSelect={setSelDay} />
             {selDay && selDay.value > 0 && selDay.breakdown && (
               <p className="t-caption" style={{ color: 'var(--d-fg2)', marginTop: 8 }}>
