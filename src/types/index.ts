@@ -44,17 +44,20 @@ export interface ProblemRecord {
 export interface DayActivity { minutes: number; problemsSolved: number; submissions: number; xpEarned: number; count: number }
 export interface PracticeRecord { difficulty: Difficulty; correct: boolean; tries: number }
 
-export interface AchievementRule { kind: 'lessons' | 'questions' | 'problems' | 'streak' | 'playerLevel' | 'xp' | 'visualizations'; value: number }
+export type ActivityKind = 'lesson_completed' | 'problem_solved' | 'visualization_completed' | 'project_completed' | 'revision_completed';
+export interface ActivityEvent { at: string; kind: ActivityKind; id?: string; title?: string; to?: string; context?: string }
 
 export interface PlayerStats {
   xp: number; level: number; streak: number; bestStreak: number;
   completedLessons: string[]; completedQuestions: string[]; unlockedAchievements: string[]; visitedLessons: string[];
   lessonCompletedAt: Record<string, string>; completedProjects: string[];
   practice: Record<string, PracticeRecord>; problems: Record<string, ProblemRecord>;
-  completedVisualizations: string[]; activity: Record<string, DayActivity>; firstActiveDate: string | null;
+  completedVisualizations: string[]; activity: Record<string, DayActivity>;
+  events: ActivityEvent[]; firstActiveDate: string | null;
 }
 
 export interface Achievement { id: string; title: string; description: string; icon: string; xp: number; rule?: AchievementRule; condition?: (s: PlayerStats) => boolean }
+export interface AchievementRule { kind: 'lessons' | 'questions' | 'problems' | 'streak' | 'playerLevel' | 'xp' | 'visualizations'; value: number }
 export type VizCategory = 'Algorithm' | 'Data Structure' | 'Memory' | 'CPU' | 'Operating System' | 'Networking' | 'Database' | 'Git' | 'Programming' | 'System Design';
 export interface ComplexityInfo { time: string; space: string }
 export interface ThemeSettings { primary: string; primaryHover: string; success: string; warning: string; error: string; info: string; radiusMd: number }
