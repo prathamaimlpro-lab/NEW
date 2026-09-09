@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 
 export type ChartStatus = 'loading' | 'error' | 'empty' | 'success';
 
@@ -12,7 +13,7 @@ export function ChartFrame({
   status: ChartStatus;
   emptyMessage: string;
   onRetry?: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   minHeight?: number;
 }) {
   if (status === 'loading') {
@@ -63,8 +64,7 @@ export function StackedBarChart({
 
   useEffect(() => {
     setMounted(false);
-    let frame = 0;
-    frame = window.requestAnimationFrame(() => setMounted(true));
+    const frame = window.requestAnimationFrame(() => setMounted(true));
     return () => window.cancelAnimationFrame(frame);
   }, [key]);
 
@@ -80,14 +80,7 @@ export function StackedBarChart({
             <div key={segment.name} className="t-caption" style={{ color: 'var(--d-fg2)' }}>
               <span
                 aria-hidden="true"
-                style={{
-                  display: 'inline-block',
-                  width: 8,
-                  height: 8,
-                  borderRadius: 2,
-                  background: segment.color,
-                  marginRight: 6,
-                }}
+                style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: segment.color, marginRight: 6 }}
               />
               {segment.name}: <span className="mono" style={{ color: 'var(--d-fg)' }}>{segment.value}</span>
             </div>
@@ -108,9 +101,10 @@ export function StackedBarChart({
               type="button"
               className={`dbar-col ${selectedIndex === index ? 'on' : ''}`}
               onClick={() => setSelectedIndex(selectedIndex === index ? null : index)}
-              onPointerEnter={() => setSelectedIndex(index)}
-              onPointerLeave={() => setSelectedIndex(current => (current === index ? null : current))}
+              onPointerEnter={e => { if (e.pointerType === 'mouse') setSelectedIndex(index); }}
+              onPointerLeave={e => { if (e.pointerType === 'mouse') setSelectedIndex(current => (current === index ? null : current)); }}
               onFocus={() => setSelectedIndex(index)}
+              onBlur={() => setSelectedIndex(current => (current === index ? null : current))}
               aria-label={`${bucket.label}: ${total} activities`}
             >
               <div style={{ display: 'flex', flexDirection: 'column-reverse', height: '100%', width: '100%', gap: 1 }}>
@@ -157,10 +151,7 @@ export function LearningHeatmap({
   onSelect: (day: HeatDay) => void;
 }) {
   const weeks: HeatDay[][] = [];
-
-  for (let i = 0; i < days.length; i += 7) {
-    weeks.push(days.slice(i, i + 7));
-  }
+  for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
 
   const level = (value: number) => {
     if (value <= 0) return 0;
@@ -198,12 +189,7 @@ export function LearningHeatmap({
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 10 }} className="t-caption">
         <span style={{ color: 'var(--d-muted)' }}>Less</span>
         {[0, 1, 2, 3].map(item => (
-          <span
-            key={item}
-            className={`dheat dheat-${item}`}
-            style={{ cursor: 'default', display: 'inline-block' }}
-            aria-hidden="true"
-          />
+          <span key={item} className={`dheat dheat-${item}`} style={{ cursor: 'default', display: 'inline-block' }} aria-hidden="true" />
         ))}
         <span style={{ color: 'var(--d-muted)' }}>More</span>
       </div>
