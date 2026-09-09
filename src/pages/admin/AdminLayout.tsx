@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { Link, Navigate, NavLink, Outlet } from 'react-router-dom';
-import { can, getSession, logout } from '../../services/authService';
+import { can, getSession, signOut } from '../../services/authService';
 import { getContentVersion, subscribeContent } from '../../services/contentStore';
 import { Icon } from '../../components/common/Icon';
 
@@ -12,7 +12,7 @@ export default function AdminLayout() {
   const links = [
     { to: '/admin/dashboard', label: 'Dashboard', perm: null },
     { to: '/admin/content', label: 'Curriculum & Lessons', perm: 'structure.write' },
-    { to: '/admin/collections', label: 'Problems · Achievements · Visualizers', perm: 'content.write' },
+    { to: '/admin/collections', label: 'Problems · Projects · Achievements', perm: 'content.write' },
     { to: '/admin/settings', label: 'Tracker Settings', perm: 'settings.write' },
     { to: '/admin/theme', label: 'Theme Editor', perm: 'theme.write' },
   ].filter(l => !l.perm || can(l.perm));
@@ -31,7 +31,7 @@ export default function AdminLayout() {
         ))}
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <Link className="btn btn-secondary btn-sm" to="/">View site</Link>
-          <button className="btn btn-ghost btn-sm" onClick={() => { logout(); window.location.href = '/admin'; }}>Sign out</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => { void signOut(); window.location.href = '/admin'; }}>Sign out</button>
         </div>
       </aside>
       <main style={{ padding: 24, minWidth: 0 }}><div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}><Outlet /></div></main>
