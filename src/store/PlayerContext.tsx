@@ -1,11 +1,13 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { achievementsData } from '../data/achievements';
 import { evaluateAchievement } from '../services/achievementService';
+import { loadRemoteProgress, saveRemoteProgress } from '../services/progressRepository';
 import { storageService } from '../services/storageService';
 import { calculatePlayerLevel, computeStreak, todayKey } from '../services/xpService';
 import { DayActivity, PlayerStats, Problem, ProblemRecord, Question } from '../types';
 
 const KEY = 'it_quest_player_v2';
+const UPDATED_KEY = 'it_quest_player_v2_updated';
 const emptyDay = (): DayActivity => ({ minutes: 0, problemsSolved: 0, submissions: 0, xpEarned: 0, count: 0 });
 const emptyRecord = (): ProblemRecord => ({ attempts: 0, solved: false, solvedDate: null, favourite: false, review: false, mastered: false, confidence: 0, notes: '', scratchCode: '', timeSpent: 0, lastAttempted: null });
 
@@ -69,7 +71,23 @@ const PlayerContext = createContext<Ctx | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<PlayerStats>(() => finalize(migrate(storageService.get<Partial<PlayerStats>>(KEY, {}))));
-  useEffect(() => { storageService.set(KEY, stats); }, [stats]);
+
+  useEffect(() => {
+    storageService.set(KEY, stats);
+    storageService.set(UPDATED_KEY, Date.now());
+    const t = window.setTimeout(() => { saveRemoteProgress(stats).catch(() => undefined); }, 1200);
+    return () => window.clearTimeout(t);
+  }, [stats]);
+
+  useEffect(() => {
+    let alive = true;
+    void loadRemoteProgress().then(remote => {
+      if (!alive || !remote) return;
+      const localUpdatedAt = storageService.get<number>(UPDATED_KEY, 0);
+      if (remote.updatedAt > localUpdatedAt) setStats(finalize(migrate(remote.stats)));
+    });
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     const id = window.setInterval(() => {
