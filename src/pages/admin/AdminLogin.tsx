@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { PixelWordmark } from '../../components/brand/PixelLogo';
 import { bootstrapLocalAdmin, getSession, hasLocalAccounts, isSupabaseMode, signIn } from '../../services/authService';
 
 export default function AdminLogin() {
@@ -27,10 +28,11 @@ export default function AdminLogin() {
 
   return (
     <div style={{ maxWidth: 420, margin: '8vh auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div><div className="label-mono" style={{ marginBottom: 8 }}>IT QUEST // CONTROL PLANE</div><h1 className="t-hlg">Admin Access</h1></div>
+      <div style={{ color: 'var(--fg-0)' }}><PixelWordmark size={18} /></div>
+      <div><div className="label-mono" style={{ marginBottom: 8 }}>PIXEL // CONTROL PLANE</div><h1 className="t-hlg">Admin Access</h1></div>
       <form className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }} onSubmit={submit}>
         <label className="t-caption" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}><span style={{ color: 'var(--fg-2)' }}>Email</span>
-          <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@itquest.dev" /></label>
+          <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@pixel.dev" /></label>
         <label className="t-caption" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}><span style={{ color: 'var(--fg-2)' }}>Password</span>
           <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} /></label>
         {error && <p className="t-body-sm" style={{ color: 'var(--error)' }}>{error}</p>}
