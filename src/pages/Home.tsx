@@ -1,23 +1,23 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DSection, EmptyNote, HBar, StatMetric } from '../components/dashboard/blocks';
+import { Icon } from '../components/common/Icon';
+import { ActivityTimeline } from '../components/dashboard/ActivityTimeline';
+import { DSection, EmptyNote, HBar, Metric, StatMetric } from '../components/dashboard/blocks';
 import { BarBucket, ChartFrame, HeatDay, LearningHeatmap, StackedBarChart } from '../components/dashboard/charts';
 import { SkillMap } from '../components/dashboard/SkillMap';
-import { Icon } from '../components/common/Icon';
 import { listVisualizations } from '../components/visualization/registry';
 import { levels, worlds } from '../data/curriculum';
-import { lessons } from '../data/lessons';
-import { problems } from '../data/problems';
 import { projects } from '../data/projects';
+import { getNextBestAction, getHeatmapDays, getPracticeAnalytics, getStrongConcepts, getWeakConcepts } from '../services/activityService';
 import { getSession } from '../services/authService';
 import { getSettings } from '../services/contentStore';
-import { getMasteryBreakdown, hasMasteryHistory } from '../services/masteryService';
-import { getLevel, getLessonProgress, getLevelProgress, getNextLesson, getRevisionDue, getWorld, isLevelCompleted, isLevelUnlocked, publishedLessons } from '../services/progressService';
-import { buildSkillGraph, recommendFromMastery } from '../services/skillService';
-import { getCodingStats, getTopicMastery } from '../services/statsService';
+import { hasMasteryHistory } from '../services/masteryService';
+import { getLevel, getLessonProgress, getLevelProgress, getNextLesson, getWorld, isLevelCompleted, isLevelUnlocked, publishedLessons } from '../services/progressService';
+import { buildSkillGraph } from '../services/skillService';
+import { getTopicMastery } from '../services/statsService';
 import { todayKey } from '../services/xpService';
 import { usePlayer } from '../store/PlayerContext';
-import { DayActivity, Difficulty, Level } from '../types';
+import { DayActivity, Level } from '../types';
 import '../styles/dashboard.css';
 
 type Range = '7D' | '30D' | '90D' | '1Y';
@@ -64,12 +64,13 @@ export default function Home() {
   const prog = next ? getLessonProgress(stats, next) : 0;
   const goal = getSettings().dailyGoalMinutes;
   const todayMin = stats.activity[todayKey()]?.minutes ?? 0;
+  const nba = useMemo(() => getNextBestAction(stats), [stats]);
 
   const mastery = useMemo(() => getTopicMastery(stats).filter(t => t.activity > 0).slice(0, 6), [stats]);
-  const breakdown = useMemo(() => getMasteryBreakdown(stats), [stats]);
+  const weak = useMemo(() => getWeakConcepts(stats), [stats]);
+  const strong = useMemo(() => getStrongConcepts(stats), [stats]);
   const graph = useMemo(() => buildSkillGraph(stats), [stats]);
-  const recommendation = useMemo(() => recommendFromMastery(stats, graph), [stats, graph]);
-  const coding = getCodingStats(stats);
+  const pa = useMemo(() => getPracticeAnalytics(stats), [stats]);
 
   const buckets = useMemo(() => buildBuckets(stats.activity, stats.lessonCompletedAt, range), [stats.activity, stats.lessonCompletedAt, range]);
   const rangeEvents = buckets.reduce((s, b) => s + b.segments.reduce((x, y) => x + y.value, 0), 0);
@@ -80,15 +81,10 @@ export default function Home() {
   }, [stats.activity, range]);
   const activityStatus = syncState === 'loading' ? 'loading' : syncState === 'error' && rangeEvents === 0 ? 'error' : rangeEvents === 0 ? 'empty' : 'success';
 
-  const heatDays = useMemo(() => {
-    const out: HeatDay[] = [];
-    for (let i = 111; i >= 0; i--) { const dt = new Date(); dt.setDate(dt.getDate() - i); const k = todayKey(dt); out.push({ date: k, value: stats.activity[k]?.count ?? 0 }); }
-    return out;
-  }, [stats.activity]);
+  const heatDays = useMemo(() => getHeatmapDays(stats), [stats]);
   const heatTotal = heatDays.reduce((s, d) => s + d.value, 0);
 
-  const attemptedProblems = Object.values(stats.problems);
-  const avgAttempts = attemptedProblems.length ? (coding.submissions / attemptedProblems.length).toFixed(1) : '—';
+  const attemptedProblems = useMemo(() => Object.values(stats.problems), [stats.problems]);
   const solvedThisWeek = useMemo(() => {
     let n = 0;
     for (const r of attemptedProblems) if (r.solvedDate && Date.now() - new Date(r.solvedDate).getTime() < 7 * 86400000) n += 1;
@@ -119,26 +115,6 @@ export default function Home() {
     return 'flat' as const;
   }, [trend, trendTotal]);
 
-  const timeline = useMemo(() => {
-    const ev: { date: string; kind: string; title: string }[] = [];
-    for (const [id, date] of Object.entries(stats.lessonCompletedAt)) ev.push({ date, kind: 'Lesson completed', title: lessons[id]?.title ?? id });
-    for (const [id, r] of Object.entries(stats.problems)) if (r.solved && r.solvedDate) ev.push({ date: r.solvedDate, kind: 'Problem solved', title: problems.find(p => p.id === id)?.title ?? id });
-    return ev.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
-  }, [stats]);
-
-  const revision = getRevisionDue(stats)[0];
-  const action = !next
-    ? { label: 'Explore the curriculum', desc: 'All published lessons are complete.', to: '/learn' }
-    : stats.completedLessons.length === 0
-      ? { label: `Start Level ${level?.number}: ${next.title}`, desc: 'Your first lesson — beginner-friendly, no prerequisites.', to: `/learn/lesson/${next.id}` }
-      : revision
-        ? { label: `Revision due: ${revision.title}`, desc: 'Spaced revision keeps mastery stable.', to: revision.kind === 'lesson' ? `/learn/lesson/${revision.id}` : `/practice/problems/${revision.id}` }
-        : recommendation
-          ? { label: recommendation.label, desc: recommendation.detail, to: recommendation.to }
-          : (stats.activity[todayKey()]?.count ?? 0) === 0
-            ? { label: "Complete today's practice", desc: 'No learning activity recorded today yet.', to: '/practice' }
-            : { label: `Continue ${next.title}`, desc: `Lesson ${idx} of ${levelList.length} · ${prog}% complete.`, to: `/learn/lesson/${next.id}` };
-
   const levelState = (l: Level): 'completed' | 'current' | 'available' | 'locked' => {
     if (isLevelCompleted(stats, l)) return 'completed';
     if (!isLevelUnlocked(stats, l)) return 'locked';
@@ -147,13 +123,6 @@ export default function Home() {
   };
   const levelsCompleted = levels.filter(l => isLevelCompleted(stats, l)).length;
   const overallPct = Math.round((levelsCompleted / levels.length) * 100);
-
-  const diffDist = (['EASY', 'MEDIUM', 'HARD'] as Difficulty[]).map(d => {
-    const all = problems.filter(p => p.difficulty === d);
-    const att = all.filter(p => stats.problems[p.id]).length;
-    const solved = all.filter(p => stats.problems[p.id]?.solved).length;
-    return { d, att, solved, pct: all.length ? (solved / all.length) * 100 : 0 };
-  });
   const pubProjects = projects.filter(p => p.status === 'PUBLISHED');
   const viz = listVisualizations();
 
@@ -191,9 +160,9 @@ export default function Home() {
         </DSection>
 
         <DSection className="dc-next" title="NEXT BEST ACTION">
-          <p className="t-body" style={{ color: 'var(--d-fg)', fontWeight: 500, marginBottom: 6 }}>{action.label}</p>
-          <p className="t-caption" style={{ color: 'var(--d-muted)', marginBottom: 14 }}>{action.desc}</p>
-          <Link className="btn btn-secondary" to={action.to}>Open</Link>
+          <p className="t-body" style={{ color: 'var(--d-fg)', fontWeight: 500, marginBottom: 6 }}>{nba.label}</p>
+          <p className="t-caption" style={{ color: 'var(--d-muted)', marginBottom: 14 }}>{nba.reason}</p>
+          <Link className="btn btn-secondary" to={nba.to}>Open</Link>
         </DSection>
 
         <DSection className="dc-journey" title={`LEARNING JOURNEY · LEVEL ${next ? level?.number : levelsCompleted} / ${levels.length} · WORLD ${world?.number ?? worlds.length} / ${worlds.length}`} action={<Link className="t-caption" style={{ color: 'var(--d-blue)' }} to="/learn">Curriculum →</Link>}>
@@ -232,7 +201,7 @@ export default function Home() {
         </DSection>
 
         <DSection className="dc-mastery" title="MASTERY vs COMPLETION">
-          {mastery.length === 0 ? <EmptyNote>Not enough data yet. Mastery is computed from completed lessons, correct checks and solved problems.</EmptyNote> : (
+          {mastery.length === 0 ? <EmptyNote>Not enough data yet. Mastery is computed from completed lessons, correct checks and solved problems — separately from completion.</EmptyNote> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {mastery.map(t => <HBar key={t.topic} label={t.topic} value={t.pct} tone={t.pct >= 75 ? 'var(--d-green)' : t.pct >= 50 ? 'var(--d-blue)' : 'var(--d-orange)'} />)}
               {!hasMasteryHistory() && <p className="t-caption" style={{ color: 'var(--d-muted)' }}>Mastery trend will appear as you build learning history.</p>}
@@ -244,16 +213,31 @@ export default function Home() {
           <SkillMap graph={graph} />
         </DSection>
 
-        <DSection className="dc-insight" title="MASTERY INTELLIGENCE">
-          {breakdown.strongest.length === 0 && breakdown.attention.length === 0 ? (
-            <EmptyNote>Build more learning history to unlock mastery insights.</EmptyNote>
+        <DSection className="dc-insight" title="LEARNING INTELLIGENCE">
+          {weak.length === 0 && strong.length === 0 ? (
+            <EmptyNote>Insights build over time — complete lessons and practice problems to unlock personalized strength and weakness detection.</EmptyNote>
           ) : (
             <>
-              <div className="dsec" style={{ marginBottom: 8 }}>STRONGEST</div>
-              {breakdown.strongest.length === 0 ? <EmptyNote>No strong concepts yet.</EmptyNote> : breakdown.strongest.map(t => <HBar key={t.topic} label={t.topic} value={t.pct} tone="var(--d-green)" />)}
-              <div className="dsec" style={{ margin: '14px 0 8px' }}>NEEDS ATTENTION</div>
-              {breakdown.attention.length === 0 ? <p className="t-caption" style={{ color: 'var(--d-muted)' }}>No weak concepts detected in your current history.</p> : breakdown.attention.map(t => <HBar key={t.topic} label={t.topic} value={t.pct} tone="var(--d-orange)" />)}
-              <p className="t-caption" style={{ marginTop: 14, color: 'var(--d-muted)' }}>Mastery trend will appear as you build learning history.</p>
+              <div className="dsec" style={{ marginBottom: 8 }}>NEEDS ATTENTION</div>
+              {weak.length === 0 ? <p className="t-caption" style={{ color: 'var(--d-muted)' }}>No concepts currently flagged — detection requires at least 3 samples per topic.</p> : weak.map(w => (
+                <div key={w.topic} className="dmetric" style={{ marginBottom: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                    <span className="t-body-sm" style={{ color: 'var(--d-fg)', fontWeight: 600 }}>{w.topic}</span>
+                    {w.accuracy !== null && <span className="mono t-caption" style={{ color: 'var(--d-orange)' }}>{w.accuracy}% acc</span>}
+                  </div>
+                  <ul style={{ listStyle: 'none', margin: '6px 0', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    {w.reasons.slice(0, 2).map(r => <li key={r} className="t-caption" style={{ color: 'var(--d-muted)' }}>· {r}</li>)}
+                  </ul>
+                  <Link className="btn btn-ghost btn-sm" style={{ color: 'var(--d-blue)' }} to={w.recommended.to}>{w.recommended.label} →</Link>
+                </div>
+              ))}
+              <div className="dsec" style={{ margin: '12px 0 8px' }}>STRONG AREAS</div>
+              {strong.length === 0 ? <p className="t-caption" style={{ color: 'var(--d-muted)' }}>No strong areas detected yet.</p> : strong.map(s => (
+                <div key={s.topic} className="drow">
+                  <span className="t-body-sm" style={{ color: 'var(--d-fg)' }}>{s.topic}</span>
+                  <span className="mono t-caption" style={{ color: 'var(--d-green)' }}>{s.mastery !== null ? `${s.mastery}% mastery` : s.accuracy !== null ? `${s.accuracy}% acc` : ''}</span>
+                </div>
+              ))}
             </>
           )}
         </DSection>
@@ -272,17 +256,34 @@ export default function Home() {
         </DSection>
 
         <DSection className="dc-practice" title="PRACTICE ANALYTICS" action={<Link className="t-caption" style={{ color: 'var(--d-blue)' }} to="/practice">Tracker →</Link>}>
-          {coding.submissions === 0 ? <EmptyNote>No practice data yet. Attempt problems in the tracker to unlock success-rate and trend analytics.</EmptyNote> : (
+          {pa.submissions === 0 ? <EmptyNote>No practice data yet. Attempt problems in the tracker to unlock success-rate, difficulty and topic analytics.</EmptyNote> : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 14 }}>
-                <StatMetric label="SOLVED" value={coding.solved} trend={solvedThisWeek > 0 ? `+${solvedThisWeek} this week` : undefined} trendDir={solvedThisWeek > 0 ? 'up' : 'flat'} />
-                <StatMetric label="ATTEMPTED" value={coding.submissions} sub={`${attemptedProblems.length} problems`} />
-                <StatMetric label="SUCCESS RATE" value={coding.acceptance} unit="%" tone={coding.acceptance >= 70 ? 'var(--d-green)' : 'var(--d-orange)'} />
-                <StatMetric label="AVG ATTEMPTS" value={Number(avgAttempts) || 0} unit="per problem" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 14 }}>
+                <StatMetric label="SOLVED" value={pa.solvedProblems} trend={solvedThisWeek > 0 ? `+${solvedThisWeek} this week` : undefined} trendDir={solvedThisWeek > 0 ? 'up' : 'flat'} />
+                {pa.successRate === null
+                  ? <Metric label="SUCCESS RATE" value="—" sub="no submissions yet" />
+                  : <StatMetric label="SUCCESS RATE" value={pa.successRate} unit="%" tone={pa.successRate >= 70 ? 'var(--d-green)' : 'var(--d-orange)'} />}
+                <Metric label="AVG ATTEMPTS" value={pa.avgAttempts === null ? '—' : pa.avgAttempts.toFixed(1)} sub="per problem" />
+                <StatMetric label="FIRST-ATTEMPT" value={pa.firstAttemptSolves} sub={`of ${pa.solvedProblems} solves`} />
+                <StatMetric label="REVIEW QUEUE" value={pa.reviewCount} />
+                <StatMetric label="FAVOURITES" value={pa.favouriteCount} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {diffDist.map(d => <HBar key={d.d} label={d.d} value={d.pct} tone={d.d === 'EASY' ? 'var(--d-green)' : d.d === 'MEDIUM' ? 'var(--d-blue)' : 'var(--d-orange)'} caption={`attempted ${d.att} · solved ${d.solved}`} />)}
+                {pa.byDifficulty.filter(d => d.attempted > 0).map(d => (
+                  <HBar key={d.d} label={d.d} value={d.accuracy ?? 0} tone={d.d === 'EASY' ? 'var(--d-green)' : d.d === 'MEDIUM' ? 'var(--d-blue)' : 'var(--d-orange)'} caption={`attempted ${d.attempted} · solved ${d.solved} · accuracy ${d.accuracy}%`} />
+                ))}
               </div>
+              {pa.byTopic.length > 0 && (
+                <div style={{ marginTop: 14 }}>
+                  <div className="dsec" style={{ marginBottom: 8 }}>TOPIC PERFORMANCE</div>
+                  {pa.byTopic.map(t => (
+                    <div key={t.topic} className="drow">
+                      <span className="t-body-sm" style={{ color: 'var(--d-fg)' }}>{t.topic}</span>
+                      <span className="mono t-caption" style={{ color: 'var(--d-fg2)' }}>{t.accuracy}% acc{t.mastery !== null ? ` · ${t.mastery}% mastery` : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {trendTotal >= 3 && (
                 <div style={{ marginTop: 14 }}>
                   <div className="dsec" style={{ marginBottom: 8 }}>SOLVED PER WEEK {trendDir ? `· ${trendDir === 'up' ? 'IMPROVING' : trendDir === 'down' ? 'DECLINING' : 'STABLE'}` : ''}</div>
@@ -293,6 +294,55 @@ export default function Home() {
           )}
         </DSection>
 
-        <DSection className="dc-heat" title="LEARNING HEATMAP · 16 WEEKS">
-          <ChartFrame status={syncState === 'loading' ? 'loading' : heatTotal === 0 ? 'empty' : 'success'} emptyMessage="No learning history yet. Every lesson, practice session and visualization you complete adds real activity here." onRetry={retrySync} minHeight={120}>
-            <LearningHeatmap days={heatDays} selec
+        <DSection className="dc-heat" title="YOUR LEARNING ACTIVITY · 16 WEEKS">
+          <ChartFrame status={syncState === 'loading' ? 'loading' : heatTotal === 0 ? 'empty' : 'success'} emptyMessage="Complete lessons, solve problems, and revise concepts to build your learning history." onRetry={retrySync} minHeight={120}>
+            <LearningHeatmap days={heatDays} selected={selDay?.date ?? null} onSelect={setSelDay} />
+            {selDay && selDay.value > 0 && selDay.breakdown && (
+              <p className="t-caption" style={{ color: 'var(--d-fg2)', marginTop: 8 }}>
+                <span className="mono" style={{ color: 'var(--d-fg)' }}>{selDay.date}</span> — {selDay.value} activities · {selDay.breakdown.lessons} lessons · {selDay.breakdown.problems} problems · {selDay.breakdown.other} other
+              </p>
+            )}
+          </ChartFrame>
+        </DSection>
+
+        <DSection className="dc-timeline" title="ACTIVITY TIMELINE">
+          <ActivityTimeline limit={12} />
+        </DSection>
+
+        <DSection className="dc-projects" title="PROJECTS">
+          {pubProjects.length === 0 ? <EmptyNote>No projects published yet.</EmptyNote> : pubProjects.map(p => {
+            const doneP = stats.completedProjects.includes(p.id);
+            const relLevel = levels.find(l => l.id === p.levelId);
+            return (
+              <div key={p.id} className="drow" style={{ alignItems: 'flex-start' }}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="t-body-sm" style={{ color: 'var(--d-fg)' }}>{p.title}</div>
+                  <div className="t-caption" style={{ color: 'var(--d-muted)', marginTop: 2 }}>
+                    {relLevel ? `Level ${relLevel.number} · ` : ''}{p.difficulty.toLowerCase()} · next: {p.requirements[0] ?? '—'}
+                  </div>
+                </div>
+                <span className={`chip ${doneP ? 'chip-success' : 'chip-info'}`}>{doneP ? 'DONE' : `+${p.xp} XP`}</span>
+              </div>
+            );
+          })}
+        </DSection>
+
+        <DSection className="dc-viz" title="VISUALIZATION PROGRESS" action={<Link className="t-caption" style={{ color: 'var(--d-blue)' }} to="/explore">Lab →</Link>}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 10 }}>
+            <StatMetric label="COMPLETED" value={stats.completedVisualizations.length} unit={`/ ${viz.length}`} />
+            <StatMetric label="AVAILABLE" value={viz.length} unit="engines" />
+          </div>
+          {viz.map(v => (
+            <div key={v.id} className="drow">
+              <div style={{ minWidth: 0 }}>
+                <div className="t-body-sm" style={{ color: 'var(--d-fg)' }}>{v.title}</div>
+                <div className="t-caption" style={{ color: 'var(--d-muted)', marginTop: 2 }}>{v.category}</div>
+              </div>
+              <Link className="chip" to={`/explore/viz/${v.id}`}>{stats.completedVisualizations.includes(v.id) ? 'REOPEN' : 'OPEN'}</Link>
+            </div>
+          ))}
+        </DSection>
+      </div>
+    </div>
+  );
+}
