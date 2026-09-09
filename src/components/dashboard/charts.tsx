@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export type ChartStatus = 'loading' | 'error' | 'empty' | 'success';
 
@@ -64,26 +64,30 @@ export function StackedBarChart({ buckets, height = 120, ariaLabel }: { buckets:
   );
 }
 
-export interface HeatDay { date: string; value: number }
+export interface HeatBreakdownInfo { lessons: number; problems: number; other: number }
+export interface HeatDay { date: string; value: number; breakdown?: HeatBreakdownInfo }
 
 export function LearningHeatmap({ days, selected, onSelect }: { days: HeatDay[]; selected: string | null; onSelect: (d: HeatDay) => void }) {
   const weeks: HeatDay[][] = [];
   for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
   const level = (v: number) => (v <= 0 ? 0 : v <= 2 ? 1 : v <= 5 ? 2 : 3);
+  const describe = (d: HeatDay) => d.breakdown && d.value > 0
+    ? `${d.date}: ${d.value} activities (${d.breakdown.lessons} lessons, ${d.breakdown.problems} problems, ${d.breakdown.other} other)`
+    : `${d.date}: ${d.value} activities`;
   return (
     <div>
       <div style={{ display: 'flex', gap: 4, overflowX: 'auto', padding: '2px 0' }}>
         {weeks.map((w, wi) => (
           <div key={wi} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {w.map(d => (
-              <button key={d.date} type="button" className={`dheat dheat-${level(d.value)} ${selected === d.date ? 'sel' : ''}`} onClick={() => onSelect(d)} aria-label={`${d.date}: ${d.value} activities`} />
+              <button key={d.date} type="button" className={`dheat dheat-${level(d.value)} ${selected === d.date ? 'sel' : ''}`} onClick={() => onSelect(d)} aria-label={describe(d)} title={describe(d)} />
             ))}
           </div>
         ))}
       </div>
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 10 }} className="t-caption">
         <span style={{ color: 'var(--d-muted)' }}>Less</span>
-        {[0, 1, 2, 3].map(l => <span key={l} className={`dheat dheat-${l}`} style={{ cursor: 'default', display: 'inline-block' }} />)}
+        {[0, 1, 2, 3].map(l => <span key={l} className="dheat dheat-${l}" style={{ cursor: 'default', display: 'inline-block' }} />)}
         <span style={{ color: 'var(--d-muted)' }}>More</span>
       </div>
     </div>
