@@ -48,13 +48,13 @@
 .dc-mastery { grid-column: span 4; }
 .dc-activity { grid-column: span 8; }
 .dc-practice { grid-column: span 4; }
-.dc-projects { grid-column: span 4; }
-.dc-viz { grid-column: span 4; }
+.dc-heat { grid-column: span 8; }
 .dc-timeline { grid-column: span 4; }
+.dc-projects { grid-column: span 6; }
+.dc-viz { grid-column: span 6; }
 @media (max-width: 1279px) {
-  .dc-continue, .dc-journey, .dc-activity { grid-column: span 12; }
-  .dc-next, .dc-mastery, .dc-practice, .dc-projects, .dc-viz { grid-column: span 6; }
-  .dc-timeline { grid-column: span 12; }
+  .dc-continue, .dc-journey, .dc-activity, .dc-heat { grid-column: span 12; }
+  .dc-next, .dc-mastery, .dc-practice, .dc-timeline, .dc-projects, .dc-viz { grid-column: span 6; }
 }
 @media (max-width: 767px) {
   .dash-grid > * { grid-column: span 12 !important; }
@@ -67,4 +67,17 @@
 .drange button.on { background: var(--d-elevated); color: var(--d-fg); border-color: var(--d-blue); }
 .drow { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--d-border); }
 .drow:first-of-type { border-top: none; }
-.dchart { display: flex; align-items: flex-end; gap: 3px; height: 96px; }
+.dchart { display: flex; align-items: flex-end; gap: 3px; }
+
+/* charts */
+.dbar-col { flex: 1; border: none; background: transparent; padding: 0; margin: 0; cursor: pointer; min-width: 0; border-radius: 4px; }
+.dbar-col.on { background: rgba(255, 255, 255, .05); }
+.dtooltip { position: absolute; top: 0; left: 8px; z-index: 6; pointer-events: none; background: var(--d-elevated); border: 1px solid var(--d-border); border-radius: 8px; padding: 8px 10px; min-width: 150px; box-shadow: 0 8px 16px -4px rgba(0, 0, 0, .5); }
+.dskel { border-radius: 8px; background: linear-gradient(90deg, var(--d-elevated), #202634, var(--d-elevated)); background-size: 200% 100%; animation: dshimmer 1.2s linear infinite; }
+@keyframes dshimmer { from { background-position: 200% 0; } to { background-position: 0 0; } }
+.dempty { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; justify-content: center; border: 1px dashed var(--d-border); border-radius: 8px; padding: 16px; }
+.dheat { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--d-border); background: var(--d-elevated); padding: 0; flex: none; }
+.dheat-1 { background: rgba(56, 189, 248, .25); border-color: transparent; }
+.dheat-2 { background: rgba(56, 189, 248, .55); border-color: transparent; }
+.dheat-3 { background: #38BDF8; border-color: transparent; }
+.dheat.sel { outline: 1px solid var(--d-fg); outline-offset: 1px; }
