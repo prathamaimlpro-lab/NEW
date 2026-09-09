@@ -12,11 +12,11 @@ const emptyRecord = (): ProblemRecord => ({ attempts: 0, solved: false, solvedDa
 const defaults: PlayerStats = {
   xp: 0, level: 1, streak: 0, bestStreak: 0,
   completedLessons: [], completedQuestions: [], unlockedAchievements: [], visitedLessons: [],
-  lessonCompletedAt: {}, practice: {}, problems: {}, completedVisualizations: [], activity: {}, firstActiveDate: null,
+  lessonCompletedAt: {}, completedProjects: [], practice: {}, problems: {}, completedVisualizations: [], activity: {}, firstActiveDate: null,
 };
 
 function migrate(raw: Partial<PlayerStats>): PlayerStats {
-  const base: PlayerStats = { ...defaults, ...raw, lessonCompletedAt: raw.lessonCompletedAt ?? {}, completedVisualizations: raw.completedVisualizations ?? [] };
+  const base: PlayerStats = { ...defaults, ...raw, lessonCompletedAt: raw.lessonCompletedAt ?? {}, completedProjects: raw.completedProjects ?? [], completedVisualizations: raw.completedVisualizations ?? [] };
   const activity: Record<string, DayActivity> = {};
   for (const [k, v] of Object.entries(raw.activity ?? {})) {
     activity[k] = typeof v === 'number' ? { ...emptyDay(), minutes: v } : { ...emptyDay(), ...(v as Partial<DayActivity>) };
@@ -54,6 +54,7 @@ interface Ctx {
   visitLesson: (id: string) => void;
   answerQuestion: (q: Question, correct: boolean) => void;
   completeLesson: (id: string, xp: number) => void;
+  completeProject: (id: string, xp: number) => void;
   solveProblem: (p: Problem, correct: boolean) => void;
   toggleFavourite: (id: string) => void;
   toggleReview: (id: string) => void;
@@ -98,6 +99,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return finalize({ ...prev, completedLessons: [...prev.completedLessons, id], lessonCompletedAt: { ...prev.lessonCompletedAt, [id]: todayKey() }, xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }) });
   });
 
+  const completeProject = (id: string, xp: number) => setStats(prev => {
+    if (prev.completedProjects.includes(id)) return prev;
+    return finalize({ ...prev, completedProjects: [...prev.completedProjects, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }) });
+  });
+
   const solveProblem = (p: Problem, correct: boolean) => setStats(prev => {
     const rec = prev.problems[p.id] ?? emptyRecord();
     const firstSolve = correct && !rec.solved;
@@ -123,7 +129,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   return (
     <PlayerContext.Provider value={{
-      stats, visitLesson, answerQuestion, completeLesson, solveProblem, completeVisualization, resetProgress,
+      stats, visitLesson, answerQuestion, completeLesson, completeProject, solveProblem, completeVisualization, resetProgress,
       toggleFavourite: id => patchProblem(id, r => ({ ...r, favourite: !r.favourite })),
       toggleReview: id => patchProblem(id, r => ({ ...r, review: !r.review })),
       toggleMastered: id => patchProblem(id, r => ({ ...r, mastered: !r.mastered })),
