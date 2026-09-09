@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Emblem } from '../common/Emblem';
+import { PixelWordmark } from '../brand/PixelLogo';
 import { Icon } from '../common/Icon';
 import { QuickFind } from './QuickFind';
 
@@ -15,7 +15,7 @@ const LINKS = [
 export function Sidebar() {
   return (
     <aside className="sidebar" aria-label="Primary navigation">
-      <div className="sb-head"><Emblem size={34} /><span className="sb-brand">IT QUEST</span></div>
+      <div className="sb-head"><PixelWordmark size={15} /></div>
       <QuickFind />
       <nav className="sb-nav">
         {LINKS.map(l => (
