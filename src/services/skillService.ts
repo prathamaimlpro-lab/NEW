@@ -4,7 +4,7 @@ import { problems } from '../data/problems';
 import { getMasteryState, getTopicCompletion } from './masteryService';
 import { getNextLesson, isLessonUnlocked } from './progressService';
 import { getTopicMastery } from './statsService';
-import { Lesson, PlayerStats, Problem } from '../types';
+import { PlayerStats } from '../types';
 
 export interface ConceptNode {
   id: string; name: string; worldId: string; levelIds: number[]; lessonIds: string[];
