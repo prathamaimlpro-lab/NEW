@@ -1,5 +1,4 @@
 import { listVisualizations } from '../components/visualization/registry';
-import { levels } from '../data/curriculum';
 import { lessons } from '../data/lessons';
 import { problems } from '../data/problems';
 import { projects } from '../data/projects';
@@ -17,7 +16,8 @@ export function getHeatmapDays(stats: PlayerStats, weeks = 16): HeatmapDay[] {
     const d = new Date(); d.setDate(d.getDate() - i);
     const k = todayKey(d);
     const a = stats.activity[k];
-    const lessonsN = stats.lessonCompletedAt[k] ? 1 : 0;
+    const eventLessons = (stats.events ?? []).filter(e => e.kind === 'lesson_completed' && e.at.slice(0, 10) === k).length;
+    const lessonsN = eventLessons > 0 ? eventLessons : (stats.lessonCompletedAt[k] ? 1 : 0);
     const problemsN = a?.problemsSolved ?? 0;
     const total = a?.count ?? 0;
     out.push({ date: k, value: total, breakdown: { lessons: lessonsN, problems: problemsN, other: Math.max(0, total - lessonsN - problemsN) } });
@@ -92,6 +92,7 @@ export function getPracticeAnalytics(stats: PlayerStats): PracticeAnalytics {
     .slice(0, 5);
   return {
     attemptedProblems, solvedProblems, submissions,
+    // successRate = solved problems / total submissions (attempt-level), distinct from mastery
     successRate: submissions > 0 ? Math.round((solvedProblems / submissions) * 100) : null,
     avgAttempts: attemptedProblems > 0 ? submissions / attemptedProblems : null,
     firstAttemptSolves: recs.filter(([, r]) => r.solved && r.attempts === 1).length,
