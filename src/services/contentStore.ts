@@ -4,7 +4,7 @@ import { lessons } from '../data/lessons';
 import { problems } from '../data/problems';
 import { projects } from '../data/projects';
 import { storageService } from './storageService';
-import { can } from './authService';
+import { can, getRole } from './authService';
 import { sbEnabled, sbUpsert, sbSelect } from './supabaseRest';
 import { validateLevel, validateLesson, validateProblem, validateProject, validateSnapshot, validateWorld } from './validationService';
 import { listVisualizations } from '../components/visualization/registry';
@@ -54,17 +54,41 @@ function mergeSnapshot(snap: Snapshot) {
   applyTheme();
 }
 
+const snapshotOf = (): Snapshot => ({ worlds, levels, lessons, problems, projects, achievements: achievementsData, theme, settings, vizMeta });
+const publishedOf = (snap: Snapshot): Snapshot => ({
+  ...snap,
+  levels: (snap.levels ?? []).filter(l => l.status === 'PUBLISHED'),
+  lessons: Object.fromEntries(Object.entries(snap.lessons ?? {}).filter(([, l]) => l.status === 'PUBLISHED')),
+  problems: (snap.problems ?? []).filter(p => p.status === 'PUBLISHED'),
+  projects: (snap.projects ?? []).filter(p => p.status === 'PUBLISHED'),
+});
+
 export function initContentStore() {
   const local = storageService.get<Snapshot | null>(KEY, null);
   if (local) applySnapshot(local);
-  if (sbEnabled()) sbSelect('content_snapshot', 'id=eq.main').then((rows: { data: Snapshot }[]) => { if (rows?.[0]?.data) applySnapshot(rows[0].data); }).catch(() => undefined);
+}
+
+export async function syncContentFromServer(): Promise<void> {
+  if (!sbEnabled()) return;
+  const role = getRole();
+  const id = role && role !== 'student' ? 'main' : 'published';
+  try {
+    const rows = await sbSelect<{ data: Snapshot }>('content_snapshot', `id=eq.${id}`);
+    if (rows?.[0]?.data) { applySnapshot(rows[0].data); persistLocal(); }
+  } catch { /* offline or not authorized: keep local cache */ }
+}
+
+function persistLocal() {
+  storageService.set(KEY, snapshotOf());
+  version++; listeners.forEach(l => l());
 }
 
 export function persist() {
-  const snap: Snapshot = { worlds, levels, lessons, problems, projects, achievements: achievementsData, theme, settings, vizMeta };
-  storageService.set(KEY, snap);
-  if (sbEnabled()) sbUpsert('content_snapshot', [{ id: 'main', data: snap }]).catch(() => undefined);
-  version++; listeners.forEach(l => l());
+  persistLocal();
+  if (sbEnabled() && can('content.write')) {
+    const full = snapshotOf();
+    sbUpsert('content_snapshot', [{ id: 'main', data: full }, { id: 'published', data: publishedOf(full) }]).catch(() => undefined);
+  }
 }
 
 export const subscribeContent = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
@@ -74,9 +98,7 @@ export const getSettings = () => settings;
 export const getVizMeta = () => vizMeta;
 export const getVizXp = (id: string, fallback: number) => vizMeta[id]?.xpReward ?? fallback;
 
-export function exportContent(): string {
-  return JSON.stringify({ worlds, levels, lessons, problems, projects, achievements: achievementsData, theme, settings, vizMeta } satisfies Snapshot, null, 2);
-}
+export function exportContent(): string { return JSON.stringify(snapshotOf(), null, 2); }
 
 export function importContent(json: string): string | null {
   let snap: Snapshot;
