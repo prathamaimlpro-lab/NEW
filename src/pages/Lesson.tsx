@@ -84,6 +84,14 @@ export default function Lesson() {
         </section>
       )}
 
+      {lesson.revision && lesson.revision.length > 0 && (
+        <section className="card" style={{ marginTop: 32 }}>
+          <div className="label-mono" style={{ marginBottom: 10 }}>REVISION</div>
+          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {lesson.revision.map(r => <li key={r} className="t-body" style={{ color: 'var(--fg-1)' }}>· {r}</li>)}
+          </ul>
+        </section>
+      )}
       {(completed || masteryDone) && (
         <section className="card fade-in" style={{ marginTop: 32, borderColor: 'rgba(16,185,129,.4)' }}>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
