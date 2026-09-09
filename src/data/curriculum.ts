@@ -36,7 +36,7 @@ const T: string[] = [
   'Operating System Architecture', 'Processes and Threads', 'Memory Management', 'CPU Scheduling', 'Networking Fundamentals',
   'IP Addresses and Routing', 'TCP, UDP, DNS and HTTP', 'HTML and CSS', 'JavaScript and Browser Fundamentals', 'Full-Stack Web Fundamentals',
   'Software Engineering Principles', 'APIs and Backend Development', 'Testing and Debugging', 'Security Fundamentals', 'Cloud Computing',
-  'DevOps and CI/CD', 'System Design', 'AI and Machine Learning Foundations', 'Production-Grade Engineering', 'IT QUEST CAPSTONE — Build a Real System',
+  'DevOps and CI/CD', 'System Design', 'AI and Machine Learning Foundations', 'Production-Grade Engineering', 'PIXEL CAPSTONE — Build a Real System',
 ];
 
 const LESSON_MAP: Record<number, string[]> = {
