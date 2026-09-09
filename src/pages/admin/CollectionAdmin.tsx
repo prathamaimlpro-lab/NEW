@@ -10,6 +10,7 @@ import { Achievement, ContentStatus, Difficulty, Problem, Project } from '../../
 
 const DIFFS = ['EASY', 'MEDIUM', 'HARD'].map(d => ({ value: d, label: d }));
 const STATUSES: ContentStatus[] = ['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED'];
+const STATUS_OPTIONS = STATUSES.map(s => ({ value: s, label: s }));
 const RULES = ['lessons', 'questions', 'problems', 'streak', 'playerLevel', 'xp', 'visualizations'].map(k => ({ value: k, label: k }));
 
 export default function CollectionAdmin() {
@@ -52,7 +53,7 @@ export default function CollectionAdmin() {
               <Field label="Description"><AreaInput value={editProblem.description} onChange={v => setEditProblem({ ...editProblem, description: v })} /></Field>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
                 <Field label="Difficulty"><SelectInput value={editProblem.difficulty} onChange={v => setEditProblem({ ...editProblem, difficulty: v as Difficulty })} options={DIFFS} /></Field>
-                <Field label="Status"><SelectInput value={editProblem.status} onChange={v => setEditProblem({ ...editProblem, status: v as ContentStatus })} options={STATUSES} /></Field>
+                <Field label="Status"><SelectInput value={editProblem.status} onChange={v => setEditProblem({ ...editProblem, status: v as ContentStatus })} options={STATUS_OPTIONS} /></Field>
                 <Field label="XP"><NumInput value={editProblem.xp} onChange={v => setEditProblem({ ...editProblem, xp: v })} /></Field>
                 <Field label="Related level"><SelectInput value={editProblem.relatedLevel} onChange={v => setEditProblem({ ...editProblem, relatedLevel: v })} options={levels.map(l => ({ value: l.id, label: `L${l.number} ${l.title}` }))} /></Field>
               </div>
@@ -93,7 +94,7 @@ export default function CollectionAdmin() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8 }}>
                 <Field label="Level"><SelectInput value={editProject.levelId ?? ''} onChange={v => setEditProject({ ...editProject, levelId: v || undefined })} options={[{ value: '', label: 'None' }, ...levels.map(l => ({ value: l.id, label: `L${l.number} ${l.title}` }))]} /></Field>
                 <Field label="Difficulty"><SelectInput value={editProject.difficulty} onChange={v => setEditProject({ ...editProject, difficulty: v as Difficulty })} options={DIFFS} /></Field>
-                <Field label="Status"><SelectInput value={editProject.status} onChange={v => setEditProject({ ...editProject, status: v as ContentStatus })} options={STATUSES} /></Field>
+                <Field label="Status"><SelectInput value={editProject.status} onChange={v => setEditProject({ ...editProject, status: v as ContentStatus })} options={STATUS_OPTIONS} /></Field>
                 <Field label="XP"><NumInput value={editProject.xp} onChange={v => setEditProject({ ...editProject, xp: v })} /></Field>
               </div>
               <Field label="Requirements (one per line)"><AreaInput rows={3} value={editProject.requirements.join('\n')} onChange={v => setEditProject({ ...editProject, requirements: lines(v) })} /></Field>
