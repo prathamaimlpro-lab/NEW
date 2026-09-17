@@ -61,7 +61,7 @@ export function getOverallProgress(stats: PlayerStats): number {
 export function getCompletedLevelCount(stats: PlayerStats): number {
   return levels.filter(l => isLevelCompleted(stats, l)).length;
 }
-/* Completion ratio is a SEPARATE metric from progress mean; label honestly. */
+/* Completion ratio is a SEPARATE metric from the progress mean; label honestly. */
 export function getOverallCompletion(stats: PlayerStats): number {
   return levels.length ? Math.round((getCompletedLevelCount(stats) / levels.length) * 100) : 0;
 }
@@ -79,6 +79,12 @@ export function getCurrentLevelId(stats: PlayerStats): string | null {
 }
 
 export interface RevisionItem { kind: 'lesson' | 'problem'; id: string; title: string; days: number }
+
+function problemTitle(id: string): string {
+  const q = Object.values(lessons).flatMap(l => [...l.practice, ...l.masteryTest]).find(x => x.id === id);
+  return q?.question ?? id;
+}
+
 export function getRevisionDue(stats: PlayerStats): RevisionItem[] {
   const out: RevisionItem[] = [];
   for (const [id, date] of Object.entries(stats.lessonCompletedAt)) {
@@ -86,11 +92,7 @@ export function getRevisionDue(stats: PlayerStats): RevisionItem[] {
     if (days >= 7) out.push({ kind: 'lesson', id, title: lessons[id]?.title ?? id, days });
   }
   for (const [id, rec] of Object.entries(stats.problems)) {
-    if (rec.review && rec.solved) out.push({ kind: 'problem', id, title: problemsTitle(id), days: 0 });
+    if (rec.review && rec.solved) out.push({ kind: 'problem', id, title: problemTitle(id), days: 0 });
   }
   return out;
-}
-function problemsTitle(id: string): string {
-  const p = Object.values(lessons).flatMap(l => [...l.practice, ...l.masteryTest]).find(q => q.id === id);
-  return p?.question ?? id;
 }
