@@ -1,10 +1,9 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { achievementsData } from '../data/achievements';
-import { lessons } from '../data/lessons';
-import { projects } from '../data/projects';
 import { evaluateAchievement } from '../services/achievementService';
 import { loadRemoteProgress, saveRemoteProgress } from '../services/progressRepository';
 import { storageService } from '../services/storageService';
+import { isSupabaseConfigured } from '../services/supabaseClient';
 import { calculatePlayerLevel, computeStreak, todayKey } from '../services/xpService';
 import { ActivityEvent, DayActivity, PlayerStats, Problem, ProblemRecord, Question } from '../types';
 
@@ -53,10 +52,11 @@ const bumpDay = (s: PlayerStats, patch: Partial<DayActivity>): Record<string, Da
   const t = todayKey(); const cur = s.activity[t] ?? emptyDay();
   return { ...s.activity, [t]: { minutes: cur.minutes + (patch.minutes ?? 0), problemsSolved: cur.problemsSolved + (patch.problemsSolved ?? 0), submissions: cur.submissions + (patch.submissions ?? 0), xpEarned: cur.xpEarned + (patch.xpEarned ?? 0), count: cur.count + (patch.count ?? 0) } };
 };
-
 const pushEvent = (s: PlayerStats, ev: ActivityEvent): ActivityEvent[] => [...s.events, ev].slice(-300);
 
 export type SyncState = 'idle' | 'loading' | 'ready' | 'error';
+const hasCache = () => storageService.get<Partial<PlayerStats> | null>(KEY, null) !== null;
+const needsBoot = () => isSupabaseConfigured() && !hasCache();
 
 interface Ctx {
   stats: PlayerStats;
@@ -80,7 +80,8 @@ const PlayerContext = createContext<Ctx | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<PlayerStats>(() => finalize(migrate(storageService.get<Partial<PlayerStats>>(KEY, {}))));
-  const [syncState, setSyncState] = useState<SyncState>('idle');
+  const [booting, setBooting] = useState<boolean>(() => needsBoot());
+  const [syncState, setSyncState] = useState<SyncState>(() => (needsBoot() ? 'loading' : 'idle'));
 
   useEffect(() => {
     storageService.set(KEY, stats);
@@ -99,7 +100,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         }
         setSyncState('ready');
       })
-      .catch(() => setSyncState('error'));
+      .catch(() => setSyncState('error'))
+      .finally(() => setBooting(false));
   }, []);
 
   useEffect(() => { retrySync(); }, [retrySync]);
@@ -111,6 +113,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }, 60000);
     return () => window.clearInterval(id);
   }, []);
+
+  if (booting) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#090A0D', display: 'grid', placeItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.05em', textTransform: 'uppercase', color: '#64748B' }}>Syncing progress…</span>
+          <div style={{ width: 220, height: 6, borderRadius: 999, background: '#181B22', overflow: 'hidden' }}>
+            <div style={{ width: '40%', height: '100%', background: '#232732' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const visitLesson = (id: string) => setStats(prev => prev.visitedLessons.includes(id) ? prev : finalize({ ...prev, visitedLessons: [...prev.visitedLessons, id] }));
 
@@ -129,25 +144,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const completeLesson = (id: string, xp: number) => setStats(prev => {
     if (prev.completedLessons.includes(id)) return prev;
-    return finalize({
-      ...prev,
-      completedLessons: [...prev.completedLessons, id],
-      lessonCompletedAt: { ...prev.lessonCompletedAt, [id]: todayKey() },
-      xp: prev.xp + xp,
-      activity: bumpDay(prev, { xpEarned: xp, count: 1 }),
-      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'lesson_completed', id, title: lessons[id]?.title ?? id, to: `/learn/lesson/${id}` }),
-    });
+    return finalize({ ...prev, completedLessons: [...prev.completedLessons, id], lessonCompletedAt: { ...prev.lessonCompletedAt, [id]: todayKey() }, xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }), events: pushEvent(prev, { at: new Date().toISOString(), kind: 'lesson_completed', id, title: undefined, to: `/learn/lesson/${id}` }) });
   });
 
   const completeProject = (id: string, xp: number) => setStats(prev => {
     if (prev.completedProjects.includes(id)) return prev;
-    return finalize({
-      ...prev,
-      completedProjects: [...prev.completedProjects, id],
-      xp: prev.xp + xp,
-      activity: bumpDay(prev, { xpEarned: xp, count: 1 }),
-      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'project_completed', id, title: projects.find(p => p.id === id)?.title ?? id }),
-    });
+    return finalize({ ...prev, completedProjects: [...prev.completedProjects, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }), events: pushEvent(prev, { at: new Date().toISOString(), kind: 'project_completed', id }) });
   });
 
   const solveProblem = (p: Problem, correct: boolean) => setStats(prev => {
@@ -169,13 +171,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const completeVisualization = (id: string, xp: number) => setStats(prev => {
     if (prev.completedVisualizations.includes(id) || xp === 0) return prev;
-    return finalize({
-      ...prev,
-      completedVisualizations: [...prev.completedVisualizations, id],
-      xp: prev.xp + xp,
-      activity: bumpDay(prev, { xpEarned: xp, count: 1 }),
-      events: pushEvent(prev, { at: new Date().toISOString(), kind: 'visualization_completed', id, to: `/explore/viz/${id}` }),
-    });
+    return finalize({ ...prev, completedVisualizations: [...prev.completedVisualizations, id], xp: prev.xp + xp, activity: bumpDay(prev, { xpEarned: xp, count: 1 }), events: pushEvent(prev, { at: new Date().toISOString(), kind: 'visualization_completed', id }) });
   });
 
   const resetProgress = () => setStats(finalize({ ...defaults }));
