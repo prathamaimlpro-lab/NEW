@@ -1,0 +1,77 @@
+/* ============ PIXEL — PAGE-LEVEL RESPONSIVE FIXES (PHASE 1B) ============ */
+/* Only real responsive defects. No overflow masking. No device hacks. */
+
+html { -webkit-text-size-adjust: 100%; }
+
+/* Curriculum header was an inline fixed-ratio grid that could not reflow. */
+.cur-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+  gap: 24px;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .cur-head { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}
+
+/* Contain internal scrollers so they never widen the page. */
+.code-block, .table-wrap, .vizrow, .jl-lane, .sk-scroll, .hm-scroll { max-width: 100%; }
+.code-block pre { max-width: 100%; }
+@media (max-width: 380px) {
+  .code-block pre { font-size: 12px; padding: 12px; }
+  .table-wrap th, .table-wrap td { padding: 8px 10px; }
+}
+
+/* Cards / panels compress on small screens. */
+@media (max-width: 767px) {
+  .card { padding: 16px; }
+  .page-inner { gap: 16px; }
+  .dgrid { gap: 12px; }
+  .p-hero, .p-chart, .p-list, .p-map { padding: 16px; }
+  .dialog { padding: 16px; }
+  .dialog-scrim { padding: 12px; }
+  .q-option { padding: 12px; }
+  .jpop { padding: 10px; }
+  .dempty { padding: 12px; }
+  .dtl-row { padding: 6px 0; }
+  .hero-grid { gap: 16px; }
+  .cl-actions .cta-solid, .cl-actions .cta-outline { width: 100%; }
+}
+@media (max-width: 360px) {
+  .reading { padding: 16px; }
+  .topbar .chip-info { display: none; } /* streak remains; XP still on dashboard strip */
+  .mx { grid-template-columns: 72px repeat(3, minmax(0, 1fr)); }
+  .jl-row { grid-template-columns: 72px minmax(0, 1fr) 34px; }
+  .vizcard { width: 150px; }
+  .bars { height: 160px; }
+  .plot { padding: 8px 6px 4px; }
+}
+
+/* Chips/labels must never force width. */
+.chip, .chip2 { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-micro, .t-caption { overflow-wrap: anywhere; }
+
+/* Tooltips stay inside their panel on narrow screens. */
+.dtip { max-width: calc(100% - 16px); }
+
+/* Visualization tiles stay tappable at 320px. */
+@media (max-width: 380px) {
+  .viz-tiles { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
+}
+
+/* Touch: comfortable targets without changing desktop density. */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { min-height: 38px; }
+  .input { height: 44px; }
+  .rtoggle button, .drange button { min-height: 34px; }
+  .hm-cell { width: 16px; height: 16px; }
+  .jnode { width: 44px; height: 44px; }
+  .q-option { min-height: 48px; }
+  .sb-link { min-height: 48px; }
+}
+
+/* Range select must remain usable when the button group collapses. */
+@media (max-width: 380px) {
+  .rselect { min-width: 120px; }
+}
