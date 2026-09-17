@@ -6,14 +6,15 @@ import { Topbar } from '../navigation/Topbar';
 export default function AppLayout() {
   const location = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+  const isDash = location.pathname === '/';
+
   return (
-    <div className="shell">
-      <div className="ambient" aria-hidden="true" />
+    <div className="app-shell">
       <Sidebar />
       <div className="shell-main">
         <Topbar />
-        <main className="page">
-          <div className="page-inner fade-in" key={location.pathname}>
+        <main className={`page ${isDash ? 'page-full' : ''}`}>
+          <div className={isDash ? 'page-inner-full' : 'page-inner fade-in'} key={location.pathname}>
             <Outlet />
           </div>
         </main>
