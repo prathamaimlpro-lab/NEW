@@ -17,14 +17,15 @@
   --signal-critical: #EF4444;
   --signal-focus: #6366F1;
   background: var(--surface-0);
-  margin: -22px -18px -70px;
-  padding: 24px 20px 72px;
+  width: 100%;
+  min-width: 0;
+  padding: 24px clamp(16px, 3vw, 32px) 72px;
   min-height: calc(100vh - 72px);
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-@media (max-width: 1023px) { .dash { margin: -16px -12px -40px; padding: 16px 12px 96px; gap: 12px; } }
+@media (max-width: 1023px) { .dash { padding: 16px 12px 96px; gap: 12px; } }
 
 .dgrid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
 @media (max-width: 1279px) { .dgrid { gap: 12px; } .dgrid > * { grid-column: span 12 !important; } }
