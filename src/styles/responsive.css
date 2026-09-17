@@ -1,9 +1,8 @@
-/* ============ PIXEL — PAGE-LEVEL RESPONSIVE FIXES (PHASE 1B) ============ */
-/* Only real responsive defects. No overflow masking. No device hacks. */
+/* ============ PIXEL — PAGE-LEVEL RESPONSIVE FIXES (PHASE 1B + 1C) ============ */
 
 html { -webkit-text-size-adjust: 100%; }
 
-/* Curriculum header was an inline fixed-ratio grid that could not reflow. */
+/* Curriculum header: fluid, collapses below 900px. */
 .cur-head {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
@@ -36,10 +35,11 @@ html { -webkit-text-size-adjust: 100%; }
   .dtl-row { padding: 6px 0; }
   .hero-grid { gap: 16px; }
   .cl-actions .cta-solid, .cl-actions .cta-outline { width: 100%; }
+  .sk-content { gap: 16px; }               /* 1C-7: mobile canvas gap */
 }
 @media (max-width: 360px) {
   .reading { padding: 16px; }
-  .topbar .chip-info { display: none; } /* streak remains; XP still on dashboard strip */
+  .topbar .chip-info { display: none; }
   .mx { grid-template-columns: 72px repeat(3, minmax(0, 1fr)); }
   .jl-row { grid-template-columns: 72px minmax(0, 1fr) 34px; }
   .vizcard { width: 150px; }
@@ -51,13 +51,42 @@ html { -webkit-text-size-adjust: 100%; }
 .chip, .chip2 { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .d-micro, .t-caption { overflow-wrap: anywhere; }
 
-/* Tooltips stay inside their panel on narrow screens. */
+/* Tooltips stay inside their panel. */
 .dtip { max-width: calc(100% - 16px); }
+
+/* 1C-1: axis labels must not clip mid-glyph; sparse labels may extend over
+   empty neighbour slots; plot clips only at its own edge. */
+.plot { overflow: hidden; }
+.bxl span { overflow: visible; white-space: nowrap; font-size: 10px; text-align: left; }
+.bxl span:last-child { text-align: right; }
 
 /* Visualization tiles stay tappable at 320px. */
 @media (max-width: 380px) {
   .viz-tiles { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
 }
+
+/* 1C-2: journey rows between 361–480px. */
+@media (max-width: 480px) {
+  .jl-row { grid-template-columns: 84px minmax(0, 1fr) 34px; }
+  .jnode { width: 36px; height: 36px; font-size: 11px; }
+}
+
+/* 1C-3 / 1C-4: viewport-aware heights for canvas-like regions. */
+.sk-scroll { max-height: min(460px, 62vh); }
+@media (max-height: 480px) {
+  .viz-stage { height: 200px; }
+  .bars { height: 140px; }
+  .sk-scroll { max-height: 40vh; }
+  .shell-main { padding-bottom: 96px; }
+}
+
+/* 1C-5: dock labels must not overflow their slot at 320px. */
+@media (max-width: 1023px) {
+  .sb-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* 1C-6: sticky heatmap day column must not shrink. */
+.hm-days { flex: none; }
 
 /* Touch: comfortable targets without changing desktop density. */
 @media (pointer: coarse) {
@@ -71,7 +100,6 @@ html { -webkit-text-size-adjust: 100%; }
   .sb-link { min-height: 48px; }
 }
 
-/* Range select must remain usable when the button group collapses. */
 @media (max-width: 380px) {
   .rselect { min-width: 120px; }
 }
