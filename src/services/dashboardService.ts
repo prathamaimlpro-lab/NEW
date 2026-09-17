@@ -3,15 +3,16 @@ import { levels, worlds } from '../data/curriculum';
 import { lessons } from '../data/lessons';
 import { problems } from '../data/problems';
 import { projects } from '../data/projects';
-import { getLevel, getLessonProgress, getLevelProgress, getNextLesson, getWorld, isLevelCompleted, isLevelUnlocked, publishedLessons } from './progressService';
-import { buildSkillGraph, type ConceptNode, type SkillGraph } from './skillService';
+import {
+  getCompletedLevelCount, getLevel, getLessonProgress, getLevelProgress, getNextLesson,
+  getOverallCompletion, getOverallProgress, getWorld, getWorldProgress, isLevelCompleted, publishedLessons,
+} from './progressService';
 import { getTopicMastery } from './statsService';
 import { getTopicCompletion } from './masteryService';
 import { todayKey } from './xpService';
 import type { PlayerStats } from '../types';
 
-export type { SkillGraph, ConceptNode };
-export { buildSkillGraph };
+export { getLevelState as journeyState } from './progressService';
 
 /* ---------- documented intelligence thresholds ---------- */
 export const WEAK_RULE = { minAttempts: 3, masteryBelow: 50, accuracyBelow: 60 } as const;
@@ -96,7 +97,7 @@ export function getActivitySeries(stats: PlayerStats, range: Range): { days: Ser
   return { days, events, minutes };
 }
 
-/* ---------- mastery vs completion bridge ---------- */
+/* ---------- mastery vs completion ---------- */
 export interface MasteryRow { topic: string; mastery: number; completion: number; gap: number; accuracy: number | null; attempts: number }
 
 function topicAgg(stats: PlayerStats, topic: string): { attempted: number; solved: number; last: string | null } {
@@ -212,25 +213,22 @@ export function getRankedAction(stats: PlayerStats): RankedAction {
   return { headline: 'Explore the curriculum', why: 'All published lessons are complete — browse upcoming content.', to: '/learn', accent: 'strong' };
 }
 
-/* ---------- curriculum journey ---------- */
+/* ---------- curriculum journey (single aggregation source) ---------- */
 export function getCurriculumProgress(stats: PlayerStats) {
   const rows = worlds.map(w => {
     const wl = levels.filter(l => l.worldId === w.id);
-    const completed = wl.filter(l => isLevelCompleted(stats, l)).length;
-    return { world: w, completed, total: wl.length, pct: wl.length ? Math.round((completed / wl.length) * 100) : 0 };
+    return { world: w, completed: wl.filter(l => isLevelCompleted(stats, l)).length, total: wl.length, pct: getWorldProgress(stats, w.id) };
   });
-  const levelsCompleted = levels.filter(l => isLevelCompleted(stats, l)).length;
   const next = getNextLesson(stats);
-  return { rows, levelsCompleted, totalLevels: levels.length, overallPct: Math.round((levelsCompleted / levels.length) * 100), currentLevelId: next?.levelId ?? null, currentLevelNumber: next ? getLevel(next.levelId)?.number ?? 0 : levelsCompleted };
-}
-
-export function journeyState(stats: PlayerStats, levelId: string, currentLevelId: string | null): 'done' | 'current' | 'available' | 'locked' {
-  const l = levels.find(x => x.id === levelId);
-  if (!l) return 'locked';
-  if (isLevelCompleted(stats, l)) return 'done';
-  if (levelId === currentLevelId) return 'current';
-  if (!isLevelUnlocked(stats, l)) return 'locked';
-  return getLevelProgress(stats, l) > 0 ? 'current' : 'available';
+  return {
+    rows,
+    levelsCompleted: getCompletedLevelCount(stats),
+    totalLevels: levels.length,
+    overallPct: getOverallProgress(stats),
+    overallCompletion: getOverallCompletion(stats),
+    currentLevelId: next?.levelId ?? null,
+    currentLevelNumber: next ? getLevel(next.levelId)?.number ?? 0 : getCompletedLevelCount(stats),
+  };
 }
 
 /* ---------- projects + visualizations ---------- */
@@ -281,4 +279,4 @@ export function getAccuracyMatrix(stats: PlayerStats): { topics: string[]; cells
   const cells: Record<string, { attempted: number; solved: number }> = {};
   for (const [key, v] of agg) cells[key] = v;
   return { topics, cells };
-  }
+}
