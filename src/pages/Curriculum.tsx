@@ -29,7 +29,7 @@ export default function Curriculum() {
 
   return (
     <>
-      <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(280px,1fr)', gap: 24, alignItems: 'center' }} className="curr-head">
+      <section className="cur-head">
         <div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
             <Chip tone="success">● Active Track</Chip><span className="label-mono">/ 10 WORLDS · 100 LEVELS</span>
