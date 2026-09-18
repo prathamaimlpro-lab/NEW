@@ -28,7 +28,7 @@ export function Topbar() {
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span className="chip chip-success"><Icon name="flame" size={12} /> {stats.streak}D</span>
-        <span className="chip chip-info"><Icon name="bolt" size={12} /> {stats.xp.toLocaleString()} XP</span>
+        <span className="chip"><Icon name="bolt" size={12} /> {stats.xp.toLocaleString()} XP</span>
         <div style={{ position: 'relative' }}>
           <button className="btn btn-ghost btn-sm" aria-label="Notifications" onClick={() => setBellOpen(v => !v)}><Icon name="bell" size={18} /></button>
           {bellOpen && (
