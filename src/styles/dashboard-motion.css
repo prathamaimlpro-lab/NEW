@@ -1,26 +1,26 @@
-/* Informational motion only */
-.dash > .dgrid > * { animation: dIn 240ms cubic-bezier(.2,.72,.22,1) both; }
-.dash > .dgrid > *:nth-child(1) { animation-delay: 20ms; }
-.dash > .dgrid > *:nth-child(2) { animation-delay: 40ms; }
-.dash > .dgrid > *:nth-child(3) { animation-delay: 60ms; }
-.dash > .dgrid > *:nth-child(n+4) { animation-delay: 80ms; }
-@keyframes dIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+/* ============ PIXEL DASHBOARD — MOTION PRIMITIVES (durations from global tokens) ============ */
+.dash > *, .dash .dgrid > * { animation: dIn var(--motion-slow) var(--ease) both; }
+.dash .dgrid > *:nth-child(1) { animation-delay: 30ms; }
+.dash .dgrid > *:nth-child(2) { animation-delay: 50ms; }
+.dash .dgrid > *:nth-child(3) { animation-delay: 70ms; }
+.dash .dgrid > *:nth-child(n+4) { animation-delay: 90ms; }
+@keyframes dIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-.p-strip { animation: dFade 150ms ease both; }
-@keyframes dFade { from { opacity: 0; } to { opacity: 1; } }
-
-.dtip { animation: dTip 120ms cubic-bezier(.2,.72,.22,1) both; }
+.dtip { animation: dTip var(--motion-fast) var(--ease) both; }
 @keyframes dTip { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 
-.jpop, .sk-detail { animation: dTip 160ms cubic-bezier(.2,.72,.22,1) both; }
-.lrow { animation: dRow 160ms cubic-bezier(.2,.72,.22,1) both; }
+.jpop, .sk-detail { animation: dTip var(--motion-normal) var(--ease) both; }
+
+.lrow { animation: dRow var(--motion-normal) var(--ease) both; }
 .lrow:nth-child(2) { animation-delay: 20ms; }
 .lrow:nth-child(3) { animation-delay: 40ms; }
 .lrow:nth-child(n+4) { animation-delay: 60ms; }
 @keyframes dRow { from { opacity: 0; transform: translateX(-3px); } to { opacity: 1; transform: none; } }
 
+.p-strip { animation: dFade 150ms ease both; }
+@keyframes dFade { from { opacity: 0; } to { opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .dash > .dgrid > *, .p-strip, .dtip, .jpop, .sk-detail, .lrow { animation: none !important; }
+  .dash > *, .dash .dgrid > *, .dtip, .jpop, .sk-detail, .lrow, .p-strip { animation: none !important; }
   .jnode-current { animation: none !important; }
-  .dash *, .dash *::before, .dash *::after { transition-duration: 1ms !important; }
 }
