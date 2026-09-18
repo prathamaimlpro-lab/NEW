@@ -93,7 +93,7 @@ export function ProblemTracker() {
                       : st === 'solved' ? <span className="chip chip-success">Solved</span>
                       : st === 'attempted' ? <span className="chip chip-info">Attempted</span>
                       : <span className="chip">Not started</span>}
-                    {rec?.favourite && <span className="chip chip-warning">Favourite</span>}
+                    {rec?.favourite && <span className="chip">★ Favourite</span>}
                   </div>
                 </div>
                 <p className="d-body-sm" style={{ marginTop: 8, color: 'var(--text-secondary, #94A3B8)' }}>{p.description}</p>
