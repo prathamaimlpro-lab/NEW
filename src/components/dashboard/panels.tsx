@@ -4,6 +4,31 @@ import { getProjectRows, getStrengthEvidence, getVisualizationRows, getWeaknessE
 import { getTimeline } from '../../services/activityService';
 import { usePlayer } from '../../store/PlayerContext';
 
+export function OnboardingPanel() {
+  const items: [string, string][] = [
+    ['Activity analytics', 'Appears after your first lesson or practice session.'],
+    ['Mastery tracking', 'Builds as you complete lessons and answer checks.'],
+    ['Practice patterns', 'Accuracy by difficulty and topic after a few problems.'],
+    ['Projects & visualizations', 'Connect skills to real builds and interactive models.'],
+  ];
+  return (
+    <section className="p-chart">
+      <div className="p-head"><span className="d-eyebrow">What unlocks as you learn</span></div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        {items.map(([t, d]) => (
+          <div key={t} style={{ background: 'var(--surface-2, #181B22)', border: '1px solid var(--border-subtle, #232732)', borderRadius: 6, padding: 12 }}>
+            <div className="d-title" style={{ fontSize: 14 }}>{t}</div>
+            <div className="d-micro" style={{ marginTop: 6, color: 'var(--text-muted, #64748B)' }}>{d}</div>
+          </div>
+        ))}
+      </div>
+      <p className="d-micro" style={{ marginTop: 12, color: 'var(--text-muted, #64748B)' }}>
+        Nothing here is simulated — each panel appears only when real data exists.
+      </p>
+    </section>
+  );
+}
+
 export function StrengthWeakness() {
   const { stats } = usePlayer();
   const weak = useMemo(() => getWeaknessEvidence(stats), [stats]);
@@ -12,12 +37,12 @@ export function StrengthWeakness() {
     <section className="p-list" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       {weak.length > 0 && (
         <div>
-          <div className="d-eyebrow" style={{ color: 'var(--signal-weak)', marginBottom: 10 }}>⚠ Weakness detected</div>
+          <div className="d-eyebrow" style={{ color: 'var(--signal-weak, #F59E0B)', marginBottom: 10 }}> Weakness detected</div>
           {weak.map(w => (
             <div key={w.topic} style={{ marginBottom: 14 }}>
               <div className="d-title" style={{ marginBottom: 6 }}>{w.topic}</div>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
-                {w.lines.map(l => <li key={l} className="d-micro" style={{ color: 'var(--text-secondary)' }}>· {l}</li>)}
+                {w.lines.map(l => <li key={l} className="d-micro" style={{ color: 'var(--text-secondary, #94A3B8)' }}>· {l}</li>)}
               </ul>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <Link className="cta-outline" to="/practice">Review concept</Link>
@@ -27,17 +52,17 @@ export function StrengthWeakness() {
           ))}
         </div>
       )}
-      {weak.length === 0 && <p className="d-micro" style={{ color: 'var(--text-muted)' }}>No weak areas detected yet — keep practicing to build the signal.</p>}
+      {weak.length === 0 && <p className="d-micro" style={{ color: 'var(--text-muted, #64748B)' }}>No weak areas detected yet — keep practicing to build the signal.</p>}
       {strong.length > 0 && (
         <div>
-          <div className="d-eyebrow" style={{ color: 'var(--signal-mastered)', marginBottom: 10 }}>✓ Strength identified</div>
+          <div className="d-eyebrow" style={{ color: 'var(--signal-mastered, #10B981)', marginBottom: 10 }}>✓ Strength identified</div>
           {strong.map(s => (
             <div key={s.topic} style={{ marginBottom: 12 }}>
               <div className="d-title" style={{ marginBottom: 6 }}>{s.topic}</div>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {s.lines.map(l => <li key={l} className="d-micro" style={{ color: 'var(--text-secondary)' }}>· {l}</li>)}
+                {s.lines.map(l => <li key={l} className="d-micro" style={{ color: 'var(--text-secondary, #94A3B8)' }}>· {l}</li>)}
               </ul>
-              <Link className="d-micro" style={{ color: 'var(--text-muted)', display: 'inline-block', marginTop: 6 }} to="/practice">Practice more →</Link>
+              <Link className="d-micro" style={{ color: 'var(--text-muted, #64748B)', display: 'inline-block', marginTop: 6 }} to="/practice">Practice more →</Link>
             </div>
           ))}
         </div>
@@ -55,16 +80,18 @@ export function ProjectAnalytics() {
   return (
     <section className="p-list">
       <div className="p-head"><span className="d-title">Projects</span></div>
-      {rows.length === 0 ? <div className="dempty">No projects published yet.</div> : rows.map(({ project, done, skills, levelNumber }) => (
+      {rows.length === 0 ? (
+        <div className="dempty">No projects started yet. Projects unlock as you progress through levels.</div>
+      ) : rows.map(({ project, done, skills, levelNumber }) => (
         <Link key={project.id} className="lrow" style={{ alignItems: 'flex-start' }} to={levelNumber ? `/learn/level/level-${levelNumber}` : '/learn'}>
-          <span className="rail"><span className="dot" style={{ background: done ? 'var(--signal-mastered)' : 'var(--text-subtle)' }} /></span>
+          <span className="rail"><span className="dot" style={{ background: done ? 'var(--signal-mastered, #10B981)' : 'var(--text-subtle, #475569)' }} /></span>
           <span style={{ minWidth: 0, flex: 1 }}>
-            <span className="d-body" style={{ color: 'var(--text-primary)', display: 'block' }}>{project.title}</span>
+            <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)', display: 'block' }}>{project.title}</span>
             <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
               {skills.map(s => <span key={s} className="chip2">{s}</span>)}
               <span className="chip2">{project.difficulty}</span>
             </span>
-            <span className="d-micro" style={{ display: 'block', marginTop: 6, color: 'var(--text-muted)' }}>Next: {project.requirements[0] ?? '—'}</span>
+            <span className="d-micro" style={{ display: 'block', marginTop: 6, color: 'var(--text-muted, #64748B)' }}>Next: {project.requirements[0] ?? '—'}</span>
           </span>
           <span className="d-micro">{done ? 'done' : `+${project.xp} XP`}</span>
         </Link>
@@ -78,7 +105,7 @@ function Thumb({ id }: { id: string }) {
     return (
       <svg width="148" height="40" aria-hidden="true">
         {[14, 26, 10, 32, 20, 24].map((h, i) => (
-          <rect key={i} x={4 + i * 24} y={38 - h} width="16" height={h} rx="2" fill={i === 2 ? 'var(--signal-strong)' : 'var(--surface-3)'} />
+          <rect key={i} x={4 + i * 24} y={38 - h} width="16" height={h} rx="2" fill={i === 2 ? 'var(--signal-strong, #38BDFB)' : 'var(--surface-3, #1E222B)'} />
         ))}
       </svg>
     );
@@ -87,8 +114,8 @@ function Thumb({ id }: { id: string }) {
     <svg width="148" height="40" aria-hidden="true">
       {[6, 42, 78, 114].map((x, i) => (
         <g key={i}>
-          <rect x={x} y={12} width="22" height="16" rx="3" fill={i === 2 ? 'var(--signal-strong)' : 'var(--surface-3)'} />
-          {i < 3 && <line x1={x + 22} y1={20} x2={x + 36} y2={20} stroke="var(--border-strong)" strokeWidth="1.5" />}
+          <rect x={x} y={12} width="22" height="16" rx="3" fill={i === 2 ? 'var(--signal-strong, #38BDFB)' : 'var(--surface-3, #1E222B)'} />
+          {i < 3 && <line x1={x + 22} y1={20} x2={x + 36} y2={20} stroke="var(--border-strong, #2E3444)" strokeWidth="1.5" />}
         </g>
       ))}
     </svg>
@@ -102,31 +129,35 @@ export function VisualizationActivity() {
     <section className="p-list">
       <div className="p-head">
         <span className="d-title">Visualization Activity</span>
-        <Link className="d-micro" style={{ color: 'var(--signal-strong)' }} to="/explore">See all in Explore →</Link>
+        <Link className="d-micro" style={{ color: 'var(--signal-strong, #38BDFB)' }} to="/explore">See all in Explore →</Link>
       </div>
-      <div className="vizrow">
-        {rows.map(r => (
-          <Link key={r.viz.id} className="vizcard" to={`/explore/viz/${r.viz.id}`}>
-            <Thumb id={r.viz.id} />
-            <span className="d-body" style={{ color: 'var(--text-primary)' }}>{r.viz.title}</span>
-            <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <span className="chip2">{r.viz.category}</span>
-              {r.completed && <span className="chip2" style={{ color: 'var(--signal-mastered)' }}>done</span>}
-            </span>
-            <span className="d-micro" style={{ color: 'var(--text-muted)' }}>{r.lastIso ? relTime(r.lastIso) : 'not used yet'}</span>
-          </Link>
-        ))}
-      </div>
+      {rows.length === 0 ? (
+        <div className="dempty">Explore a visualization to begin building activity history.</div>
+      ) : (
+        <div className="vizrow">
+          {rows.map(r => (
+            <Link key={r.viz.id} className="vizcard" to={`/explore/viz/${r.viz.id}`}>
+              <Thumb id={r.viz.id} />
+              <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)' }}>{r.viz.title}</span>
+              <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <span className="chip2">{r.viz.category}</span>
+                {r.completed && <span className="chip2" style={{ color: 'var(--signal-mastered, #10B981)' }}>done</span>}
+              </span>
+              <span className="d-micro" style={{ color: 'var(--text-muted, #64748B)' }}>{r.lastIso ? relTime(r.lastIso) : 'not used yet'}</span>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
 
 const KIND_DOT: Record<string, string> = {
-  lesson_completed: 'var(--signal-strong)',
-  problem_solved: 'var(--signal-mastered)',
-  visualization_completed: 'var(--signal-mastered)',
-  project_completed: 'var(--text-secondary)',
-  revision_completed: 'var(--signal-weak)',
+  lesson_completed: 'var(--signal-strong, #38BDFB)',
+  problem_solved: 'var(--signal-mastered, #10B981)',
+  visualization_completed: 'var(--signal-mastered, #10B981)',
+  project_completed: 'var(--text-secondary, #94A3B8)',
+  revision_completed: 'var(--signal-weak, #F59E0B)',
 };
 const KIND_VERB: Record<string, string> = {
   lesson_completed: 'Completed lesson',
@@ -144,7 +175,8 @@ export function TimelineSection() {
   for (const e of events) {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const yest = new Date(today); yest.setDate(yest.getDate() - 1);
-    const label = e.date === todayKeyStr(today) ? 'Today' : e.date === todayKeyStr(yest) ? 'Yesterday' : new Date(`${e.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const label = e.date === key(today) ? 'Today' : e.date === key(yest) ? 'Yesterday' : new Date(`${e.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     const g = groups.find(x => x.label === label);
     if (g) g.items.push(e); else groups.push({ label, items: [e] });
   }
@@ -152,20 +184,22 @@ export function TimelineSection() {
   return (
     <section className="p-list">
       <div className="p-head"><span className="d-title">Activity Timeline</span></div>
-      {events.length === 0 ? <div className="dempty">No activity yet. Completed lessons, solved problems and finished visualizations will appear here.</div> : (
+      {events.length === 0 ? (
+        <div className="dempty">No activity yet. Completed lessons, solved problems and finished visualizations will appear here.</div>
+      ) : (
         <>
           {groups.map(g => {
             if (rendered >= limit) return null;
             return (
               <div key={g.label}>
-                <div className="d-micro" style={{ color: 'var(--text-subtle)', margin: '10px 0 4px' }}>{g.label}</div>
+                <div className="d-micro" style={{ color: 'var(--text-subtle, #475569)', margin: '10px 0 4px' }}>{g.label}</div>
                 {g.items.map((e, i) => {
                   if (rendered >= limit) return null;
                   rendered += 1;
                   return (
                     <div key={`${e.kind}-${e.title}-${i}`} className="lrow">
-                      <span className="rail"><span className="dot" style={{ background: KIND_DOT[e.kind] ?? 'var(--text-subtle)' }} /></span>
-                      <span className="d-body" style={{ color: 'var(--text-secondary)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span className="rail"><span className="dot" style={{ background: KIND_DOT[e.kind] ?? 'var(--text-subtle, #475569)' }} /></span>
+                      <span className="d-body" style={{ color: 'var(--text-secondary, #94A3B8)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {KIND_VERB[e.kind] ?? e.kind}: {e.title}
                       </span>
                       <span className="d-micro">{e.time ?? relTime(e.at)}</span>
@@ -182,8 +216,4 @@ export function TimelineSection() {
       )}
     </section>
   );
-}
-
-function todayKeyStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
