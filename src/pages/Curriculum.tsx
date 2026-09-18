@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../components/common/Icon';
 import { levels, worlds } from '../data/curriculum';
 import {
-  getLevel, getLevelProgress, getLevelState, getNextLesson, getOverallProgress, getWorldProgress, publishedLessons,
+  getLevel, getLessonProgress, getLevelProgress, getLevelState, getNextLesson, getOverallProgress, getWorldProgress, publishedLessons,
 } from '../services/progressService';
 import { usePlayer } from '../store/PlayerContext';
 import type { Level, World } from '../types';
