@@ -4,15 +4,26 @@ import { lessons } from '../data/lessons';
 import { problems } from '../data/problems';
 import { projects } from '../data/projects';
 import {
-  getCompletedLevelCount, getLevel, getLessonProgress, getLevelProgress, getNextLesson,
+  getCompletedLevelCount, getLevel, getLessonProgress, getLevelProgress, getLevelState, getNextLesson,
   getOverallCompletion, getOverallProgress, getWorld, getWorldProgress, isLevelCompleted, publishedLessons,
+  type LevelState,
 } from './progressService';
+import { buildSkillGraph } from './skillService';
+import type { ConceptNode, SkillGraph } from './skillService';
 import { getTopicMastery } from './statsService';
 import { getTopicCompletion } from './masteryService';
 import { todayKey } from './xpService';
 import type { PlayerStats } from '../types';
 
-export { getLevelState as journeyState } from './progressService';
+export { buildSkillGraph };
+export type { ConceptNode, SkillGraph };
+
+/* String-id wrapper so UI layers can call journeyState(stats, levelId, currentLevelId). */
+export function journeyState(stats: PlayerStats, levelId: string, currentLevelId: string | null): LevelState {
+  const l = levels.find(x => x.id === levelId);
+  if (!l) return 'locked';
+  return getLevelState(stats, l, currentLevelId);
+}
 
 /* ---------- documented intelligence thresholds ---------- */
 export const WEAK_RULE = { minAttempts: 3, masteryBelow: 50, accuracyBelow: 60 } as const;
