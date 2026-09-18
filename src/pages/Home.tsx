@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { ActivityAnalytics, CurriculumJourney, HeatmapSection, MasteryBridge, PracticeAnalytics } from '../components/dashboard/analytics';
-import { ContinueLearning } from '../components/dashboard/ContinueLearning';
 import { CompactStrip } from '../components/dashboard/CompactStrip';
+import { ContinueLearning } from '../components/dashboard/ContinueLearning';
 import { NextBestAction } from '../components/dashboard/NextBestAction';
-import { ProjectAnalytics, StrengthWeakness, TimelineSection, VisualizationActivity } from '../components/dashboard/panels';
+import { OnboardingPanel, ProjectAnalytics, StrengthWeakness, TimelineSection, VisualizationActivity } from '../components/dashboard/panels';
 import { SkillMap } from '../components/dashboard/SkillMap';
 import { getSession } from '../services/authService';
-import { buildSkillGraph, getCurrentLearningState } from '../services/dashboardService';
+import { buildSkillGraph, getDashboardDisclosure, getCurrentLearningState } from '../services/dashboardService';
 import { usePlayer } from '../store/PlayerContext';
 import '../styles/dashboard.css';
 import '../styles/dashboard-motion.css';
@@ -18,6 +18,7 @@ export default function Home() {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const learning = useMemo(() => getCurrentLearningState(stats), [stats]);
+  const disclosure = useMemo(() => getDashboardDisclosure(stats), [stats]);
   const graph = useMemo(() => buildSkillGraph(stats), [stats]);
 
   return (
@@ -25,9 +26,7 @@ export default function Home() {
       <header style={{ padding: '24px 2px 0' }}>
         <h1 className="d-h1">{greeting}, {name}</h1>
         <p className="d-body" style={{ marginTop: 8 }}>
-          {learning
-            ? `${learning.worldTitle} · Level ${learning.levelNumber} · ${learning.lessonTitle}`
-            : 'Learning Command Center'}
+          {learning ? `${learning.worldTitle} · Level ${learning.levelNumber} · ${learning.lessonTitle}` : 'Learning Command Center'}
         </p>
       </header>
 
@@ -37,22 +36,24 @@ export default function Home() {
 
         <div className="span12"><CompactStrip /></div>
 
-        <div className="span12"><ActivityAnalytics /></div>
+        {disclosure.isNew && <div className="span12"><OnboardingPanel /></div>}
 
-        <div className="span7"><HeatmapSection /></div>
-        <div className="span5"><MasteryBridge /></div>
+        {disclosure.showActivity && <div className="span12"><ActivityAnalytics /></div>}
+
+        {disclosure.showHeat && <div className="span7"><HeatmapSection /></div>}
+        {disclosure.showMastery && <div className="span5"><MasteryBridge /></div>}
 
         <div className="span12"><CurriculumJourney /></div>
 
-        <div className="span12"><SkillMap graph={graph} /></div>
+        {disclosure.showSkill && <div className="span12"><SkillMap graph={graph} /></div>}
 
-        <div className="span7"><PracticeAnalytics /></div>
-        <div className="span5"><StrengthWeakness /></div>
+        {disclosure.showPractice && <div className="span7"><PracticeAnalytics /></div>}
+        {disclosure.showInsights && <div className="span5"><StrengthWeakness /></div>}
 
-        <div className="span6"><ProjectAnalytics /></div>
-        <div className="span6"><VisualizationActivity /></div>
+        {disclosure.showProjects && <div className="span6"><ProjectAnalytics /></div>}
+        {disclosure.showViz && <div className="span6"><VisualizationActivity /></div>}
 
-        <div className="span12"><TimelineSection /></div>
+        {disclosure.showTimeline && <div className="span12"><TimelineSection /></div>}
       </div>
     </div>
   );
