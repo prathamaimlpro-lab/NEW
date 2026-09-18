@@ -9,12 +9,12 @@ import { getHeatmapDays } from '../../services/activityService';
 import { getOverallCompletion, publishedLessons } from '../../services/progressService';
 import { usePlayer } from '../../store/PlayerContext';
 
-/* ---------------- Activity Analytics ---------------- */
 export function ActivityAnalytics() {
   const { stats, syncState, retrySync } = usePlayer();
   const [range, setRange] = useState<Range>('7D');
   const [sel, setSel] = useState<number | null>(null);
   const data = useMemo(() => getActivitySeries(stats, range), [stats, range]);
+  const lifetime = useMemo(() => Object.values(stats.activity).reduce((s, a) => s + (a.count ?? 0), 0), [stats.activity]);
   const max = Math.max(1, ...data.days.map(d => d.total));
   const status = syncState === 'loading' ? 'loading' : syncState === 'error' && data.events === 0 ? 'error' : data.events === 0 ? 'empty' : 'success';
 
@@ -48,7 +48,11 @@ export function ActivityAnalytics() {
         </div>
       )}
       {status === 'empty' && (
-        <div className="dempty">No activity in this range yet. Lessons and practice you complete will populate this chart.</div>
+        <div className="dempty">
+          {lifetime === 0
+            ? 'No learning activity yet. Complete a lesson or solve a problem and your daily pattern will appear here.'
+            : 'No activity in this range. Try a wider range to see earlier activity.'}
+        </div>
       )}
       {status === 'success' && (
         <div className="plot" style={{ position: 'relative' }}>
@@ -94,7 +98,6 @@ export function ActivityAnalytics() {
   );
 }
 
-/* ---------------- Learning Heatmap ---------------- */
 export function HeatmapSection() {
   const { stats, syncState, retrySync } = usePlayer();
   const [sel, setSel] = useState<string | null>(null);
@@ -112,7 +115,7 @@ export function HeatmapSection() {
       <div className="p-head"><span className="d-eyebrow">Learning Heatmap · 16 weeks</span></div>
       {status === 'loading' && <div className="skel" style={{ height: 120 }} aria-busy="true" />}
       {status === 'error' && <div className="dempty" style={{ display: 'flex', gap: 10, alignItems: 'center' }}><span>Couldn't load activity.</span><button className="cta-outline" onClick={retrySync}>Retry</button></div>}
-      {status === 'empty' && <div className="dempty">No learning activity yet. Complete lessons, solve problems, and revise concepts to build your learning history.</div>}
+      {status === 'empty' && <div className="dempty">Your learning activity will appear here. Every lesson, practice session and revision adds a cell to this map.</div>}
       {status === 'success' && (
         <>
           <div className="hm-wrap">
@@ -154,7 +157,6 @@ export function HeatmapSection() {
   );
 }
 
-/* ---------------- Mastery vs Completion bridge ---------------- */
 export function MasteryBridge() {
   const { stats } = usePlayer();
   const rows = useMemo(() => getMasteryRows(stats), [stats]);
@@ -169,17 +171,15 @@ export function MasteryBridge() {
     <section className="p-chart">
       <div className="p-head">
         <span className="d-eyebrow">Mastery vs Completion</span>
-        <button className="cta-outline" style={{ minHeight: 28, fontSize: 12 }} onClick={() => setSortGap(v => !v)}>
-          {sortGap ? 'sort: biggest gap' : 'sort: mastery'}
-        </button>
+        <Link className="d-micro" style={{ color: 'var(--signal-strong, #38BDFB)' }} to="/progress">Full analysis →</Link>
       </div>
       {overall > 0 && avgMastery > 0 ? (
         <p className="d-body" style={{ marginBottom: 14 }}>You've completed {overall}% of the curriculum; your average mastery across attempted topics is {avgMastery}%.</p>
       ) : (
-        <p className="d-body" style={{ marginBottom: 14 }}>Mastery trend will appear as you build learning history.</p>
+        <p className="d-body" style={{ marginBottom: 14 }}>Mastery data will appear as you complete lessons and practice concepts.</p>
       )}
       {rows.length === 0 ? (
-        <div className="dempty">Not enough data yet. Mastery is measured from lessons, checks and solved problems — separately from completion.</div>
+        <div className="dempty">Mastery data will appear as you complete lessons and practice concepts.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {shown.map(r => (
@@ -210,7 +210,6 @@ export function MasteryBridge() {
   );
 }
 
-/* ---------------- Curriculum Journey (world lanes) ---------------- */
 export function CurriculumJourney() {
   const { stats } = usePlayer();
   const prog = useMemo(() => getCurriculumProgress(stats), [stats]);
@@ -222,9 +221,7 @@ export function CurriculumJourney() {
     <section className="p-map">
       <div className="p-head">
         <span className="d-eyebrow">Curriculum Journey</span>
-        <span className="d-micro">
-          Completed {prog.levelsCompleted} levels · Current L{prog.currentLevelNumber} · Overall {prog.overallPct}%
-        </span>
+        <span className="d-micro">Completed {prog.levelsCompleted} levels · Current L{prog.currentLevelNumber} · Overall {prog.overallPct}%</span>
       </div>
       {prog.rows.map(row => {
         const wl = levels.filter(l => l.worldId === row.world.id);
@@ -281,7 +278,6 @@ export function CurriculumJourney() {
   );
 }
 
-/* ---------------- Practice Analytics ---------------- */
 export function PracticeAnalytics() {
   const { stats } = usePlayer();
   const matrix = useMemo(() => getAccuracyMatrix(stats), [stats]);
@@ -307,7 +303,7 @@ export function PracticeAnalytics() {
         <Link className="d-micro" style={{ color: 'var(--signal-strong, #38BDFB)' }} to="/practice">Open tracker →</Link>
       </div>
       {submissions === 0 ? (
-        <div className="dempty">No practice data yet. Attempt problems in the tracker to unlock success-rate, difficulty and topic analytics.</div>
+        <div className="dempty">Complete a few practice problems to see your accuracy patterns.</div>
       ) : (
         <>
           <div className="p-strip" style={{ border: '1px solid var(--border-subtle, #232732)', borderRadius: 6, marginBottom: 14 }}>
@@ -346,4 +342,4 @@ export function PracticeAnalytics() {
       )}
     </section>
   );
-                        }
+}
