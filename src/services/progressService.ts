@@ -1,4 +1,4 @@
-import { getLevel, getWorld, levels, worlds } from '../data/curriculum';
+import { getLevel, getWorld, levels } from '../data/curriculum';
 import { lessons } from '../data/lessons';
 import type { Level, Lesson, PlayerStats } from '../types';
 
