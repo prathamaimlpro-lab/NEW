@@ -9,6 +9,7 @@ import { getHeatmapDays } from '../../services/activityService';
 import { getOverallCompletion, publishedLessons } from '../../services/progressService';
 import { usePlayer } from '../../store/PlayerContext';
 
+/* ---------------- Activity Analytics ---------------- */
 export function ActivityAnalytics() {
   const { stats, syncState, retrySync } = usePlayer();
   const [range, setRange] = useState<Range>('7D');
@@ -98,6 +99,7 @@ export function ActivityAnalytics() {
   );
 }
 
+/* ---------------- Learning Heatmap ---------------- */
 export function HeatmapSection() {
   const { stats, syncState, retrySync } = usePlayer();
   const [sel, setSel] = useState<string | null>(null);
@@ -157,6 +159,7 @@ export function HeatmapSection() {
   );
 }
 
+/* ---------------- Mastery vs Completion bridge ---------------- */
 export function MasteryBridge() {
   const { stats } = usePlayer();
   const rows = useMemo(() => getMasteryRows(stats), [stats]);
@@ -171,7 +174,12 @@ export function MasteryBridge() {
     <section className="p-chart">
       <div className="p-head">
         <span className="d-eyebrow">Mastery vs Completion</span>
-        <Link className="d-micro" style={{ color: 'var(--signal-strong, #38BDFB)' }} to="/progress">Full analysis →</Link>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button type="button" className="btn btn-sm btn-ghost" onClick={() => setSortGap(v => !v)} aria-pressed={sortGap}>
+            {sortGap ? 'sort: biggest gap' : 'sort: mastery'}
+          </button>
+          <Link className="d-micro" style={{ color: 'var(--signal-strong, #38BDFB)' }} to="/progress">Full analysis →</Link>
+        </div>
       </div>
       {overall > 0 && avgMastery > 0 ? (
         <p className="d-body" style={{ marginBottom: 14 }}>You've completed {overall}% of the curriculum; your average mastery across attempted topics is {avgMastery}%.</p>
@@ -210,6 +218,7 @@ export function MasteryBridge() {
   );
 }
 
+/* ---------------- Curriculum Journey (world lanes) ---------------- */
 export function CurriculumJourney() {
   const { stats } = usePlayer();
   const prog = useMemo(() => getCurriculumProgress(stats), [stats]);
@@ -278,6 +287,7 @@ export function CurriculumJourney() {
   );
 }
 
+/* ---------------- Practice Analytics ---------------- */
 export function PracticeAnalytics() {
   const { stats } = usePlayer();
   const matrix = useMemo(() => getAccuracyMatrix(stats), [stats]);
