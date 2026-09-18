@@ -5,9 +5,10 @@ import { problems } from '../data/problems';
 import { projects } from '../data/projects';
 import {
   getCompletedLevelCount, getLevel, getLessonProgress, getLevelProgress, getLevelState, getNextLesson,
-  getOverallCompletion, getOverallProgress, getWorld, getWorldProgress, isLevelCompleted, publishedLessons,
+  getOverallCompletion, getOverallProgress, getWorld, getWorldProgress, isLevelCompleted, isLessonUnlocked, publishedLessons,
   type LevelState,
 } from './progressService';
+import { getRevisionDue } from './progressService';
 import { buildSkillGraph } from './skillService';
 import type { ConceptNode, SkillGraph } from './skillService';
 import { getTopicMastery } from './statsService';
@@ -18,14 +19,12 @@ import type { PlayerStats } from '../types';
 export { buildSkillGraph };
 export type { ConceptNode, SkillGraph };
 
-/* String-id wrapper so UI layers can call journeyState(stats, levelId, currentLevelId). */
 export function journeyState(stats: PlayerStats, levelId: string, currentLevelId: string | null): LevelState {
   const l = levels.find(x => x.id === levelId);
   if (!l) return 'locked';
   return getLevelState(stats, l, currentLevelId);
 }
 
-/* ---------- documented intelligence thresholds ---------- */
 export const WEAK_RULE = { minAttempts: 3, masteryBelow: 50, accuracyBelow: 60 } as const;
 export const STRONG_RULE = { minAttempts: 3, masteryAtLeast: 75, accuracyAtLeast: 80 } as const;
 
@@ -34,6 +33,7 @@ export interface CurrentLearningState {
   levelNumber: number; levelTitle: string; lessonTitle: string;
   lessonIndex: number; lessonCount: number; lessonProgress: number; levelProgress: number;
   minutesRemaining: number; xp: number; begun: boolean; lastActivityIso: string | null;
+  mode: 'begin' | 'start' | 'resume';
 }
 
 export function relTime(iso: string | null): string | null {
@@ -53,29 +53,58 @@ function lastEventIso(stats: PlayerStats): string | null {
   return evs.map(e => e.at).sort()[evs.length - 1];
 }
 
+/* RESUME surface: most-recently-active unfinished lesson first, then curriculum next. */
 export function getCurrentLearningState(stats: PlayerStats): CurrentLearningState | null {
   const next = getNextLesson(stats);
   if (!next) return null;
-  const level = getLevel(next.levelId);
+  const recentStarted = [...stats.visitedLessons].reverse()
+    .map(id => lessons[id])
+    .filter((l): l is NonNullable<typeof l> => Boolean(l))
+    .filter(l => l.status === 'PUBLISHED' && !stats.completedLessons.includes(l.id) && isLessonUnlocked(stats, l) && getLessonProgress(stats, l) > 0);
+  const target = recentStarted[0] ?? next;
+  const level = getLevel(target.levelId);
   if (!level) return null;
   const world = getWorld(level.worldId);
   const list = publishedLessons(level);
-  const idx = list.findIndex(l => l.id === next.id);
-  const prog = getLessonProgress(stats, next);
+  const idx = list.findIndex(l => l.id === target.id);
+  const prog = getLessonProgress(stats, target);
   const begun = prog > 0 || stats.completedLessons.length > 0 || (stats.events ?? []).length > 0;
   return {
-    lessonId: next.id, levelId: level.id, worldNumber: world?.number ?? 0, worldTitle: world?.title ?? '',
-    levelNumber: level.number, levelTitle: level.title, lessonTitle: next.title,
+    lessonId: target.id, levelId: level.id, worldNumber: world?.number ?? 0, worldTitle: world?.title ?? '',
+    levelNumber: level.number, levelTitle: level.title, lessonTitle: target.title,
     lessonIndex: idx + 1, lessonCount: list.length, lessonProgress: prog, levelProgress: getLevelProgress(stats, level),
-    minutesRemaining: Math.max(0, Math.round(next.estimatedMinutes * (1 - prog / 100))),
-    xp: next.xpReward, begun, lastActivityIso: lastEventIso(stats),
+    minutesRemaining: Math.max(0, Math.round(target.estimatedMinutes * (1 - prog / 100))),
+    xp: target.xpReward, begun, lastActivityIso: lastEventIso(stats),
+    mode: prog > 0 ? 'resume' : begun ? 'start' : 'begin',
   };
 }
 
-/* ---------- activity series (4 honest series) ---------- */
+/* Progressive disclosure driven purely by real data availability. */
+export interface DashboardDisclosure {
+  isNew: boolean; hasStarted: boolean;
+  showActivity: boolean; showHeat: boolean; showMastery: boolean; showPractice: boolean;
+  showInsights: boolean; showSkill: boolean; showProjects: boolean; showViz: boolean; showTimeline: boolean;
+}
+export function getDashboardDisclosure(stats: PlayerStats): DashboardDisclosure {
+  const events = stats.events ?? [];
+  const hasStarted = stats.completedLessons.length > 0 || stats.visitedLessons.length > 0 || events.length > 0;
+  const lifetime = Object.values(stats.activity).reduce((s, a) => s + (a.count ?? 0), 0);
+  const hasActivity = lifetime > 0 || events.length > 0;
+  const submissions = Object.values(stats.problems).reduce((s, r) => s + r.attempts, 0);
+  const hasPractice = submissions > 0;
+  const hasMastery = getMasteryRows(stats).length > 0;
+  return {
+    isNew: !hasStarted, hasStarted,
+    showActivity: hasActivity, showHeat: hasActivity, showMastery: hasMastery,
+    showPractice: hasPractice, showInsights: hasPractice,
+    showSkill: hasMastery || hasPractice,
+    showProjects: hasStarted, showViz: hasStarted, showTimeline: hasActivity,
+  };
+}
+
+/* ---------- activity series ---------- */
 export type Range = '7D' | '30D' | '90D' | '1Y';
 export interface SeriesDay { date: string; label: string; showLabel: boolean; lessons: number; practice: number; revision: number; other: number; total: number }
-
 const RANGE_TOTAL: Record<Range, number> = { '7D': 7, '30D': 30, '90D': 90, '1Y': 364 };
 
 export function getActivitySeries(stats: PlayerStats, range: Range): { days: SeriesDay[]; events: number; minutes: number } {
@@ -108,9 +137,8 @@ export function getActivitySeries(stats: PlayerStats, range: Range): { days: Ser
   return { days, events, minutes };
 }
 
-/* ---------- mastery vs completion ---------- */
+/* ---------- mastery ---------- */
 export interface MasteryRow { topic: string; mastery: number; completion: number; gap: number; accuracy: number | null; attempts: number }
-
 function topicAgg(stats: PlayerStats, topic: string): { attempted: number; solved: number; last: string | null } {
   let attempted = 0, solved = 0; let last: string | null = null;
   for (const p of problems) {
@@ -123,7 +151,6 @@ function topicAgg(stats: PlayerStats, topic: string): { attempted: number; solve
   }
   return { attempted, solved, last };
 }
-
 export function getMasteryRows(stats: PlayerStats): MasteryRow[] {
   const mastery = new Map(getTopicMastery(stats).map(t => [t.topic, t]));
   const completion = new Map(getTopicCompletion(stats).map(t => [t.topic, t]));
@@ -137,14 +164,12 @@ export function getMasteryRows(stats: PlayerStats): MasteryRow[] {
   return rows.sort((a, b) => b.mastery - a.mastery);
 }
 
-/* ---------- weakness / strength evidence ---------- */
+/* ---------- weakness / strength ---------- */
 export interface TopicEvidence { topic: string; mastery: number; accuracy: number; attempts: number; lastDays: number | null; lines: string[] }
-
 function daysAgo(date: string | null): number | null {
   if (!date) return null;
   return Math.floor((Date.now() - new Date(`${date}T00:00:00`).getTime()) / 86400000);
 }
-
 export function getWeaknessEvidence(stats: PlayerStats): TopicEvidence[] {
   const out: TopicEvidence[] = [];
   for (const row of getMasteryRows(stats)) {
@@ -152,79 +177,70 @@ export function getWeaknessEvidence(stats: PlayerStats): TopicEvidence[] {
     if (row.mastery >= WEAK_RULE.masteryBelow) continue;
     if (row.accuracy === null || row.accuracy >= WEAK_RULE.accuracyBelow) continue;
     const ld = daysAgo(topicAgg(stats, row.topic).last);
-    out.push({
-      topic: row.topic, mastery: row.mastery, accuracy: row.accuracy, attempts: row.attempts, lastDays: ld,
-      lines: [
-        `Recent accuracy: ${row.accuracy}% (${row.attempts} attempts)`,
-        `Mastery: ${row.mastery}%`,
-        ld === null ? 'Last practiced: —' : `Last practiced: ${ld} days ago`,
-      ],
-    });
+    out.push({ topic: row.topic, mastery: row.mastery, accuracy: row.accuracy, attempts: row.attempts, lastDays: ld, lines: [
+      `Recent accuracy: ${row.accuracy}% (${row.attempts} attempts)`, `Mastery: ${row.mastery}%`, ld === null ? 'Last practiced: —' : `Last practiced: ${ld} days ago`] });
   }
   return out.sort((a, b) => a.accuracy - b.accuracy).slice(0, 3);
 }
-
 export function getStrengthEvidence(stats: PlayerStats): TopicEvidence[] {
   const out: TopicEvidence[] = [];
   for (const row of getMasteryRows(stats)) {
     if (row.attempts < STRONG_RULE.minAttempts) continue;
     if (row.mastery < STRONG_RULE.masteryAtLeast) continue;
     if (row.accuracy === null || row.accuracy < STRONG_RULE.accuracyAtLeast) continue;
-    out.push({
-      topic: row.topic, mastery: row.mastery, accuracy: row.accuracy, attempts: row.attempts, lastDays: daysAgo(topicAgg(stats, row.topic).last),
-      lines: [
-        `Recent accuracy: ${row.accuracy}% (${row.attempts} attempts)`,
-        `Mastery: ${row.mastery}%`,
-        `${row.attempts} consistent applications`,
-      ],
-    });
+    out.push({ topic: row.topic, mastery: row.mastery, accuracy: row.accuracy, attempts: row.attempts, lastDays: daysAgo(topicAgg(stats, row.topic).last), lines: [
+      `Recent accuracy: ${row.accuracy}% (${row.attempts} attempts)`, `Mastery: ${row.mastery}%`, `${row.attempts} consistent applications`] });
   }
   return out.sort((a, b) => b.mastery - a.mastery).slice(0, 3);
 }
 
-/* ---------- ranked next-best-action (first match wins) ---------- */
+/* ---------- Next Best Action: ranked rules, excludes the Continue target ---------- */
 export interface RankedAction { headline: string; why: string; to: string; accent: 'strong' | 'weak' }
 
-function getRevisionTopics(stats: PlayerStats): string[] {
-  const out: string[] = [];
-  for (const [id, date] of Object.entries(stats.lessonCompletedAt)) {
-    const days = Math.floor((Date.now() - new Date(`${date}T00:00:00`).getTime()) / 86400000);
-    if (days >= 7) out.push(...(lessons[id]?.topics ?? []));
+export function getRankedAction(stats: PlayerStats, excludeLessonId: string | null): RankedAction | null {
+  const revision = getRevisionDue(stats)[0];
+  if (revision) {
+    return { headline: `Review ${revision.title}`, why: `Rule 1 — this ${revision.kind} is due for spaced revision (${revision.days}d since completion).`, to: revision.kind === 'lesson' ? `/learn/lesson/${revision.id}` : `/practice/problems/${revision.id}`, accent: 'weak' };
   }
-  return out;
-}
-
-export function getRankedAction(stats: PlayerStats): RankedAction {
-  const state = getCurrentLearningState(stats);
-  if (state && state.lessonProgress > 0 && state.lessonProgress < 100) {
-    return { headline: `Finish ${state.lessonTitle}`, why: `Rule 1 — you are ${state.lessonProgress}% through this lesson; finishing it keeps Level ${state.levelNumber} moving.`, to: `/learn/lesson/${state.lessonId}`, accent: 'strong' };
+  const weak = getWeaknessEvidence(stats)[0];
+  if (weak) {
+    return { headline: `Practice ${weak.topic}`, why: `Rule 2 — recent accuracy ${weak.accuracy}% across ${weak.attempts} attempts is below the ${WEAK_RULE.accuracyBelow}% threshold.`, to: '/practice', accent: 'weak' };
   }
   const rows = getMasteryRows(stats);
   const practicedRecently = (r: MasteryRow) => { const ld = daysAgo(topicAgg(stats, r.topic).last); return ld !== null && ld <= 14; };
   const review = rows.find(r => r.mastery < 50 && practicedRecently(r));
   if (review) {
-    return { headline: `Review ${review.topic}`, why: `Rule 2 — mastery on ${review.topic} is ${review.mastery}% and you practiced it within the last 14 days.`, to: '/practice', accent: 'weak' };
+    return { headline: `Review ${review.topic}`, why: `Rule 3 — mastery on ${review.topic} is ${review.mastery}% and you practiced it within the last 14 days.`, to: '/practice', accent: 'weak' };
   }
-  const revisionTopics = new Set(getRevisionTopics(stats));
-  const weak = getWeaknessEvidence(stats).find(w => !revisionTopics.has(w.topic));
-  if (weak) {
-    return { headline: `Practice ${weak.topic}`, why: `Rule 3 — recent accuracy ${weak.accuracy}% across ${weak.attempts} attempts is below the ${WEAK_RULE.accuracyBelow}% threshold.`, to: '/practice', accent: 'weak' };
-  }
+  const state = getCurrentLearningState(stats);
   if (state) {
     const level = getLevel(state.levelId);
     if (level && isLevelCompleted(stats, level)) {
       const nextLevel = levels.find(l => l.number === level.number + 1);
       const firstLesson = nextLevel ? publishedLessons(nextLevel)[0] : undefined;
-      if (firstLesson) {
+      if (firstLesson && firstLesson.id !== excludeLessonId) {
         return { headline: `Start ${firstLesson.title}`, why: `Rule 4 — Level ${level.number} is 100% complete; the next level is unlocked.`, to: `/learn/lesson/${firstLesson.id}`, accent: 'strong' };
       }
     }
-    return { headline: `Start ${state.lessonTitle}`, why: 'Rule 5 — every journey starts with the first lesson; no prerequisites required.', to: `/learn/lesson/${state.lessonId}`, accent: 'strong' };
+    if (stats.completedLessons.includes(state.lessonId)) {
+      const topic = lessons[state.lessonId]?.topics[0];
+      const open = topic ? problems.filter(p => p.topics.includes(topic) && !stats.problems[p.id]?.solved).length : 0;
+      if (topic && open > 0) {
+        return { headline: `Practice ${topic}`, why: `Rule 5 — you completed ${lessons[state.lessonId]?.title ?? 'the lesson'} but ${open} related problem${open === 1 ? '' : 's'} remain unsolved.`, to: '/practice', accent: 'strong' };
+      }
+    }
   }
-  return { headline: 'Explore the curriculum', why: 'All published lessons are complete — browse upcoming content.', to: '/learn', accent: 'strong' };
+  const started = stats.completedLessons.length > 0 || (stats.events ?? []).length > 0;
+  if (started) {
+    const project = projects.find(p => p.status === 'PUBLISHED' && !stats.completedProjects.includes(p.id));
+    if (project) {
+      return { headline: `Begin ${project.title}`, why: 'Rule 6 — an available project connects your current skills to a real build.', to: project.levelId ? `/learn/level/${project.levelId}` : '/learn', accent: 'strong' };
+    }
+  }
+  return null;
 }
 
-/* ---------- curriculum journey (single aggregation source) ---------- */
+/* ---------- curriculum journey ---------- */
 export function getCurriculumProgress(stats: PlayerStats) {
   const rows = worlds.map(w => {
     const wl = levels.filter(l => l.worldId === w.id);
@@ -232,13 +248,9 @@ export function getCurriculumProgress(stats: PlayerStats) {
   });
   const next = getNextLesson(stats);
   return {
-    rows,
-    levelsCompleted: getCompletedLevelCount(stats),
-    totalLevels: levels.length,
-    overallPct: getOverallProgress(stats),
-    overallCompletion: getOverallCompletion(stats),
-    currentLevelId: next?.levelId ?? null,
-    currentLevelNumber: next ? getLevel(next.levelId)?.number ?? 0 : getCompletedLevelCount(stats),
+    rows, levelsCompleted: getCompletedLevelCount(stats), totalLevels: levels.length,
+    overallPct: getOverallProgress(stats), overallCompletion: getOverallCompletion(stats),
+    currentLevelId: next?.levelId ?? null, currentLevelNumber: next ? getLevel(next.levelId)?.number ?? 0 : getCompletedLevelCount(stats),
   };
 }
 
@@ -250,7 +262,6 @@ export function getProjectRows(stats: PlayerStats) {
     return { project: p, done: stats.completedProjects.includes(p.id), skills, levelNumber: level?.number ?? null };
   });
 }
-
 export function getVisualizationRows(stats: PlayerStats) {
   const lastUsed = new Map<string, string>();
   for (const e of stats.events ?? []) if (e.kind === 'visualization_completed' && e.id) lastUsed.set(e.id, e.at);
@@ -270,7 +281,6 @@ export function getSolvedSparkline(stats: PlayerStats): number[] {
   }
   return out;
 }
-
 export function getAccuracyMatrix(stats: PlayerStats): { topics: string[]; cells: Record<string, { attempted: number; solved: number }> } {
   const agg = new Map<string, { attempted: number; solved: number }>();
   for (const p of problems) {
