@@ -1,0 +1,30 @@
+/* ============ PIXEL — NAVIGATION / SCROLL / GESTURE ============ */
+
+/* Remove the negative-margin bleed that could force horizontal page overflow.
+   The dashboard now owns its padding instead of bleeding outside the page box. */
+.dash { margin: 0; padding: var(--space-6) var(--space-5) 72px; }
+@media (max-width: 1023px) { .dash { padding: var(--space-4) var(--space-3) 96px; } }
+
+/* Stop scroll-chaining / accidental page movement inside nested scrollers */
+.hm-scroll, .jl-lane, .vizrow, .sk-scroll, .tabs { overscroll-behavior-x: contain; }
+.table-wrap, .code-block pre { overscroll-behavior-x: contain; }
+.sidebar, .dialog, .sk-viewport { overscroll-behavior: contain; }
+
+/* iOS / notched-device safe areas for the bottom dock and mobile sheet */
+@supports (padding: env(safe-area-inset-bottom)) {
+  @media (max-width: 1023px) {
+    .sidebar { bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); }
+    .shell-main { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+    .dialog-scrim { padding-bottom: env(safe-area-inset-bottom); }
+  }
+}
+
+/* Stacking: sticky header below the mobile dock */
+.topbar { z-index: 30; }
+.sidebar { z-index: 40; }
+
+/* Immediate, non-blocking navigation + control feedback */
+.sb-link, .tab, .btn { transition-duration: var(--motion-fast); }
+
+/* Keep route transition subtle and short (spatial continuity, no blocking) */
+.fade-in { animation-duration: var(--motion-normal); }
