@@ -6,6 +6,7 @@ import { PlayerProvider } from './store/PlayerContext';
 import { initAuth } from './services/authService';
 import { initContentStore, syncContentFromServer } from './services/contentStore';
 import './styles/global.css';
+import './styles/components.css';
 import './styles/a11y.css';
 import './styles/responsive.css';
 
