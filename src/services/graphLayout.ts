@@ -6,8 +6,8 @@ export interface LayoutInputNode { id: string; prerequisiteIds: string[]; depend
 export interface LayoutInputEdge { from: string; to: string }
 
 const COL_W = 210;
-const SLOT_H = 72;
-const NODE_H = 56;
+const SLOT_H = 76;
+const NODE_H = 60;
 const PAD = 16;
 
 export function layeredLayout(nodes: LayoutInputNode[], edges: LayoutInputEdge[]): GraphLayout {
