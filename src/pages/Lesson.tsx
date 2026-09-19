@@ -1,111 +1,107 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Icon } from '../components/common/Icon';
-import { EmptyState, Progress } from '../components/common/ui';
 import { ContentRenderer } from '../components/lesson/ContentRenderer';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
-import { VisualizationRenderer } from '../components/visualization/registry';
-import { lessons } from '../data/curriculum';
-import { getLessonProgress, getLevel, getNextLesson, getWorld, isLessonUnlocked } from '../services/progressService';
+import { PublishedConcepts } from '../components/lesson/PublishedConcepts';
+import { lessons as dataLessons } from '../data/lessons';
+import { getLevel, getLessonProgress, getLessonState, getWorld, publishedLessons } from '../services/progressService';
+import * as contentStore from '../services/contentStore';
 import { usePlayer } from '../store/PlayerContext';
+import type { Lesson } from '../types';
 
-export default function Lesson() {
-  const { lessonId } = useParams();
-  const lesson = lessonId ? lessons[lessonId] : undefined;
-  const { stats, visitLesson, completeLesson, completeVisualization } = usePlayer();
-  const [practiceDone, setPracticeDone] = useState(false);
-  const [masteryDone, setMasteryDone] = useState(false);
+/* Prefer the admin-editable content store; fall back to the bundled seed. */
+const source: Record<string, Lesson> =
+  typeof (contentStore as any).getLessons === 'function' ? (contentStore as any).getLessons() : dataLessons;
 
-  useEffect(() => { if (lesson) visitLesson(lesson.id); }, [lesson?.id]);
+export default function LessonPage() {
+  const { lessonId = '' } = useParams();
+  const { stats, completeLesson } = usePlayer();
 
-  if (!lesson || lesson.status !== 'PUBLISHED') return <EmptyState icon="search" title="Lesson unavailable" message="This lesson does not exist or has not been published yet." action={<Link className="btn btn-primary" to="/learn">Back to Curriculum</Link>} />;
-  if (!isLessonUnlocked(stats, lesson)) return <EmptyState icon="lock" title="Lesson locked" message={`Complete the previous module to unlock “${lesson.title}”.`} action={<Link className="btn btn-secondary" to={`/learn/level/${lesson.levelId}`}>Back to Level</Link>} />;
-
-  const level = getLevel(lesson.levelId);
+  const lesson = source[lessonId];
+  const level = lesson ? getLevel(lesson.levelId) : undefined;
   const world = level ? getWorld(level.worldId) : undefined;
-  const prog = getLessonProgress(stats, lesson);
-  const completed = stats.completedLessons.includes(lesson.id);
-  const next = getNextLesson(stats);
-  const finish = () => { if (!completed) completeLesson(lesson.id, lesson.xpReward); };
+  const state = lesson ? getLessonState(stats, lesson) : undefined;
+  const progress = lesson ? getLessonProgress(stats, lesson) : 0;
+  const completed = !!lesson && stats.completedLessons.includes(lesson.id);
+
+  const siblings = useMemo(() => (level ? publishedLessons(level) : []), [level]);
+  const idx = siblings.findIndex(l => l.id === lessonId);
+  const prev = idx > 0 ? siblings[idx - 1] : undefined;
+  const nextLesson = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : undefined;
+
+  if (!lesson) {
+    return (
+      <div className="card">
+        <h1 className="t-hmd">Lesson not found</h1>
+        <p className="t-body" style={{ marginTop: 8 }}>This lesson may have been unpublished or moved.</p>
+        <Link className="btn btn-secondary" style={{ marginTop: 16 }} to="/learn">Back to Curriculum</Link>
+      </div>
+    );
+  }
+
+  if (state === 'locked') {
+    return (
+      <div className="card">
+        <h1 className="t-hmd">{lesson.title}</h1>
+        <p className="t-body" style={{ marginTop: 8 }}>This lesson is locked. Complete the previous lessons in this level to unlock it.</p>
+        <Link className="btn btn-secondary" style={{ marginTop: 16 }} to={`/learn/level/${lesson.levelId}`}>View level</Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="reading">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <Link to={`/learn/level/${lesson.levelId}`} className="t-body" style={{ display: 'inline-flex', gap: 8, alignItems: 'center', color: 'var(--fg-muted)' }}>
-          <Icon name="arrow-left" size={14} /> Level {level?.number}: {level?.title}
-        </Link>
-        <span className="t-body-sm" style={{ display: 'inline-flex', gap: 12, color: 'var(--fg-muted)' }}>
-          <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><Icon name="clock" size={14} /> {lesson.estimatedMinutes} min read</span>
-          <span className="mono" style={{ color: '#a5a1ff' }}>+{lesson.xpReward} XP</span>
-        </span>
-      </div>
-
-      <div style={{ margin: '16px 0 8px' }}><Progress value={prog} /></div>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }} className="label-mono">
-        <span>WORLD {String(world?.number).padStart(2, '0')} // {world?.title.toUpperCase()}</span>
-        <span>LEVEL {String(level?.number).padStart(2, '0')}</span>
-      </div>
-
-      <header style={{ margin: '32px 0' }}>
-        <div className="label-mono" style={{ marginBottom: 12 }}>LESSON OBJECTIVE</div>
-        <h1 className="t-display" style={{ marginBottom: 16 }}>{lesson.title}</h1>
-        <p className="t-body-lg">{lesson.description}</p>
-        <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
-          {lesson.objectives.map(o => <li key={o} className="t-body" style={{ display: 'flex', gap: 10, alignItems: 'center', color: 'var(--fg-secondary)' }}><span style={{ color: 'var(--success)' }}><Icon name="check" size={14} /></span>{o}</li>)}
-        </ul>
+    <>
+      <header style={{ padding: '24px 2px 0' }}>
+        <div className="d-eyebrow" style={{ marginBottom: 8 }}>
+          {world ? `W${world.number} · ${world.title}` : ''}{level ? ` · Level ${level.number}` : ''}
+        </div>
+        <h1 className="d-h1" style={{ fontSize: 28, lineHeight: '36px' }}>{lesson.title}</h1>
+        <p className="d-micro" style={{ marginTop: 8 }}>
+          {lesson.estimatedMinutes} min · +{lesson.xpReward} XP · {progress}% complete
+        </p>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
-        {lesson.sections.map(section => (
-          <section key={section.id}>
-            {section.label && <div className="label-mono" style={{ marginBottom: 10 }}>{section.label}</div>}
-            {section.title && <h2 className="t-hmd" style={{ marginBottom: 16 }}>{section.title}</h2>}
-            <ContentRenderer blocks={section.blocks} />
-          </section>
-        ))}
-        {lesson.visualizationId && (
-          <section>
-            <div className="label-mono" style={{ marginBottom: 10 }}>INTERACTIVE VISUALIZATION</div>
-            <VisualizationRenderer id={lesson.visualizationId} onCompleted={(id, xp) => completeVisualization(id, xp)} />
-          </section>
-        )}
+      <div className="reading" style={{ marginTop: 24 }}>
+        <ContentRenderer lesson={lesson} />
+        <div style={{ marginTop: 24 }}>
+          <PublishedConcepts lessonId={lesson.id} />
+        </div>
       </div>
 
-      <section style={{ marginTop: 56 }}>
-        <div className="label-mono" style={{ marginBottom: 6 }}>CONCEPT CHECKPOINT</div>
-        <h2 className="t-hmd" style={{ marginBottom: 16 }}>Apply Your Knowledge</h2>
-        <PracticeEngine questions={lesson.practice} title="Practice" onComplete={() => setPracticeDone(true)} />
+      {lesson.practice.length > 0 && (
+        <section className="card" style={{ marginTop: 24 }}>
+          <div className="d-eyebrow" style={{ marginBottom: 12 }}>Knowledge check</div>
+          <PracticeEngine questions={lesson.practice} title={lesson.title} />
+        </section>
+      )}
+
+      {lesson.masteryTest.length > 0 && (
+        <section className="card" style={{ marginTop: 16 }}>
+          <div className="d-eyebrow" style={{ marginBottom: 12 }}>Mastery test</div>
+          <PracticeEngine questions={lesson.masteryTest} title={`${lesson.title} — mastery`} />
+        </section>
+      )}
+
+      <section className="card" style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div>
+          <div className="d-title">{completed ? 'Lesson completed' : 'Finish this lesson'}</div>
+          <div className="d-micro" style={{ marginTop: 4 }}>
+            {completed ? `+${lesson.xpReward} XP awarded` : 'Complete the checks above, then mark complete.'}
+          </div>
+        </div>
+        {!completed && (
+          <button type="button" className="btn btn-primary" onClick={() => completeLesson(lesson.id, lesson.xpReward)}>
+            Mark complete
+          </button>
+        )}
       </section>
 
-      {(practiceDone || lesson.practice.length === 0) && lesson.masteryTest.length > 0 && (
-        <section style={{ marginTop: 32 }} className="fade-in">
-          <div className="label-mono" style={{ marginBottom: 16 }}>MASTERY CHECK</div>
-          <PracticeEngine questions={lesson.masteryTest} title="Mastery check" onComplete={() => { setMasteryDone(true); finish(); }} />
-        </section>
-      )}
-
-      {lesson.revision && lesson.revision.length > 0 && (
-        <section className="card" style={{ marginTop: 32 }}>
-          <div className="label-mono" style={{ marginBottom: 10 }}>REVISION</div>
-          <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {lesson.revision.map(r => <li key={r} className="t-body" style={{ color: 'var(--fg-1)' }}>· {r}</li>)}
-          </ul>
-        </section>
-      )}
-      {(completed || masteryDone) && (
-        <section className="card fade-in" style={{ marginTop: 32, borderColor: 'rgba(16,185,129,.4)' }}>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ color: 'var(--success)' }}><Icon name="check-circle" size={22} /></span>
-            <h2 className="t-hsm">Lesson verified · +{lesson.xpReward} XP</h2>
-          </div>
-          {next && next.id !== lesson.id ? (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginTop: 8 }}>
-              <div><div className="label-mono" style={{ marginBottom: 4 }}>NEXT UP</div><span className="t-body" style={{ color: 'var(--fg-primary)' }}>{next.title}</span></div>
-              <Link className="btn btn-primary" to={`/learn/lesson/${next.id}`}>Continue <Icon name="arrow-right" size={16} /></Link>
-            </div>
-          ) : <p className="t-body" style={{ color: 'var(--fg-muted)' }}>Track complete. New modules are being authored.</p>}
-        </section>
-      )}
-    </div>
+      <nav style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 24, flexWrap: 'wrap' }} aria-label="Lesson navigation">
+        {prev ? <Link className="btn btn-ghost" to={`/learn/lesson/${prev.id}`}>← {prev.title}</Link> : <span />}
+        {nextLesson
+          ? <Link className="btn btn-secondary" to={`/learn/lesson/${nextLesson.id}`}>{nextLesson.title} →</Link>
+          : <Link className="btn btn-secondary" to={`/learn/level/${lesson.levelId}`}>Back to level</Link>}
+      </nav>
+    </>
   );
 }
