@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { ProblemTracker } from '../components/practice/ProblemTracker';
-import { lessons } from '../data/curriculum';
+import { getPracticeBank } from '../services/practiceService';
 import { getRevisionDue } from '../services/progressService';
 import { usePlayer } from '../store/PlayerContext';
 import type { Difficulty } from '../types';
@@ -17,8 +17,8 @@ export default function Practice() {
   const [diff, setDiff] = useState<Difficulty>('EASY');
   const [session, setSession] = useState(0);
 
-  const allQuestions = useMemo(() => Object.values(lessons).filter(l => l.status === 'PUBLISHED').flatMap(l => l.practice), []);
-  const pool = useMemo(() => allQuestions.filter(q => q.difficulty === diff), [allQuestions, diff]);
+  const bankSize = useMemo(() => getPracticeBank().length, []);
+  const pool = useMemo(() => getPracticeBank(diff), [diff]);
   const revision = useMemo(() => getRevisionDue(stats), [stats]);
 
   return (
@@ -34,7 +34,7 @@ export default function Practice() {
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         <button type="button" className="card card-interactive" onClick={() => setMode('knowledge')} aria-pressed={mode === 'knowledge'}>
           <div className="d-title" style={{ fontSize: 16 }}>Knowledge Practice</div>
-          <div className="d-micro" style={{ marginTop: 6 }}>{allQuestions.length} concept questions · multiple choice & reasoning</div>
+          <div className="d-micro" style={{ marginTop: 6 }}>{bankSize} concept questions · multiple choice & reasoning</div>
           <span className="chip chip-success" style={{ marginTop: 10 }}>Available</span>
         </button>
         <button type="button" className="card card-interactive" onClick={() => setMode('coding')} aria-pressed={mode === 'coding'}>
@@ -63,8 +63,8 @@ export default function Practice() {
                 ))}
               </section>
               {pool.length === 0
-                ? <div className="dempty">No questions at this difficulty yet. Try another difficulty, or check back as new lessons are published.</div>
-                : <PracticeEngine key={`${diff}-${session}`} questions={pool} title={`${d(diff)} knowledge practice`} />}
+                ? <div className="dempty">No published questions at this difficulty yet. Try another difficulty, or check back as content is published.</div>
+                : <PracticeEngine key={`${diff}-${session}`} questions={pool as any} title={`${d(diff)} knowledge practice`} />}
             </>
           ) : <ProblemTracker />}
         </>
