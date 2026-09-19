@@ -1,15 +1,7 @@
-/* ============ PIXEL — ACCESSIBILITY + INTERACTION POLISH ============ */
+/* ============ PIXEL — ACCESSIBILITY (focus + reduced motion) ============ */
 
-/* Skip link (keyboard entry point) */
 .skip-link { position: absolute; left: -9999px; top: 0; z-index: 100; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border-strong); border-radius: var(--r-control); padding: 10px 16px; font-size: 14px; font-weight: 500; }
 .skip-link:focus { left: 16px; top: 16px; }
-
-/* Graph/scroll containers keep natural touch panning */
-.sk-viewport { touch-action: pan-y; }
-.hm-scroll, .jl-lane, .vizrow, .sk-scroll { overscroll-behavior-x: contain; }
-
-/* Loading buttons are non-interactive + non-spammy */
-.btn[aria-busy="true"] { opacity: .6; cursor: progress; }
 
 /* High-visibility focus for SMALL interactive cells where the global ring is hard to see */
 .hm-cell:focus-visible,
@@ -33,12 +25,9 @@
 /* Dock links keep a clear focus ring inside the rounded dock */
 .sb-link:focus-visible { outline: 2px solid var(--action); outline-offset: -2px; }
 
-/* REDUCED MOTION: kill non-essential animation; state stays readable via color/border/text */
+/* REDUCED MOTION — the single global kill-switch */
 @media (prefers-reduced-motion: reduce) {
-  .skel, .skeleton { animation: none !important; }
-  .fade-in, .dash { animation: none !important; }
-  .jnode-current { animation: none !important; }
+  .skel, .skeleton, .fade-in, .dash, .jnode-current, .chevron { animation: none !important; transition: none !important; }
   .sk-viewport, .hm-scroll { scroll-behavior: auto !important; }
-  .chevron, .chevron[aria-expanded="true"] { transition: none; transform: none; }
-  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
