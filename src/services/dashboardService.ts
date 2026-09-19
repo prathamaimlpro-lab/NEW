@@ -53,7 +53,7 @@ function lastEventIso(stats: PlayerStats): string | null {
   return evs.map(e => e.at).sort()[evs.length - 1];
 }
 
-/* RESUME surface: most-recently-active unfinished lesson first, then curriculum next. */
+/* Resume surface: most-recently-active unfinished lesson first, then curriculum next. */
 export function getCurrentLearningState(stats: PlayerStats): CurrentLearningState | null {
   const next = getNextLesson(stats);
   if (!next) return null;
@@ -79,7 +79,6 @@ export function getCurrentLearningState(stats: PlayerStats): CurrentLearningStat
   };
 }
 
-/* Progressive disclosure driven purely by real data availability. */
 export interface DashboardDisclosure {
   isNew: boolean; hasStarted: boolean;
   showActivity: boolean; showHeat: boolean; showMastery: boolean; showPractice: boolean;
@@ -102,7 +101,6 @@ export function getDashboardDisclosure(stats: PlayerStats): DashboardDisclosure 
   };
 }
 
-/* ---------- activity series ---------- */
 export type Range = '7D' | '30D' | '90D' | '1Y';
 export interface SeriesDay { date: string; label: string; showLabel: boolean; lessons: number; practice: number; revision: number; other: number; total: number }
 const RANGE_TOTAL: Record<Range, number> = { '7D': 7, '30D': 30, '90D': 90, '1Y': 364 };
@@ -137,7 +135,6 @@ export function getActivitySeries(stats: PlayerStats, range: Range): { days: Ser
   return { days, events, minutes };
 }
 
-/* ---------- mastery ---------- */
 export interface MasteryRow { topic: string; mastery: number; completion: number; gap: number; accuracy: number | null; attempts: number }
 function topicAgg(stats: PlayerStats, topic: string): { attempted: number; solved: number; last: string | null } {
   let attempted = 0, solved = 0; let last: string | null = null;
@@ -164,7 +161,6 @@ export function getMasteryRows(stats: PlayerStats): MasteryRow[] {
   return rows.sort((a, b) => b.mastery - a.mastery);
 }
 
-/* ---------- weakness / strength ---------- */
 export interface TopicEvidence { topic: string; mastery: number; accuracy: number; attempts: number; lastDays: number | null; lines: string[] }
 function daysAgo(date: string | null): number | null {
   if (!date) return null;
@@ -178,7 +174,7 @@ export function getWeaknessEvidence(stats: PlayerStats): TopicEvidence[] {
     if (row.accuracy === null || row.accuracy >= WEAK_RULE.accuracyBelow) continue;
     const ld = daysAgo(topicAgg(stats, row.topic).last);
     out.push({ topic: row.topic, mastery: row.mastery, accuracy: row.accuracy, attempts: row.attempts, lastDays: ld, lines: [
-      `Recent accuracy: ${row.accuracy}% (${row.attempts} attempts)`, `Mastery: ${row.mastery}%`, ld === null ? 'Last practiced: —' : `Last practiced: ${ld} days ago`] });
+      `Recent accuracy: ${row.accuracy}% (${row.attempts} attempts)`, `Mastery: ${row.mastery}%`, ld === null ? 'Not practiced recently' : `Last practiced: ${ld} days ago`] });
   }
   return out.sort((a, b) => a.accuracy - b.accuracy).slice(0, 3);
 }
@@ -194,23 +190,30 @@ export function getStrengthEvidence(stats: PlayerStats): TopicEvidence[] {
   return out.sort((a, b) => b.mastery - a.mastery).slice(0, 3);
 }
 
-/* ---------- Next Best Action: ranked rules, excludes the Continue target ---------- */
 export interface RankedAction { headline: string; why: string; to: string; accent: 'strong' | 'weak' }
 
+/* Ranked rules, first match wins. Headlines use the standard verb set. */
 export function getRankedAction(stats: PlayerStats, excludeLessonId: string | null): RankedAction | null {
   const revision = getRevisionDue(stats)[0];
   if (revision) {
-    return { headline: `Review ${revision.title}`, why: `Rule 1 — this ${revision.kind} is due for spaced revision (${revision.days}d since completion).`, to: revision.kind === 'lesson' ? `/learn/lesson/${revision.id}` : `/practice/problems/${revision.id}`, accent: 'weak' };
+    return {
+      headline: revision.kind === 'lesson' ? `Review Lesson: ${revision.title}` : `Review Problem: ${revision.title}`,
+      why: revision.kind === 'lesson'
+        ? `Due for spaced revision — ${revision.days} days since you completed it.`
+        : 'You flagged this problem for review.',
+      to: revision.kind === 'lesson' ? `/learn/lesson/${revision.id}` : `/practice/problems/${revision.id}`,
+      accent: 'weak',
+    };
   }
   const weak = getWeaknessEvidence(stats)[0];
   if (weak) {
-    return { headline: `Practice ${weak.topic}`, why: `Rule 2 — recent accuracy ${weak.accuracy}% across ${weak.attempts} attempts is below the ${WEAK_RULE.accuracyBelow}% threshold.`, to: '/practice', accent: 'weak' };
+    return { headline: `Practice ${weak.topic}`, why: `Recent accuracy ${weak.accuracy}% across ${weak.attempts} attempts is below the ${WEAK_RULE.accuracyBelow}% threshold.`, to: '/practice', accent: 'weak' };
   }
   const rows = getMasteryRows(stats);
   const practicedRecently = (r: MasteryRow) => { const ld = daysAgo(topicAgg(stats, r.topic).last); return ld !== null && ld <= 14; };
   const review = rows.find(r => r.mastery < 50 && practicedRecently(r));
   if (review) {
-    return { headline: `Review ${review.topic}`, why: `Rule 3 — mastery on ${review.topic} is ${review.mastery}% and you practiced it within the last 14 days.`, to: '/practice', accent: 'weak' };
+    return { headline: `Review ${review.topic}`, why: `Mastery on ${review.topic} is ${review.mastery}% and you practiced it within the last 14 days.`, to: '/practice', accent: 'weak' };
   }
   const state = getCurrentLearningState(stats);
   if (state) {
@@ -219,14 +222,14 @@ export function getRankedAction(stats: PlayerStats, excludeLessonId: string | nu
       const nextLevel = levels.find(l => l.number === level.number + 1);
       const firstLesson = nextLevel ? publishedLessons(nextLevel)[0] : undefined;
       if (firstLesson && firstLesson.id !== excludeLessonId) {
-        return { headline: `Start ${firstLesson.title}`, why: `Rule 4 — Level ${level.number} is 100% complete; the next level is unlocked.`, to: `/learn/lesson/${firstLesson.id}`, accent: 'strong' };
+        return { headline: `Start Level ${nextLevel?.number}: ${firstLesson.title}`, why: `Level ${level.number} is 100% complete, so the next level is unlocked.`, to: `/learn/lesson/${firstLesson.id}`, accent: 'strong' };
       }
     }
     if (stats.completedLessons.includes(state.lessonId)) {
       const topic = lessons[state.lessonId]?.topics[0];
       const open = topic ? problems.filter(p => p.topics.includes(topic) && !stats.problems[p.id]?.solved).length : 0;
       if (topic && open > 0) {
-        return { headline: `Practice ${topic}`, why: `Rule 5 — you completed ${lessons[state.lessonId]?.title ?? 'the lesson'} but ${open} related problem${open === 1 ? '' : 's'} remain unsolved.`, to: '/practice', accent: 'strong' };
+        return { headline: `Practice ${topic}`, why: `You completed ${state.lessonTitle}, but ${open} related problem${open === 1 ? '' : 's'} remain unsolved.`, to: '/practice', accent: 'strong' };
       }
     }
   }
@@ -234,13 +237,12 @@ export function getRankedAction(stats: PlayerStats, excludeLessonId: string | nu
   if (started) {
     const project = projects.find(p => p.status === 'PUBLISHED' && !stats.completedProjects.includes(p.id));
     if (project) {
-      return { headline: `Begin ${project.title}`, why: 'Rule 6 — an available project connects your current skills to a real build.', to: project.levelId ? `/learn/level/${project.levelId}` : '/learn', accent: 'strong' };
+      return { headline: `Start Project: ${project.title}`, why: 'An available project connects your current skills to a real build.', to: project.levelId ? `/learn/level/${project.levelId}` : '/learn', accent: 'strong' };
     }
   }
   return null;
 }
 
-/* ---------- curriculum journey ---------- */
 export function getCurriculumProgress(stats: PlayerStats) {
   const rows = worlds.map(w => {
     const wl = levels.filter(l => l.worldId === w.id);
@@ -254,7 +256,6 @@ export function getCurriculumProgress(stats: PlayerStats) {
   };
 }
 
-/* ---------- projects + visualizations ---------- */
 export function getProjectRows(stats: PlayerStats) {
   return projects.filter(p => p.status === 'PUBLISHED').map(p => {
     const level = levels.find(l => l.id === p.levelId);
@@ -271,7 +272,6 @@ export function getVisualizationRows(stats: PlayerStats) {
     .slice(0, 6);
 }
 
-/* ---------- practice helpers ---------- */
 export function getSolvedSparkline(stats: PlayerStats): number[] {
   const out: number[] = [];
   for (let i = 6; i >= 0; i--) {
