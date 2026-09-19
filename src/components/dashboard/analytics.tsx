@@ -349,16 +349,18 @@ export function PracticeAnalytics() {
             Practice accuracy reflects recent performance; mastery accounts for accuracy, recency, and how consistently a concept has been applied over time.
           </p>
           <div className="mx" style={{ gridTemplateColumns: '92px repeat(3, 1fr)' }} role="table" aria-label="Accuracy by topic and difficulty">
-            <span />
-            {(['EASY', 'MEDIUM', 'HARD'] as const).map(d => <span key={d} className="mx-head" role="columnheader">{d}</span>)}
+            <div role="row" style={{ display: 'contents' }}>
+              <span role="columnheader" className="mx-head" aria-label="Topic" />
+              {(['EASY', 'MEDIUM', 'HARD'] as const).map(d => <span key={d} role="columnheader" className="mx-head">{d}</span>)}
+            </div>
             {matrix.topics.map(t => (
-              <div key={t} style={{ display: 'contents' }}>
-                <span className="d-body" style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} role="rowheader">{t}</span>
+              <div key={t} role="row" style={{ display: 'contents' }}>
+                <span role="rowheader" className="d-body" style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</span>
                 {(['EASY', 'MEDIUM', 'HARD'] as const).map(d => {
                   const c = matrix.cells[`${t}||${d}`];
                   const pct = c && c.attempted > 0 ? Math.round((c.solved / c.attempted) * 100) : null;
                   return (
-                    <span key={`${t}-${d}`} className="mx-cell" style={{ background: cellTone(c) ?? 'var(--surface-2)' }}
+                    <span key={`${t}-${d}`} role="cell" className="mx-cell" style={{ background: cellTone(c) ?? 'var(--surface-2)' }}
                       aria-label={`${t}, ${d}: ${pct === null ? 'no attempts' : `${pct}% success across ${c?.attempted} attempts`}`}>
                       {pct === null ? '—' : `${pct}%`}
                     </span>
