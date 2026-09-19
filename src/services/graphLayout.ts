@@ -6,8 +6,8 @@ export interface LayoutInputNode { id: string; prerequisiteIds: string[]; depend
 export interface LayoutInputEdge { from: string; to: string }
 
 const COL_W = 210;
-const SLOT_H = 64;
-const NODE_H = 48;
+const SLOT_H = 72;
+const NODE_H = 56;
 const PAD = 16;
 
 export function layeredLayout(nodes: LayoutInputNode[], edges: LayoutInputEdge[]): GraphLayout {
@@ -15,7 +15,6 @@ export function layeredLayout(nodes: LayoutInputNode[], edges: LayoutInputEdge[]
   const prereqs = new Map(nodes.map(n => [n.id, n.prerequisiteIds.filter(p => ids.has(p))]));
   const deps = new Map(nodes.map(n => [n.id, n.dependentIds.filter(d => ids.has(d))]));
 
-  /* longest-path layering with cycle guard */
   const layer = new Map<string, number>();
   const visiting = new Set<string>();
   function depth(id: string): number {
@@ -31,7 +30,6 @@ export function layeredLayout(nodes: LayoutInputNode[], edges: LayoutInputEdge[]
   }
   nodes.forEach(n => depth(n.id));
 
-  /* group into layers, drop empty layers */
   const rawLayers: string[][] = [];
   for (const n of nodes) {
     const l = layer.get(n.id) ?? 0;
@@ -39,11 +37,9 @@ export function layeredLayout(nodes: LayoutInputNode[], edges: LayoutInputEdge[]
   }
   const layers = rawLayers.filter(ls => ls && ls.length > 0);
 
-  /* initial order: world number, then id */
   const worldOf = new Map(nodes.map(n => [n.id, n.worldNumber]));
   layers.forEach(ls => ls.sort((a, b) => (worldOf.get(a) ?? 0) - (worldOf.get(b) ?? 0) || a.localeCompare(b)));
 
-  /* barycenter crossing reduction: 2 down-passes + 2 up-passes */
   const indexOf = new Map<string, number>();
   const rebuildIndex = () => { indexOf.clear(); layers.forEach(ls => ls.forEach((id, i) => indexOf.set(id, i))); };
   rebuildIndex();
@@ -53,17 +49,10 @@ export function layeredLayout(nodes: LayoutInputNode[], edges: LayoutInputEdge[]
     return rs.reduce((s, r) => s + (indexOf.get(r) ?? 0), 0) / rs.length;
   }
   for (let pass = 0; pass < 2; pass++) {
-    for (let l = 1; l < layers.length; l++) {
-      layers[l].sort((a, b) => bary(a, prereqs) - bary(b, prereqs));
-      rebuildIndex();
-    }
-    for (let l = layers.length - 2; l >= 0; l--) {
-      layers[l].sort((a, b) => bary(a, deps) - bary(b, deps));
-      rebuildIndex();
-    }
+    for (let l = 1; l < layers.length; l++) { layers[l].sort((a, b) => bary(a, prereqs) - bary(b, prereqs)); rebuildIndex(); }
+    for (let l = layers.length - 2; l >= 0; l--) { layers[l].sort((a, b) => bary(a, deps) - bary(b, deps)); rebuildIndex(); }
   }
 
-  /* coordinates */
   const byId = new Map(nodes.map(n => [n.id, n]));
   const widthOf = (c: number) => (c >= 3 ? 180 : c >= 1 ? 150 : 120);
   const layoutNodes: LayoutNode[] = [];
@@ -82,10 +71,5 @@ export function layeredLayout(nodes: LayoutInputNode[], edges: LayoutInputEdge[]
     layoutEdges.push({ from: e.from, to: e.to, x1: a.x + a.w, y1: a.y + a.h / 2, x2: b.x, y2: b.y + b.h / 2 });
   }
   const maxLayerLen = layers.reduce((m, ls) => Math.max(m, ls.length), 0);
-  return {
-    nodes: layoutNodes,
-    edges: layoutEdges,
-    width: PAD * 2 + layers.length * COL_W,
-    height: PAD * 2 + maxLayerLen * SLOT_H,
-  };
+  return { nodes: layoutNodes, edges: layoutEdges, width: PAD * 2 + layers.length * COL_W, height: PAD * 2 + maxLayerLen * SLOT_H };
 }
