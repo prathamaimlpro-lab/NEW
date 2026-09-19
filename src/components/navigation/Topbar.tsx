@@ -45,7 +45,7 @@ export function Topbar() {
           <button
             ref={bellRef}
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-icon"
             aria-label="Notifications"
             aria-expanded={bellOpen}
             aria-haspopup="dialog"
@@ -77,7 +77,10 @@ export function Topbar() {
                   return a ? (
                     <div key={id} style={{ display: 'flex', gap: 10, padding: 8, alignItems: 'center' }}>
                       <span aria-hidden="true" style={{ color: 'var(--success)' }}><Icon name={a.icon} size={16} /></span>
-                      <div><div className="t-body" style={{ color: 'var(--text-primary)' }}>{a.title}</div><div className="t-caption">Milestone unlocked</div></div>
+                      <div>
+                        <div className="t-body" style={{ color: 'var(--text-primary)' }}>{a.title}</div>
+                        <div className="t-caption">Milestone unlocked</div>
+                      </div>
                     </div>
                   ) : null;
                 })}
