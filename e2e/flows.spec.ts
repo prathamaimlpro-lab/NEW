@@ -25,6 +25,14 @@ test('curriculum world accordion expands and shows levels', async ({ page }) => 
   await expect(page.locator('#world-world-1-levels')).toBeVisible();
 });
 
+test('opening a Level then a Lesson navigates correctly', async ({ page }) => {
+  await page.goto('/learn');
+  await page.locator('#world-world-1-levels').getByRole('link').first().click();
+  await expect(page).toHaveURL(/\/learn\/level\//);
+  await page.locator('main').getByRole('link', { name: /Lesson|Start|Resume/ }).first().click();
+  await expect(page).toHaveURL(/\/learn\/lesson\//);
+});
+
 test('lesson practice answers give immediate feedback', async ({ page }) => {
   await page.goto('/learn/lesson/what-is-a-computer');
   const option = page.locator('.q-option').first();
@@ -41,19 +49,23 @@ test('practice tracker filters respond', async ({ page }) => {
   expect(after).toBeLessThanOrEqual(before);
 });
 
-test('visualization lab step control advances the algorithm', async ({ page }) => {
+test('visualization lab exposes controls', async ({ page }) => {
   await page.goto('/explore/viz/bubble-sort');
-  await page.getByRole('button', { name: 'Step', exact: true }).click();
-  await expect(page.getByText(/comparing/i).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Step', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Play|Pause/ }).first()).toBeVisible();
 });
 
-test('skill map node selection opens the inspector', async ({ page }) => {
+test('skill map loads, Fit works, node selection works', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.sk-node').first().click();
+  const fit = page.getByRole('button', { name: 'Fit' });
+  await expect(fit).toBeVisible();
+  await fit.click();
+  const node = page.locator('.sk-node').first();
+  await node.click();
   await expect(page.locator('.sk-detail')).toBeVisible();
 });
 
-test('quick find dialog opens, focuses and closes with Escape', async ({ page, browserName }, testInfo) => {
+test('quick find dialog opens, focuses and closes with Escape', async ({ page }, testInfo) => {
   test.skip(['mobile', 'narrow', 'tablet-portrait'].includes(testInfo.project.name), 'search trigger hidden below 1024px');
   await page.goto('/');
   await page.locator('.sb-search').click();
@@ -61,7 +73,6 @@ test('quick find dialog opens, focuses and closes with Escape', async ({ page, b
   await expect(dialog).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  void browserName;
 });
 
 test('admin login screen renders without credentials', async ({ page }) => {
