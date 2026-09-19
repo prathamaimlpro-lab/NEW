@@ -1,6 +1,5 @@
 /* ============ PIXEL — SHARED COMPONENT BEHAVIOR + MOTION STANDARD ============ */
 :root {
-  /* subtle spring for surfaces that move spatially (sheets/dialogs) — no library needed */
   --ease-spring: cubic-bezier(.22, 1.06, .35, 1);
 }
 
@@ -28,46 +27,30 @@
 .input-area:disabled, .input:disabled { opacity: .45; cursor: not-allowed; }
 .input-error, .input-area.input-error, .input[aria-invalid="true"], .input-area[aria-invalid="true"] { border-color: var(--danger); }
 
-/* TABS: clear selection, subtle transition, no bounce */
-.tabs {
-  display: flex; gap: 4px; padding: 3px; width: max-content; max-width: 100%; overflow-x: auto;
-  background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--r-control);
-}
-.tab {
-  appearance: none; border: none; background: transparent; cursor: pointer; white-space: nowrap;
-  color: var(--text-secondary); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: var(--r-tag);
-  transition: background-color var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease), box-shadow var(--motion-fast) var(--ease), transform var(--motion-press) var(--ease);
-}
+/* TABS */
+.tabs { display: flex; gap: 4px; padding: 3px; width: max-content; max-width: 100%; overflow-x: auto; background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--r-control); }
+.tab { appearance: none; border: none; background: transparent; cursor: pointer; white-space: nowrap; color: var(--text-secondary); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: var(--r-tag); transition: background-color var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease), box-shadow var(--motion-fast) var(--ease), transform var(--motion-press) var(--ease); }
 .tab:active { transform: scale(.98); }
 .tab[aria-selected="true"], .tab.active { background: var(--surface-1); color: var(--text-primary); box-shadow: 0 0 0 1px var(--border-strong); }
 @media (hover: hover) and (pointer: fine) { .tab:hover { color: var(--text-primary); } }
 
-/* DIALOGS / SHEETS: spatially logical, spring-settled, interruptible (CSS animations restart cleanly) */
+/* DIALOGS / SHEETS */
 .dialog { animation: dialogIn var(--motion-normal) var(--ease-spring); }
 @keyframes dialogIn { from { opacity: 0; transform: translateY(6px) scale(.99); } to { opacity: 1; transform: none; } }
 .dialog-scrim { animation: scrimIn var(--motion-fast) var(--ease); }
 @keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 767px) {
   .dialog-scrim { align-items: flex-end; padding: 0; }
-  .dialog {
-    width: 100%; max-width: 100%; max-height: 85vh;
-    border-radius: var(--r-dialog) var(--r-dialog) 0 0; border-bottom: none;
-    animation: sheetUp var(--motion-slow) var(--ease-spring);
-  }
+  .dialog { width: 100%; max-width: 100%; max-height: 85vh; border-radius: var(--r-dialog) var(--r-dialog) 0 0; border-bottom: none; animation: sheetUp var(--motion-slow) var(--ease-spring); }
   @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
 }
 
-/* MICRO-INTERACTION helpers (expand/collapse chevron) */
+/* MICRO helpers */
 .chevron { display: inline-block; transition: transform var(--motion-fast) var(--ease); }
 .chevron[aria-expanded="true"], [aria-expanded="true"] > .chevron { transform: rotate(90deg); }
-
-/* CARDS: interactive-only feedback (non-interactive .card stays inert) */
 .card-interactive:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--action), 0 0 0 4px rgba(59, 167, 242, .25); }
 
-/* ============ MOTION STANDARDIZATION ============
-   Off-scale raw durations (300/320/400/420ms) mapped onto the shared tokens.
-   State-change transitions stay on transform/opacity where possible; the few
-   width/height fills below are discrete state changes (progress/step), not loops. */
+/* MOTION STANDARDIZATION (off-scale raw durations → shared tokens) */
 .viz-slot { transition: transform var(--motion-slow) var(--ease); }
 .viz-bar { transition: background-color var(--motion-fast) var(--ease), height var(--motion-slow) var(--ease); }
 .bseg { transition: height var(--motion-slow) var(--ease), background-color var(--motion-fast) var(--ease); }
@@ -76,5 +59,4 @@
 /* REDUCED MOTION: static loading state instead of a frozen spinner arc */
 @media (prefers-reduced-motion: reduce) {
   .btn[aria-busy="true"]::after { display: none; }
-  .dialog, .dialog-scrim { animation: none !important; }
 }
