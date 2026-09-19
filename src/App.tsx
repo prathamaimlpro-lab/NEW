@@ -11,7 +11,7 @@ import VisualizationPage from './pages/VisualizationPage';
 import ProgressPage from './pages/Progress';
 import Profile from './pages/Profile';
 import AdminLogin from './pages/admin/AdminLogin';
-import AdminLayout from './components/admin/AdminLayout';
+import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ContentAdmin from './pages/admin/ContentAdmin';
 import CollectionAdmin from './pages/admin/CollectionAdmin';
