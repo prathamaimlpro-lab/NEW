@@ -148,12 +148,12 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
-            style={{ position: 'relative', overflow: 'hidden', height: 'clamp(360px, 52vh, 560px)', background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: 8, touchAction: 'none', cursor: drag.current ? 'grabbing' : 'grab' }}
+            style={{ position: 'relative', overflow: 'hidden', height: 'clamp(360px, 52vh, 560px)', background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: 8, touchAction: 'none', cursor: 'grab' }}
           >
             <div style={{ position: 'absolute', left: 0, top: 0, width: layout.width, height: layout.height, transform: `translate(${pan.tx}px, ${pan.ty}px) scale(${pan.scale})`, transformOrigin: '0 0' }}>
               <svg className="sk-edges" width={layout.width} height={layout.height} aria-hidden="true">
                 <defs>
-                  <marker id="sk-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" height="5" orient="auto">
+                  <marker id="sk-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
                     <path d="M0,0 L8,4 L0,8 z" fill="var(--border-strong)" />
                   </marker>
                 </defs>
@@ -186,7 +186,9 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
             <div className="sk-detail">
               <div className="d-title">{focus.id}</div>
               <div className="d-micro">{focus.state} · {categoryOf(focus)} · {focus.hasData ? `mastery ${focus.mastery}% · completion ${focus.completion}%` : 'no mastery data yet'}</div>
-              <div className="d-micro" style={{ color: 'var(--text-muted)' }}>Curriculum: {focus.levelIds.length ? focus.levelIds.map(l => `L${l}`).join(', ') : 'no levels yet'}</p></div>
+              <div className="d-micro" style={{ color: 'var(--text-muted)' }}>
+                Curriculum: {focus.levelIds.length ? focus.levelIds.map(l => `L${l}`).join(', ') : 'no levels yet'}
+              </div>
               {focus.prerequisiteIds.length > 0 && (
                 <div>
                   <div className="d-micro" style={{ marginBottom: 6 }}>PREREQUISITES</div>
@@ -219,7 +221,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
           <div className="d-micro" style={{ marginBottom: 4 }}>Accessible node list (keyboard usable)</div>
           {visibleNodes.map(n => (
             <button key={n.id} type="button" className="lrow" style={{ textAlign: 'left' }} onClick={() => setFocusId(focusId === n.id ? null : n.id)} aria-pressed={focusId === n.id}>
-              <span className="rail"><span className={`dot`} style={{ background: n.state === 'locked' ? 'var(--text-subtle)' : n.completion >= 100 ? 'var(--signal-mastered)' : n.state === 'current' ? 'var(--signal-focus)' : 'var(--border-strong)' }} /></span>
+              <span className="rail"><span className="dot" style={{ background: n.state === 'locked' ? 'var(--text-subtle)' : n.completion >= 100 ? 'var(--signal-mastered)' : n.state === 'current' ? 'var(--signal-focus)' : 'var(--border-strong)' }} /></span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span className="d-body" style={{ color: 'var(--text-primary)', display: 'block' }}>{n.id}</span>
                 <span className="d-micro">{n.state} · {categoryOf(n)}{n.hasData ? ` · mastery ${n.mastery}%` : ''}</span>
