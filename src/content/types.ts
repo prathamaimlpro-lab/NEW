@@ -8,7 +8,7 @@ export interface Lesson extends BaseEntity { levelId: string; order: number; tit
 export interface Topic extends BaseEntity { title: string; conceptIds: string[] }
 
 export type ConceptFacetKey = 'WHAT' | 'WHY' | 'HOW' | 'INTERNALS' | 'EXAMPLE' | 'MISTAKES' | 'PRACTICE' | 'REAL_WORLD' | 'CONNECTIONS';
-export interface ConceptFacet { key: ConceptFacetKey; body: string; bullets?: string[]; code?: string }
+export interface ConceptFacet { key: ConceptFacetKey; body?: string; bullets?: string[]; code?: string }
 export interface Concept extends BaseEntity {
   title: string; topicIds: string[]; facets: ConceptFacet[];
   exampleIds: string[]; visualIds: string[]; practiceIds: string[]; projectIds: string[]; revisionIds: string[];
