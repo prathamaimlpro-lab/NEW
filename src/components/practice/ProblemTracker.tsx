@@ -15,6 +15,14 @@ export function statusOf(stats: ReturnType<typeof usePlayer>['stats'], id: strin
   return r.solved ? 'solved' : 'attempted';
 }
 
+const STATUS_CHIP: Record<ReturnType<typeof statusOf>, { label: string; cls: string }> = {
+  'not-started': { label: 'Not Started', cls: 'chip' },
+  attempted: { label: 'Attempted', cls: 'chip chip-info' },
+  solved: { label: 'Solved', cls: 'chip chip-success' },
+  review: { label: 'Needs Review', cls: 'chip chip-warning' },
+  mastered: { label: 'Mastered', cls: 'chip chip-info' },
+};
+
 export function ProblemTracker() {
   const { stats } = usePlayer();
   const [q, setQ] = useState('');
@@ -76,23 +84,20 @@ export function ProblemTracker() {
       `}</style>
 
       {filtered.length === 0 ? (
-        <div className="dempty">No problems match the current filters.</div>
+        <div className="dempty">No problems match the current filters. Clear a filter or search a different term.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map(p => {
             const st = statusOf(stats, p.id);
             const rec = stats.problems[p.id];
+            const chip = STATUS_CHIP[st];
             return (
               <Link key={p.id} to={`/practice/problems/${p.id}`} className="card card-interactive" style={{ padding: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                   <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)', fontWeight: 500 }}>{p.title}</span>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <span className={`chip ${p.difficulty === 'EASY' ? 'chip-success' : p.difficulty === 'MEDIUM' ? 'chip-warning' : 'chip-error'}`}>{p.difficulty}</span>
-                    {st === 'mastered' ? <span className="chip chip-info">Mastered</span>
-                      : st === 'review' ? <span className="chip chip-warning">Needs review</span>
-                      : st === 'solved' ? <span className="chip chip-success">Solved</span>
-                      : st === 'attempted' ? <span className="chip chip-info">Attempted</span>
-                      : <span className="chip">Not started</span>}
+                    <span className={chip.cls}>{chip.label}</span>
                     {rec?.favourite && <span className="chip">★ Favourite</span>}
                   </div>
                 </div>
