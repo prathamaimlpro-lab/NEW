@@ -1,20 +1,8 @@
-/* ============ PIXEL DASHBOARD — MOTION (feedback only) ============
-   Removed: per-panel entrance stagger (dIn), per-row list stagger (dRow),
-   metric-strip fade (dFade) — these replayed on every visit/render and
-   communicated nothing. Motion here is now strictly action-triggered
-   feedback + one page-level continuity fade. */
-
+/* ============ PIXEL DASHBOARD — MOTION (feedback only) ============ */
 .dash { animation: dashIn var(--motion-normal) var(--ease); }
 @keyframes dashIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* tooltip appears on bar/cell focus-hover */
 .dtip { animation: dTip var(--motion-fast) var(--ease) both; }
 @keyframes dTip { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
 
-/* inline popover / inspector appear when the user acts */
 .jpop, .sk-detail { animation: dTip var(--motion-normal) var(--ease) both; }
-
-@media (prefers-reduced-motion: reduce) {
-  .dash, .dtip, .jpop, .sk-detail { animation: none !important; }
-  .jnode-current { animation: none !important; }
-}
