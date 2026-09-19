@@ -1,105 +1,45 @@
-/* ============ PIXEL — PAGE-LEVEL RESPONSIVE FIXES (PHASE 1B + 1C) ============ */
+/* ============ PIXEL — MOBILE-NATIVE RESPONSIVE LAYER ============
+   Legacy dead rules removed; .pfilters live inline in ProblemTracker.
+   All rules are media/@supports-scoped so desktop is unaffected. */
 
-html { -webkit-text-size-adjust: 100%; }
-
-/* Curriculum header: fluid, collapses below 900px. */
-.cur-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
-  gap: 24px;
-  align-items: center;
-}
-@media (max-width: 900px) {
-  .cur-head { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-}
-
-/* Contain internal scrollers so they never widen the page. */
-.code-block, .table-wrap, .vizrow, .jl-lane, .sk-scroll, .hm-scroll { max-width: 100%; }
-.code-block pre { max-width: 100%; }
-@media (max-width: 380px) {
-  .code-block pre { font-size: 12px; padding: 12px; }
-  .table-wrap th, .table-wrap td { padding: 8px 10px; }
-}
-
-/* Cards / panels compress on small screens. */
+/* Prevent iOS/Android focus-zoom on text inputs (must be >=16px on mobile) */
 @media (max-width: 767px) {
-  .card { padding: 16px; }
-  .page-inner { gap: 16px; }
-  .dgrid { gap: 12px; }
-  .p-hero, .p-chart, .p-list, .p-map { padding: 16px; }
-  .dialog { padding: 16px; }
-  .dialog-scrim { padding: 12px; }
-  .q-option { padding: 12px; }
-  .jpop { padding: 10px; }
-  .dempty { padding: 12px; }
-  .dtl-row { padding: 6px 0; }
-  .hero-grid { gap: 16px; }
-  .cl-actions .cta-solid, .cl-actions .cta-outline { width: 100%; }
-  .sk-content { gap: 16px; }               /* 1C-7: mobile canvas gap */
-}
-@media (max-width: 360px) {
-  .reading { padding: 16px; }
-  .topbar .chip-info { display: none; }
-  .mx { grid-template-columns: 72px repeat(3, minmax(0, 1fr)); }
-  .jl-row { grid-template-columns: 72px minmax(0, 1fr) 34px; }
-  .vizcard { width: 150px; }
-  .bars { height: 160px; }
-  .plot { padding: 8px 6px 4px; }
+  .input, .input-area { font-size: 16px; }
 }
 
-/* Chips/labels must never force width. */
-.chip, .chip2 { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.d-micro, .t-caption { overflow-wrap: anywhere; }
-
-/* Tooltips stay inside their panel. */
-.dtip { max-width: calc(100% - 16px); }
-
-/* 1C-1: axis labels must not clip mid-glyph; sparse labels may extend over
-   empty neighbour slots; plot clips only at its own edge. */
-.plot { overflow: hidden; }
-.bxl span { overflow: visible; white-space: nowrap; font-size: 10px; text-align: left; }
-.bxl span:last-child { text-align: right; }
-
-/* Visualization tiles stay tappable at 320px. */
-@media (max-width: 380px) {
-  .viz-tiles { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); }
-}
-
-/* 1C-2: journey rows between 361–480px. */
-@media (max-width: 480px) {
-  .jl-row { grid-template-columns: 84px minmax(0, 1fr) 34px; }
-  .jnode { width: 36px; height: 36px; font-size: 11px; }
-}
-
-/* 1C-3 / 1C-4: viewport-aware heights for canvas-like regions. */
-.sk-scroll { max-height: min(460px, 62vh); }
-@media (max-height: 480px) {
-  .viz-stage { height: 200px; }
-  .bars { height: 140px; }
-  .sk-scroll { max-height: 40vh; }
-  .shell-main { padding-bottom: 96px; }
-}
-
-/* 1C-5: dock labels must not overflow their slot at 320px. */
-@media (max-width: 1023px) {
-  .sb-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-}
-
-/* 1C-6: sticky heatmap day column must not shrink. */
-.hm-days { flex: none; }
-
-/* Touch: comfortable targets without changing desktop density. */
+/* Comfortable (not oversized) touch targets on coarse pointers */
 @media (pointer: coarse) {
-  .btn { min-height: 44px; }
-  .btn-sm { min-height: 38px; }
-  .input { height: 44px; }
-  .rtoggle button, .drange button { min-height: 34px; }
-  .hm-cell { width: 16px; height: 16px; }
-  .jnode { width: 44px; height: 44px; }
-  .q-option { min-height: 48px; }
-  .sb-link { min-height: 48px; }
+  .rtoggle button { min-height: 36px; }
+  .tab { padding: 10px 14px; }
+  .hm-cell { width: 16px; height: 16px; min-width: 16px; }
+  .hm-days span { height: 16px; line-height: 16px; }
+  .jnode { width: 40px; height: 40px; }
+  .sk-node { min-height: 40px; }
+  .jl-toggle { padding: 8px; margin: -8px; }
 }
 
+/* Dynamic viewport height so dialogs/sheets survive the virtual keyboard */
+.dialog { max-height: 85vh; max-height: 85dvh; }
+@media (max-width: 767px) {
+  .dialog { max-height: 90vh; max-height: 90dvh; }
+}
+
+/* Top safe-area for the sticky header on cutout/notch devices */
+@supports (padding: env(safe-area-inset-top)) {
+  .topbar { padding-top: env(safe-area-inset-top); height: calc(56px + env(safe-area-inset-top)); }
+  @media (max-width: 1023px) { .topbar { height: calc(52px + env(safe-area-inset-top)); } }
+}
+
+/* Very narrow: let long CTA labels wrap instead of overflowing */
 @media (max-width: 380px) {
-  .rselect { min-width: 120px; }
+  .cta-solid, .cta-outline, .btn-primary { white-space: normal; text-align: center; }
+  .sb-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+}
+
+/* Short-landscape (phone landscape): reduce tall fixed surfaces */
+@media (orientation: landscape) and (max-height: 480px) {
+  .viz-stage { height: 180px; }
+  .bars { height: 140px; }
+  .sk-scroll { max-height: 46vh; }
+  .sidebar { max-height: 70px; }
 }
