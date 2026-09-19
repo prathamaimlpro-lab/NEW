@@ -19,7 +19,7 @@ const STATUS_CHIP: Record<ReturnType<typeof statusOf>, { label: string; cls: str
   'not-started': { label: 'Not Started', cls: 'chip' },
   attempted: { label: 'Attempted', cls: 'chip chip-info' },
   solved: { label: 'Solved', cls: 'chip chip-success' },
-  review: { label: 'Needs Review', cls: 'chip chip-warning' },
+  review: { label: 'Needs Revision', cls: 'chip chip-warning' },
   mastered: { label: 'Mastered', cls: 'chip chip-success' },
 };
 
@@ -63,7 +63,7 @@ export function ProblemTracker() {
             <option value="ALL">Difficulty</option><option value="EASY">Easy</option><option value="MEDIUM">Medium</option><option value="HARD">Hard</option>
           </select>
           <select className="input" style={{ width: 150 }} value={status} onChange={e => setStatus(e.target.value as StatusFilter)} aria-label="Status filter">
-            <option value="ALL">Status</option><option value="not-started">Not Started</option><option value="attempted">Attempted</option><option value="solved">Solved</option><option value="review">Needs Review</option><option value="mastered">Mastered</option><option value="favourite">Favourite</option><option value="recent">Recently Solved</option>
+            <option value="ALL">Status</option><option value="not-started">Not Started</option><option value="attempted">Attempted</option><option value="solved">Solved</option><option value="review">Needs Revision</option><option value="mastered">Mastered</option><option value="favourite">Favourite</option><option value="recent">Recently Solved</option>
           </select>
           <select className="input" style={{ width: 130 }} value={topic} onChange={e => setTopic(e.target.value)} aria-label="Topic filter">
             <option value="ALL">Topic</option>{topics.map(t => <option key={t} value={t}>{t}</option>)}
