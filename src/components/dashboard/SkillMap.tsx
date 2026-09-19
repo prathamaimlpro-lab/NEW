@@ -53,15 +53,21 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
     visibleEdges,
   ), [visibleNodes, visibleEdges]);
 
+  /* Auto-fit: scale to fit, then center on current-focus node, then CLAMP so content never clips. */
   const fit = useMemo(() => () => {
     const el = containerRef.current;
     if (!el || layout.width === 0 || layout.height === 0) return;
     const cw = el.clientWidth; const ch = el.clientHeight;
     const scale = Math.min(cw / layout.width, ch / layout.height, 1);
+    const contentW = layout.width * scale; const contentH = layout.height * scale;
     const focus = graph.nodes.find(n => n.state === 'current');
     const fn = focus ? layout.nodes.find(n => n.id === focus.id) : undefined;
-    const tx = fn ? cw / 2 - (fn.x + fn.w / 2) * scale : (cw - layout.width * scale) / 2;
-    const ty = fn ? ch / 2 - (fn.y + fn.h / 2) * scale : (ch - layout.height * scale) / 2;
+    let tx = fn ? cw / 2 - (fn.x + fn.w / 2) * scale : (cw - contentW) / 2;
+    let ty = fn ? ch / 2 - (fn.y + fn.h / 2) * scale : (ch - contentH) / 2;
+    const minX = Math.min(0, cw - contentW); const maxX = Math.max(0, cw - contentW);
+    const minY = Math.min(0, ch - contentH); const maxY = Math.max(0, ch - contentH);
+    tx = Math.min(maxX, Math.max(minX, tx));
+    ty = Math.min(maxY, Math.max(minY, ty));
     setPan({ scale, tx, ty });
     interacted.current = false;
   }, [layout, graph.nodes]);
@@ -148,7 +154,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
-            style={{ position: 'relative', overflow: 'hidden', height: 'clamp(360px, 52vh, 560px)', background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: 8, touchAction: 'none', cursor: 'grab' }}
+            style={{ position: 'relative', overflow: 'hidden', height: 'clamp(360px, 52vh, 560px)', background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: 8, touchAction: 'pan-y', cursor: 'grab' }}
           >
             <div style={{ position: 'absolute', left: 0, top: 0, width: layout.width, height: layout.height, transform: `translate(${pan.tx}px, ${pan.ty}px) scale(${pan.scale})`, transformOrigin: '0 0' }}>
               <svg className="sk-edges" width={layout.width} height={layout.height} aria-hidden="true">
@@ -184,7 +190,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
 
           {focus && (
             <div className="sk-detail">
-              <div className="d-title">{focus.id}</div>
+              <div className="d-title" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{focus.id}</div>
               <div className="d-micro">{focus.state} · {categoryOf(focus)} · {focus.hasData ? `mastery ${focus.mastery}% · completion ${focus.completion}%` : 'no mastery data yet'}</div>
               <div className="d-micro" style={{ color: 'var(--text-muted)' }}>
                 Curriculum: {focus.levelIds.length ? focus.levelIds.map(l => `L${l}`).join(', ') : 'no levels yet'}
@@ -223,7 +229,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
             <button key={n.id} type="button" className="lrow" style={{ textAlign: 'left' }} onClick={() => setFocusId(focusId === n.id ? null : n.id)} aria-pressed={focusId === n.id}>
               <span className="rail"><span className="dot" style={{ background: n.state === 'locked' ? 'var(--text-subtle)' : n.completion >= 100 ? 'var(--signal-mastered)' : n.state === 'current' ? 'var(--signal-focus)' : 'var(--border-strong)' }} /></span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span className="d-body" style={{ color: 'var(--text-primary)', display: 'block' }}>{n.id}</span>
+                <span className="d-body" style={{ color: 'var(--text-primary)', display: 'block', whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{n.id}</span>
                 <span className="d-micro">{n.state} · {categoryOf(n)}{n.hasData ? ` · mastery ${n.mastery}%` : ''}</span>
               </span>
             </button>
