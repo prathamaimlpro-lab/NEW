@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
+import { lessons } from '../../data/curriculum';
 import type { CurrentLearningState } from '../../services/dashboardService';
 import { relTime } from '../../services/dashboardService';
+import { getLessonProgressSummary } from '../../services/progressService';
 import { usePlayer } from '../../store/PlayerContext';
 
 export function ContinueLearning({ state }: { state: CurrentLearningState | null }) {
-  const { syncState } = usePlayer();
+  const { stats, syncState } = usePlayer();
 
   if (syncState === 'loading') {
     return (
@@ -37,6 +39,8 @@ export function ContinueLearning({ state }: { state: CurrentLearningState | null
     );
   }
 
+  const lesson = lessons[state.lessonId];
+  const summary = lesson ? getLessonProgressSummary(stats, lesson) : null;
   const verb = state.mode === 'begin' ? 'Start First Lesson' : state.mode === 'resume' ? 'Continue Lesson' : 'Start Lesson';
 
   return (
@@ -64,9 +68,9 @@ export function ContinueLearning({ state }: { state: CurrentLearningState | null
               <p className="d-micro" style={{ marginBottom: 12 }}>
                 Lesson {state.lessonIndex} of {state.lessonCount} · {state.minutesRemaining} min remaining · +{state.xp} XP on completion
               </p>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }} className="d-micro"><span>{state.lessonProgress}%</span></div>
-              <div className="hero-bar" style={{ marginTop: 4 }} role="progressbar" aria-valuenow={state.lessonProgress} aria-valuemin={0} aria-valuemax={100}>
-                <div style={{ width: `${state.lessonProgress}%` }} />
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }} className="d-micro"><span>{summary?.progress ?? state.lessonProgress}%</span></div>
+              <div className="hero-bar" style={{ marginTop: 4 }} role="progressbar" aria-valuenow={summary?.progress ?? state.lessonProgress} aria-valuemin={0} aria-valuemax={100}>
+                <div style={{ width: `${summary?.progress ?? state.lessonProgress}%` }} />
               </div>
             </>
           )}
@@ -74,7 +78,8 @@ export function ContinueLearning({ state }: { state: CurrentLearningState | null
         <div className="cl-actions">
           <Link className="cta-solid" to={`/learn/lesson/${state.lessonId}`}>{verb}</Link>
           <span className="d-micro" style={{ color: 'var(--text-muted, #64748B)' }}>
-            {relTime(state.lastActivityIso) ? `Last opened ${relTime(state.lastActivityIso)}` : 'Not opened yet'}
+            {summary?.label ?? 'Not opened yet'}
+            {state.lastActivityIso && (summary?.progress ?? 0) > 0 ? ` · last activity ${relTime(state.lastActivityIso)}` : ''}
           </span>
         </div>
       </div>
