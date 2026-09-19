@@ -1,4 +1,8 @@
-/* ============ PIXEL — SHARED COMPONENT BEHAVIOR ============ */
+/* ============ PIXEL — SHARED COMPONENT BEHAVIOR + MOTION STANDARD ============ */
+:root {
+  /* subtle spring for surfaces that move spatially (sheets/dialogs) — no library needed */
+  --ease-spring: cubic-bezier(.22, 1.06, .35, 1);
+}
 
 /* BUTTONS: loading + icon-only */
 .btn[aria-busy="true"], .btn[data-loading="true"] { pointer-events: none; opacity: .6; cursor: progress; }
@@ -38,8 +42,8 @@
 .tab[aria-selected="true"], .tab.active { background: var(--surface-1); color: var(--text-primary); box-shadow: 0 0 0 1px var(--border-strong); }
 @media (hover: hover) and (pointer: fine) { .tab:hover { color: var(--text-primary); } }
 
-/* DIALOGS / SHEETS: spatially logical, fast, touch-friendly */
-.dialog { animation: dialogIn var(--motion-normal) var(--ease); }
+/* DIALOGS / SHEETS: spatially logical, spring-settled, interruptible (CSS animations restart cleanly) */
+.dialog { animation: dialogIn var(--motion-normal) var(--ease-spring); }
 @keyframes dialogIn { from { opacity: 0; transform: translateY(6px) scale(.99); } to { opacity: 1; transform: none; } }
 .dialog-scrim { animation: scrimIn var(--motion-fast) var(--ease); }
 @keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } }
@@ -48,7 +52,7 @@
   .dialog {
     width: 100%; max-width: 100%; max-height: 85vh;
     border-radius: var(--r-dialog) var(--r-dialog) 0 0; border-bottom: none;
-    animation: sheetUp var(--motion-normal) var(--ease);
+    animation: sheetUp var(--motion-slow) var(--ease-spring);
   }
   @keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
 }
@@ -59,3 +63,18 @@
 
 /* CARDS: interactive-only feedback (non-interactive .card stays inert) */
 .card-interactive:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--action), 0 0 0 4px rgba(59, 167, 242, .25); }
+
+/* ============ MOTION STANDARDIZATION ============
+   Off-scale raw durations (300/320/400/420ms) mapped onto the shared tokens.
+   State-change transitions stay on transform/opacity where possible; the few
+   width/height fills below are discrete state changes (progress/step), not loops. */
+.viz-slot { transition: transform var(--motion-slow) var(--ease); }
+.viz-bar { transition: background-color var(--motion-fast) var(--ease), height var(--motion-slow) var(--ease); }
+.bseg { transition: height var(--motion-slow) var(--ease), background-color var(--motion-fast) var(--ease); }
+.pbar > div, .hero-bar > div { transition: width var(--motion-slow) var(--ease); }
+
+/* REDUCED MOTION: static loading state instead of a frozen spinner arc */
+@media (prefers-reduced-motion: reduce) {
+  .btn[aria-busy="true"]::after { display: none; }
+  .dialog, .dialog-scrim { animation: none !important; }
+}
