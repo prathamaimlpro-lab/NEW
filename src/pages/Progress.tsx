@@ -33,13 +33,24 @@ export default function ProgressPage() {
           {worlds.map(w => {
             const wl = levels.filter(l => l.worldId === w.id);
             const done = wl.filter(l => isLevelCompleted(stats, l)).length;
+            const pct = getWorldProgress(stats, w.id);
             return (
               <div key={w.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 220px) minmax(0,1fr) 96px', gap: 12, alignItems: 'center' }}>
                 <span className="d-body" style={{ color: 'var(--text-primary)', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere', textWrap: 'balance' }}>
                   W{w.number} · {w.title}
                 </span>
-                <div className="hero-bar" style={{ height: 6 }}><div style={{ width: `${getWorldProgress(stats, w.id)}%` }} /></div>
-                <span className="d-micro" style={{ textAlign: 'right' }}>{done}/{wl.length} · {getWorldProgress(stats, w.id)}%</span>
+                <div
+                  className="hero-bar"
+                  style={{ height: 6 }}
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={pct}
+                  aria-label={`${w.title} progress`}
+                >
+                  <div style={{ width: `${pct}%` }} />
+                </div>
+                <span className="d-micro" style={{ textAlign: 'right' }}>{done}/{wl.length} · {pct}%</span>
               </div>
             );
           })}
