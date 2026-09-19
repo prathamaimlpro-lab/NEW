@@ -192,7 +192,7 @@ export function MasteryBridge() {
           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setSortGap(v => !v)} aria-pressed={sortGap}>
             {sortGap ? 'sort: biggest gap' : 'sort: mastery'}
           </button>
-          <Link className="d-micro" style={{ color: 'var(--accent-text)' }} to="/progress">Full analysis →</Link>
+          <Link className="d-micro" style={{ color: 'var(--action-text)' }} to="/progress">Full analysis →</Link>
         </div>
       </div>
       {overall > 0 && avgMastery > 0 ? (
@@ -210,8 +210,8 @@ export function MasteryBridge() {
                 style={{ display: 'grid', gridTemplateColumns: 'minmax(96px, 140px) minmax(0,1fr) 44px', gap: 10, alignItems: 'center', width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
                 <span className="d-body" style={{ color: 'var(--text-primary)', textAlign: 'left', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere', textWrap: 'balance' }}>{r.topic}</span>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
-                  <span style={{ height: 3, borderRadius: 2, background: 'rgba(217,201,178,.35)', position: 'relative', display: 'block' }}>
-                    <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.completion}%`, background: 'rgba(217,201,178,.6)', borderRadius: 2, display: 'block' }} />
+                  <span style={{ height: 3, borderRadius: 2, background: 'rgba(95,107,118,.30)', position: 'relative', display: 'block' }}>
+                    <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.completion}%`, background: 'rgba(95,107,118,.55)', borderRadius: 2, display: 'block' }} />
                   </span>
                   <span style={{ height: 6, borderRadius: 3, background: 'var(--surface-2)', position: 'relative', display: 'block' }}>
                     <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.mastery}%`, background: 'var(--signal-mastered)', borderRadius: 3, display: 'block', transition: 'width .42s cubic-bezier(.2,.72,.22,1)' }} />
@@ -322,7 +322,7 @@ export function PracticeAnalytics() {
     <section className="p-chart">
       <div className="p-head">
         <h2 className="d-eyebrow" style={{ margin: 0 }}>Practice Analytics</h2>
-        <Link className="d-micro" style={{ color: 'var(--accent-text)' }} to="/practice">Open tracker →</Link>
+        <Link className="d-micro" style={{ color: 'var(--action-text)' }} to="/practice">Open tracker →</Link>
       </div>
       {submissions === 0 ? (
         <div className="dempty">Complete a few practice problems to see your accuracy patterns.</div>
