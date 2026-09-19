@@ -12,6 +12,14 @@ export default function ProgressPage() {
 
   return (
     <>
+      <header style={{ padding: '24px 2px 0' }}>
+        <div className="d-eyebrow" style={{ marginBottom: 8 }}>Progress</div>
+        <h1 className="d-h1" style={{ fontSize: 28, lineHeight: '36px' }}>Your learning analytics</h1>
+        <p className="d-body" style={{ marginTop: 8, maxWidth: 640 }}>
+          Completion, mastery and practice performance across the whole curriculum, in one place.
+        </p>
+      </header>
+
       <section className="p-strip" style={{ border: '1px solid var(--border-subtle)', borderRadius: 6 }}>
         <div><span className="d-big">{stats.xp.toLocaleString()}</span><span className="lbl">XP</span></div>
         <div><span className="d-big">{stats.streak}d</span><span className="lbl">streak</span></div>
@@ -20,15 +28,17 @@ export default function ProgressPage() {
       </section>
 
       <section className="p-chart">
-        <div className="p-head"><span className="d-eyebrow">World progress</span></div>
+        <div className="p-head"><h2 className="d-eyebrow" style={{ margin: 0 }}>World progress</h2></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {worlds.map(w => {
             const wl = levels.filter(l => l.worldId === w.id);
             const done = wl.filter(l => isLevelCompleted(stats, l)).length;
             return (
-              <div key={w.id} style={{ display: 'grid', gridTemplateColumns: '150px minmax(0,1fr) 110px', gap: 12, alignItems: 'center' }}>
-                <span className="d-body" style={{ color: 'var(--fg-0)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>W{w.number} · {w.title}</span>
-                <div className="hero-bar"><div style={{ width: `${getWorldProgress(stats, w.id)}%`, background: 'var(--signal-mastered, #10B981)' }} /></div>
+              <div key={w.id} style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 220px) minmax(0,1fr) 96px', gap: 12, alignItems: 'center' }}>
+                <span className="d-body" style={{ color: 'var(--text-primary)', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere', textWrap: 'balance' }}>
+                  W{w.number} · {w.title}
+                </span>
+                <div className="hero-bar" style={{ height: 6 }}><div style={{ width: `${getWorldProgress(stats, w.id)}%` }} /></div>
                 <span className="d-micro" style={{ textAlign: 'right' }}>{done}/{wl.length} · {getWorldProgress(stats, w.id)}%</span>
               </div>
             );
@@ -40,8 +50,8 @@ export default function ProgressPage() {
 
       <section className="p-chart">
         <div className="p-head">
-          <span className="d-eyebrow">Practice</span>
-          <Link className="d-micro" style={{ color: 'var(--signal-strong, #38BDFB)' }} to="/practice">Tracker →</Link>
+          <h2 className="d-eyebrow" style={{ margin: 0 }}>Practice</h2>
+          <Link className="d-micro" style={{ color: 'var(--accent-text)' }} to="/practice">Open tracker →</Link>
         </div>
         <div className="p-strip" style={{ border: '1px solid var(--border-subtle)', borderRadius: 6 }}>
           <div><span className="d-big">{coding.solved}</span><span className="lbl">solved</span></div>
