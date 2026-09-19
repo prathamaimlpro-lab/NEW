@@ -9,6 +9,7 @@ import './styles/global.css';
 import './styles/components.css';
 import './styles/a11y.css';
 import './styles/responsive.css';
+import './styles/navigation.css';
 
 initContentStore();
 void initAuth().then(() => syncContentFromServer());
