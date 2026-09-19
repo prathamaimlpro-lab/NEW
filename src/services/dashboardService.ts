@@ -5,10 +5,10 @@ import { problems } from '../data/problems';
 import { projects } from '../data/projects';
 import {
   getCompletedLevelCount, getLevel, getLessonProgress, getLevelProgress, getLevelState, getNextLesson,
-  getOverallCompletion, getOverallProgress, getWorld, getWorldProgress, isLevelCompleted, isLessonUnlocked, publishedLessons,
+  getOverallCompletion, getOverallProgress, getRevisionDue, getWorld, getWorldProgress,
+  isLevelCompleted, isLessonUnlocked, publishedLessons,
   type LevelState,
 } from './progressService';
-import { getRevisionDue } from './progressService';
 import { buildSkillGraph } from './skillService';
 import type { ConceptNode, SkillGraph } from './skillService';
 import { getTopicMastery } from './statsService';
@@ -53,7 +53,6 @@ function lastEventIso(stats: PlayerStats): string | null {
   return evs.map(e => e.at).sort()[evs.length - 1];
 }
 
-/* Resume surface: most-recently-active unfinished lesson first, then curriculum next. */
 export function getCurrentLearningState(stats: PlayerStats): CurrentLearningState | null {
   const next = getNextLesson(stats);
   if (!next) return null;
@@ -192,7 +191,6 @@ export function getStrengthEvidence(stats: PlayerStats): TopicEvidence[] {
 
 export interface RankedAction { headline: string; why: string; to: string; accent: 'strong' | 'weak' }
 
-/* Ranked rules, first match wins. Headlines use the standard verb set. */
 export function getRankedAction(stats: PlayerStats, excludeLessonId: string | null): RankedAction | null {
   const revision = getRevisionDue(stats)[0];
   if (revision) {
