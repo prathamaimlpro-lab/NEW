@@ -24,6 +24,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; tx: number; ty: number; moved: boolean } | null>(null);
   const interacted = useRef(false);
+  const lastSize = useRef({ w: 0, h: 0 });
 
   const currentWorldId = graph.nodes.find(n => n.state === 'current')?.worldId ?? null;
 
@@ -44,20 +45,18 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
 
   const layout = useMemo(() => layeredLayout(
     visibleNodes.map(n => ({
-      id: n.id,
-      prerequisiteIds: n.prerequisiteIds,
-      dependentIds: n.dependentIds,
-      worldNumber: Number(n.worldId.replace('world-', '')) || 0,
-      centrality: n.dependentIds.length,
+      id: n.id, prerequisiteIds: n.prerequisiteIds, dependentIds: n.dependentIds,
+      worldNumber: Number(n.worldId.replace('world-', '')) || 0, centrality: n.dependentIds.length,
     })),
     visibleEdges,
   ), [visibleNodes, visibleEdges]);
 
-  /* Auto-fit: scale to fit, then center on current-focus node, then CLAMP so content never clips. */
+  /* Auto-fit: scale-to-fit, center on current-focus, then CLAMP so nothing clips. Reuses existing fit math. */
   const fit = useMemo(() => () => {
     const el = containerRef.current;
-    if (!el || layout.width === 0 || layout.height === 0) return;
+    if (!el) return;
     const cw = el.clientWidth; const ch = el.clientHeight;
+    if (!cw || !ch || layout.width === 0 || layout.height === 0) return;
     const scale = Math.min(cw / layout.width, ch / layout.height, 1);
     const contentW = layout.width * scale; const contentH = layout.height * scale;
     const focus = graph.nodes.find(n => n.state === 'current');
@@ -72,11 +71,18 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
     interacted.current = false;
   }, [layout, graph.nodes]);
 
-  useLayoutEffect(() => { fit(); }, [fit]);
+  useLayoutEffect(() => { lastSize.current = { w: 0, h: 0 }; fit(); }, [fit]);
   useLayoutEffect(() => {
-    const onResize = () => { if (!interacted.current) fit(); };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      const r = entries[0].contentRect;
+      if (Math.abs(r.width - lastSize.current.w) < 1 && Math.abs(r.height - lastSize.current.h) < 1) return;
+      lastSize.current = { w: r.width, h: r.height };
+      if (!interacted.current) fit();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [fit]);
 
   const zoomBy = (k: number) => {
@@ -131,11 +137,8 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
           <button type="button" className={`btn btn-sm ${view === 'current' ? 'btn-secondary' : 'btn-ghost'}`} onClick={() => setView('current')} aria-pressed={view === 'current'}>Current world</button>
           <button type="button" className={`btn btn-sm ${view === 'all' ? 'btn-secondary' : 'btn-ghost'}`} onClick={() => setView('all')} aria-pressed={view === 'all'}>All worlds</button>
           <select className="input" style={{ width: 140, height: 32 }} value={stateFilter} onChange={e => setStateFilter(e.target.value as 'ALL' | Category)} aria-label="Filter nodes by state">
-            <option value="ALL">All states</option>
-            <option value="completed">Completed</option>
-            <option value="in-progress">In progress</option>
-            <option value="available">Available</option>
-            <option value="locked">Locked</option>
+            <option value="ALL">All states</option><option value="completed">Completed</option>
+            <option value="in-progress">In progress</option><option value="available">Available</option><option value="locked">Locked</option>
           </select>
           <button type="button" className="btn btn-sm btn-ghost" onClick={() => zoomBy(1 / 1.2)} aria-label="Zoom out">−</button>
           <button type="button" className="btn btn-sm btn-ghost" onClick={() => zoomBy(1.2)} aria-label="Zoom in">+</button>
@@ -176,7 +179,12 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
                     key={n.id}
                     type="button"
                     className={`sk-node ${sizeClass} ${STATE_CLASS[n.state]} ${focusId === n.id ? 'sel' : ''} ${neighbor && !neighbor.has(n.id) ? 'fade' : ''}`}
-                    style={{ position: 'absolute', left: 0, top: 0, width: ln.w, height: ln.h, transform: `translate(${ln.x}px, ${ln.y}px)`, transition: 'transform .2s ease, opacity .18s ease, border-color .15s ease, background-color .15s ease' }}
+                    style={{
+                      position: 'absolute', left: 0, top: 0, width: ln.w, height: ln.h,
+                      transform: `translate(${ln.x}px, ${ln.y}px)`,
+                      whiteSpace: 'normal', overflowWrap: 'anywhere', overflow: 'hidden', lineHeight: 1.2,
+                      transition: 'transform .2s ease, opacity .18s ease, border-color .15s ease, background-color .15s ease',
+                    }}
                     onClick={() => setFocusId(focusId === n.id ? null : n.id)}
                     aria-label={`${n.id}, ${n.state}${n.hasData ? `, mastery ${n.mastery}%` : ''}, ${categoryOf(n)}`}
                   >
@@ -192,9 +200,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
             <div className="sk-detail">
               <div className="d-title" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{focus.id}</div>
               <div className="d-micro">{focus.state} · {categoryOf(focus)} · {focus.hasData ? `mastery ${focus.mastery}% · completion ${focus.completion}%` : 'no mastery data yet'}</div>
-              <div className="d-micro" style={{ color: 'var(--text-muted)' }}>
-                Curriculum: {focus.levelIds.length ? focus.levelIds.map(l => `L${l}`).join(', ') : 'no levels yet'}
-              </div>
+              <div className="d-micro" style={{ color: 'var(--text-muted)' }}>Curriculum: {focus.levelIds.length ? focus.levelIds.map(l => `L${l}`).join(', ') : 'no levels yet'}</div>
               {focus.prerequisiteIds.length > 0 && (
                 <div>
                   <div className="d-micro" style={{ marginBottom: 6 }}>PREREQUISITES</div>
