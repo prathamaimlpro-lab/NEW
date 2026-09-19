@@ -51,10 +51,10 @@ export default function Practice() {
 
       {mode === 'knowledge' && (
         <>
-          <section style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button type="button" className={`btn btn-sm ${view === 'questions' ? 'btn-secondary' : 'btn-ghost'}`} onClick={() => setView('questions')} aria-pressed={view === 'questions'}>Questions</button>
-            <button type="button" className={`btn btn-sm ${view === 'tracker' ? 'btn-secondary' : 'btn-ghost'}`} onClick={() => setView('tracker')} aria-pressed={view === 'tracker'}>Problem Tracker</button>
-          </section>
+          <div className="tabs" role="tablist" aria-label="Knowledge practice view">
+            <button type="button" role="tab" className="tab" aria-selected={view === 'questions'} onClick={() => setView('questions')}>Questions</button>
+            <button type="button" role="tab" className="tab" aria-selected={view === 'tracker'} onClick={() => setView('tracker')}>Problem Tracker</button>
+          </div>
           {view === 'questions' ? (
             <>
               <section style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
