@@ -51,7 +51,6 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
     visibleEdges,
   ), [visibleNodes, visibleEdges]);
 
-  /* Auto-fit: scale-to-fit, center on current-focus, then CLAMP so nothing clips. Reuses existing fit math. */
   const fit = useMemo(() => () => {
     const el = containerRef.current;
     if (!el) return;
@@ -109,11 +108,8 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
     if (Math.abs(dx) + Math.abs(dy) > 4) d.moved = true;
     if (d.moved) { interacted.current = true; setPan(p => ({ ...p, tx: d.tx + dx, ty: d.ty + dy })); }
   };
-  const onPointerUp = () => {
-    const d = drag.current;
-    drag.current = null;
-    if (d && !d.moved) setFocusId(null);
-  };
+  const onPointerUp = () => { const d = drag.current; drag.current = null; if (d && !d.moved) setFocusId(null); };
+  const onKeyDown = (e: React.KeyboardEvent) => { if (e.key === 'Escape') setFocusId(null); };
 
   const focus = focusId ? graph.nodes.find(n => n.id === focusId) ?? null : null;
   const neighbor = useMemo(() => (focus ? new Set([focus.id, ...focus.prerequisiteIds, ...focus.dependentIds]) : null), [focus]);
@@ -130,7 +126,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
   }
 
   return (
-    <section className="p-map">
+    <section className="p-map" onKeyDown={onKeyDown}>
       <div className="p-head">
         <span className="d-eyebrow">Skill Relationship Map</span>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -154,6 +150,8 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
           <div
             ref={containerRef}
             className="sk-viewport"
+            role="group"
+            aria-label="Skill relationship graph. Use Tab to reach nodes, Enter to inspect, Escape to clear."
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -186,6 +184,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
                       transition: 'transform .2s ease, opacity .18s ease, border-color .15s ease, background-color .15s ease',
                     }}
                     onClick={() => setFocusId(focusId === n.id ? null : n.id)}
+                    aria-pressed={focusId === n.id}
                     aria-label={`${n.id}, ${n.state}${n.hasData ? `, mastery ${n.mastery}%` : ''}, ${categoryOf(n)}`}
                   >
                     {n.id}
@@ -197,7 +196,7 @@ export function SkillMap({ graph }: { graph: SkillGraph }) {
           </div>
 
           {focus && (
-            <div className="sk-detail">
+            <div className="sk-detail" role="region" aria-label={`${focus.id} details`}>
               <div className="d-title" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{focus.id}</div>
               <div className="d-micro">{focus.state} · {categoryOf(focus)} · {focus.hasData ? `mastery ${focus.mastery}% · completion ${focus.completion}%` : 'no mastery data yet'}</div>
               <div className="d-micro" style={{ color: 'var(--text-muted)' }}>Curriculum: {focus.levelIds.length ? focus.levelIds.map(l => `L${l}`).join(', ') : 'no levels yet'}</div>
