@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ConceptRevisionSession } from '../components/revision/ConceptRevisionSession';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { ProblemTracker } from '../components/practice/ProblemTracker';
 import { getPracticeBank } from '../services/practiceService';
@@ -86,22 +87,25 @@ export default function Practice() {
       )}
 
       {mode === 'revision' && (
-        <section className="p-list">
-          <div className="p-head"><span className="d-eyebrow">Revision</span></div>
-          {revision.length === 0 ? (
-            <div className="dempty">Nothing is due for revision yet. Completed lessons return here after 7 days, and problems you flag for revision appear here.</div>
-          ) : revision.map(r => (
-            <Link key={`${r.kind}-${r.id}`} className="lrow" to={r.kind === 'lesson' ? `/learn/lesson/${r.id}` : `/practice/problems/${r.id}`}>
-              <span className="rail"><span className="dot" style={{ background: 'var(--signal-weak)' }} /></span>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span className="d-body" style={{ color: 'var(--text-primary)', display: 'block' }}>{r.title}</span>
-                <span className="d-micro" style={{ color: 'var(--text-muted)' }}>
-                  {r.kind === 'lesson' ? `Due for revision · ${r.days} days since completion` : 'Flagged for revision'}
+        <section className="p-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <ConceptRevisionSession />
+          <div>
+            <div className="p-head"><span className="d-eyebrow">Lesson & problem revision</span></div>
+            {revision.length === 0 ? (
+              <div className="dempty">Nothing is due for revision yet. Completed lessons return here after 7 days, and problems you flag for revision appear here.</div>
+            ) : revision.map(r => (
+              <Link key={`${r.kind}-${r.id}`} className="lrow" to={r.kind === 'lesson' ? `/learn/lesson/${r.id}` : `/practice/problems/${r.id}`}>
+                <span className="rail"><span className="dot" style={{ background: 'var(--signal-weak)' }} /></span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span className="d-body" style={{ color: 'var(--text-primary)', display: 'block' }}>{r.title}</span>
+                  <span className="d-micro" style={{ color: 'var(--text-muted)' }}>
+                    {r.kind === 'lesson' ? `Due for revision · ${r.days} days since completion` : 'Flagged for revision'}
+                  </span>
                 </span>
-              </span>
-              <span className="chip">{r.kind === 'lesson' ? 'Lesson' : 'Problem'}</span>
-            </Link>
-          ))}
+                <span className="chip">{r.kind === 'lesson' ? 'Lesson' : 'Problem'}</span>
+              </Link>
+            ))}
+          </div>
         </section>
       )}
     </>
