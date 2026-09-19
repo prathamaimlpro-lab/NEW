@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Assessment } from '../../content/types';
+import { AssessmentRunner } from '../assessment/AssessmentRunner';
 import { hydrateRemote } from '../../services/contentRepo';
-import { getConceptsForLesson, listAll } from '../../services/contentService';
+import { getAssessmentsForLesson } from '../../services/assessmentService';
+import { getConceptsForLesson } from '../../services/contentService';
 import { ConceptRenderer } from './ConceptRenderer';
-import { AssessmentRenderer } from './renderers';
 
 export function LessonContentRenderer({ lessonId }: { lessonId: string }) {
   const [ready, setReady] = useState(false);
@@ -19,19 +19,17 @@ export function LessonContentRenderer({ lessonId }: { lessonId: string }) {
 
   const data = useMemo(() => {
     if (!ready) return null;
-    const concepts = getConceptsForLesson(lessonId);
-    const assessment = listAll('assessments').find(a => a.lessonId === lessonId && a.status === 'PUBLISHED') as Assessment | undefined;
-    return { concepts, assessment };
+    return { concepts: getConceptsForLesson(lessonId), assessments: getAssessmentsForLesson(lessonId) };
   }, [ready, lessonId]);
 
   if (!ready) return <div className="skel" style={{ height: 140 }} aria-busy="true" />;
   if (error) return <div className="state-error" role="alert"><span>{error}</span></div>;
-  if (!data || (data.concepts.length === 0 && !data.assessment)) return null;
+  if (!data || (data.concepts.length === 0 && data.assessments.length === 0)) return null;
 
   return (
     <div className="block-stack">
       {data.concepts.map(c => <ConceptRenderer key={c.id} concept={c} />)}
-      <AssessmentRenderer assessment={data.assessment} />
+      {data.assessments.map(a => <AssessmentRunner key={a.id} assessment={a} />)}
     </div>
   );
 }
