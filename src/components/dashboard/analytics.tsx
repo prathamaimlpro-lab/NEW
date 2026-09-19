@@ -9,7 +9,6 @@ import { getHeatmapDays } from '../../services/activityService';
 import { getOverallCompletion, publishedLessons } from '../../services/progressService';
 import { usePlayer } from '../../store/PlayerContext';
 
-/* ---------------- Activity Analytics ---------------- */
 export function ActivityAnalytics() {
   const { stats, syncState, retrySync } = usePlayer();
   const [range, setRange] = useState<Range>('7D');
@@ -99,7 +98,6 @@ export function ActivityAnalytics() {
   );
 }
 
-/* ---------------- Learning Heatmap ---------------- */
 export function HeatmapSection() {
   const { stats, syncState, retrySync } = usePlayer();
   const [sel, setSel] = useState<string | null>(null);
@@ -176,7 +174,6 @@ export function HeatmapSection() {
   );
 }
 
-/* ---------------- Mastery vs Completion bridge ---------------- */
 export function MasteryBridge() {
   const { stats } = usePlayer();
   const rows = useMemo(() => getMasteryRows(stats), [stats]);
@@ -185,7 +182,7 @@ export function MasteryBridge() {
   const overall = useMemo(() => getOverallCompletion(stats), [stats]);
   const avgMastery = rows.length ? Math.round(rows.reduce((s, r) => s + r.mastery, 0) / rows.length) : 0;
   const shown = [...rows].sort((a, b) => (sortGap ? b.gap - a.gap : b.mastery - a.mastery)).slice(0, 7);
-  const tier = (m: number) => (m >= 85 ? 'var(--signal-mastered)' : m >= 60 ? 'var(--signal-strong)' : m >= 35 ? 'var(--signal-developing)' : 'var(--signal-weak)');
+  const tierClass = (m: number) => (m >= 85 ? 'tier-mastered' : m >= 60 ? 'tier-strong' : m >= 35 ? 'tier-developing' : 'tier-weak');
 
   return (
     <section className="p-chart">
@@ -195,7 +192,7 @@ export function MasteryBridge() {
           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setSortGap(v => !v)} aria-pressed={sortGap}>
             {sortGap ? 'sort: biggest gap' : 'sort: mastery'}
           </button>
-          <Link className="d-micro" style={{ color: 'var(--signal-strong)' }} to="/progress">Full analysis →</Link>
+          <Link className="d-micro" style={{ color: 'var(--accent-text)' }} to="/progress">Full analysis →</Link>
         </div>
       </div>
       {overall > 0 && avgMastery > 0 ? (
@@ -213,14 +210,14 @@ export function MasteryBridge() {
                 style={{ display: 'grid', gridTemplateColumns: '92px minmax(0,1fr) 44px', gap: 10, alignItems: 'center', width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
                 <span className="d-body" style={{ color: 'var(--text-primary)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.topic}</span>
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <span style={{ height: 3, borderRadius: 2, background: 'rgba(148,163,184,.35)', position: 'relative', display: 'block' }}>
-                    <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.completion}%`, background: 'rgba(148,163,184,.6)', borderRadius: 2, display: 'block' }} />
+                  <span style={{ height: 3, borderRadius: 2, background: 'rgba(217,201,178,.35)', position: 'relative', display: 'block' }}>
+                    <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.completion}%`, background: 'rgba(217,201,178,.6)', borderRadius: 2, display: 'block' }} />
                   </span>
                   <span style={{ height: 6, borderRadius: 3, background: 'var(--surface-2)', position: 'relative', display: 'block' }}>
-                    <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.mastery}%`, background: tier(r.mastery), borderRadius: 3, display: 'block', transition: 'width .42s cubic-bezier(.2,.72,.22,1)' }} />
+                    <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.mastery}%`, background: 'var(--signal-mastered)', borderRadius: 3, display: 'block', transition: 'width .42s cubic-bezier(.2,.72,.22,1)' }} />
                   </span>
                 </span>
-                <span className="d-micro" style={{ color: tier(r.mastery), textAlign: 'right' }}>{r.mastery}%</span>
+                <span className={`d-micro ${tierClass(r.mastery)}`} style={{ textAlign: 'right' }}>{r.mastery}%</span>
               </button>
               {open === r.topic && (
                 <div className="d-micro" style={{ marginTop: 6, marginLeft: 102, color: 'var(--text-secondary)' }}>
@@ -235,7 +232,6 @@ export function MasteryBridge() {
   );
 }
 
-/* ---------------- Curriculum Journey (world lanes) ---------------- */
 export function CurriculumJourney() {
   const { stats } = usePlayer();
   const prog = useMemo(() => getCurriculumProgress(stats), [stats]);
@@ -304,7 +300,6 @@ export function CurriculumJourney() {
   );
 }
 
-/* ---------------- Practice Analytics ---------------- */
 export function PracticeAnalytics() {
   const { stats } = usePlayer();
   const matrix = useMemo(() => getAccuracyMatrix(stats), [stats]);
@@ -314,20 +309,20 @@ export function PracticeAnalytics() {
   const submissions = Object.values(stats.problems).reduce((s, r) => s + r.attempts, 0);
   const success = submissions > 0 ? Math.round((solved / submissions) * 100) : null;
   const sparkMax = Math.max(1, ...spark);
-  const cellTone = (c?: { attempted: number; solved: number }) => {
-    if (!c || c.attempted === 0) return undefined;
+  const cellClass = (c?: { attempted: number; solved: number }) => {
+    if (!c || c.attempted === 0) return 'mx-c-none';
     const acc = (c.solved / c.attempted) * 100;
-    if (acc >= 80) return 'rgba(16,185,129,.25)';
-    if (acc >= 60) return 'rgba(56,189,251,.20)';
-    if (acc >= 40) return 'rgba(245,158,11,.20)';
-    return 'rgba(239,68,68,.18)';
+    if (acc >= 80) return 'mx-c-high';
+    if (acc >= 60) return 'mx-c-mid';
+    if (acc >= 40) return 'mx-c-low';
+    return 'mx-c-bad';
   };
 
   return (
     <section className="p-chart">
       <div className="p-head">
         <h2 className="d-eyebrow" style={{ margin: 0 }}>Practice Analytics</h2>
-        <Link className="d-micro" style={{ color: 'var(--signal-strong)' }} to="/practice">Open tracker →</Link>
+        <Link className="d-micro" style={{ color: 'var(--accent-text)' }} to="/practice">Open tracker →</Link>
       </div>
       {submissions === 0 ? (
         <div className="dempty">Complete a few practice problems to see your accuracy patterns.</div>
@@ -360,7 +355,7 @@ export function PracticeAnalytics() {
                   const c = matrix.cells[`${t}||${d}`];
                   const pct = c && c.attempted > 0 ? Math.round((c.solved / c.attempted) * 100) : null;
                   return (
-                    <span key={`${t}-${d}`} role="cell" className="mx-cell" style={{ background: cellTone(c) ?? 'var(--surface-2)' }}
+                    <span key={`${t}-${d}`} role="cell" className={`mx-cell ${cellClass(c)}`}
                       aria-label={`${t}, ${d}: ${pct === null ? 'no attempts' : `${pct}% success across ${c?.attempted} attempts`}`}>
                       {pct === null ? '—' : `${pct}%`}
                     </span>
