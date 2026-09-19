@@ -27,7 +27,7 @@ export default function Practice() {
         <div className="d-eyebrow" style={{ marginBottom: 8 }}>Practice</div>
         <h1 className="d-h1" style={{ fontSize: 28, lineHeight: '36px' }}>Choose your practice mode</h1>
         <p className="d-body" style={{ marginTop: 8, maxWidth: 640 }}>
-          Knowledge Practice tests concepts with questions. Coding Practice will host real programming tasks once an execution environment ships. Revision resurfaces material due for spaced revision.
+          Knowledge Practice checks how well concepts stuck, one question at a time. Coding Practice will host real programming tasks once an execution environment ships. Revision resurfaces material due for spaced revision.
         </p>
       </header>
 
@@ -64,7 +64,7 @@ export default function Practice() {
               </section>
               {pool.length === 0
                 ? <div className="dempty">No questions at this difficulty yet. Try another difficulty, or check back as new lessons are published.</div>
-                : <PracticeEngine key={`${diff}-${session}`} questions={pool} title={`${diff.charAt(0) + diff.slice(1).toLowerCase()} knowledge practice`} />}
+                : <PracticeEngine key={`${diff}-${session}`} questions={pool} title={`${d(diff)} knowledge practice`} />}
             </>
           ) : <ProblemTracker />}
         </>
@@ -79,7 +79,7 @@ export default function Practice() {
           <div className="dempty">
             Code execution is not available yet. Coding tasks will appear here when the execution environment ships — no simulated runner is provided.
           </div>
-          <p className="d-micro" style={{ marginTop: 10, color: 'var(--text-muted, #64748B)' }}>
+          <p className="d-micro" style={{ marginTop: 10, color: 'var(--text-muted)' }}>
             Meanwhile, Knowledge Practice covers concept-level reasoning for the same topics.
           </p>
         </section>
@@ -89,14 +89,14 @@ export default function Practice() {
         <section className="p-list">
           <div className="p-head"><span className="d-eyebrow">Revision</span></div>
           {revision.length === 0 ? (
-            <div className="dempty">Nothing is due for revision yet. Completed lessons return here after 7 days, and problems you flag for review appear here.</div>
+            <div className="dempty">Nothing is due for revision yet. Completed lessons return here after 7 days, and problems you flag for revision appear here.</div>
           ) : revision.map(r => (
             <Link key={`${r.kind}-${r.id}`} className="lrow" to={r.kind === 'lesson' ? `/learn/lesson/${r.id}` : `/practice/problems/${r.id}`}>
-              <span className="rail"><span className="dot" style={{ background: 'var(--signal-weak, #F59E0B)' }} /></span>
+              <span className="rail"><span className="dot" style={{ background: 'var(--signal-weak)' }} /></span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)', display: 'block' }}>{r.title}</span>
-                <span className="d-micro" style={{ color: 'var(--text-muted, #64748B)' }}>
-                  {r.kind === 'lesson' ? `Due for revision · ${r.days} days since completion` : 'Flagged for review'}
+                <span className="d-body" style={{ color: 'var(--text-primary)', display: 'block' }}>{r.title}</span>
+                <span className="d-micro" style={{ color: 'var(--text-muted)' }}>
+                  {r.kind === 'lesson' ? `Due for revision · ${r.days} days since completion` : 'Flagged for revision'}
                 </span>
               </span>
               <span className="chip">{r.kind === 'lesson' ? 'Lesson' : 'Problem'}</span>
@@ -106,4 +106,8 @@ export default function Practice() {
       )}
     </>
   );
+}
+
+function d(diff: Difficulty): string {
+  return diff.charAt(0) + diff.slice(1).toLowerCase();
 }
