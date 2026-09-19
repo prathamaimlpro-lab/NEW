@@ -1,43 +1,52 @@
 import { Link } from 'react-router-dom';
-import { AuthPanel } from '../components/account/AuthPanel';
-import { Emblem } from '../components/common/Emblem';
-import { Chip } from '../components/common/ui';
-import { getTierName } from '../services/xpService';
 import { usePlayer } from '../store/PlayerContext';
 
 export default function Profile() {
   const { stats, resetProgress } = usePlayer();
   return (
     <>
-      <section className="card" style={{ display: 'flex', gap: 20, alignItems: 'center', flexWrap: 'wrap' }}>
-        <Emblem size={64} />
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <h1 className="t-hmd">Cadet Engineer</h1>
-          <p className="t-body-sm" style={{ color: 'var(--fg-2)' }}>Enrolled {stats.firstActiveDate ?? 'today'}</p>
+      <header style={{ padding: '24px 2px 0' }}>
+        <div className="d-eyebrow" style={{ marginBottom: 8 }}>Profile</div>
+        <h1 className="d-h1" style={{ fontSize: 28, lineHeight: '36px' }}>Your Profile</h1>
+        <p className="d-body" style={{ marginTop: 8, maxWidth: 640 }}>
+          Your learning summary. Progress is stored on this device and syncs across devices when a Supabase account is connected.
+        </p>
+      </header>
+
+      <section className="p-strip" style={{ border: '1px solid var(--border-subtle, #232732)', borderRadius: 6 }}>
+        <div><span className="d-big">{stats.completedLessons.length}</span><span className="lbl">lessons completed</span></div>
+        <div><span className="d-big">{stats.completedQuestions.length}</span><span className="lbl">questions correct</span></div>
+        <div><span className="d-big">{stats.unlockedAchievements.length}</span><span className="lbl">milestones</span></div>
+        <div><span className="d-big">{stats.bestStreak}d</span><span className="lbl">best streak</span></div>
+      </section>
+
+      <section className="p-list">
+        <div className="p-head"><span className="d-eyebrow">Account</span></div>
+        <div className="lrow">
+          <span className="rail"><span className="dot" style={{ background: 'var(--signal-strong, #38BDFB)' }} /></span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)', display: 'block' }}>Level {stats.level} · {stats.xp.toLocaleString()} XP</span>
+            <span className="d-micro">Current streak {stats.streak} days</span>
+          </span>
         </div>
+        <div className="lrow">
+          <span className="rail"><span className="dot" style={{ background: 'var(--text-subtle, #475569)' }} /></span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)', display: 'block' }}>Learning since {stats.firstActiveDate ?? '—'}</span>
+            <span className="d-micro">Activity history powers the heatmap and timeline</span>
+          </span>
+        </div>
+      </section>
+
+      <section className="p-list">
+        <div className="p-head"><span className="d-eyebrow">Data</span></div>
+        <p className="d-body" style={{ marginBottom: 12 }}>
+          Resetting clears lessons, practice, projects and activity on this device only. This cannot be undone.
+        </p>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Chip tone="info">LEVEL {stats.level} {getTierName(stats.level).toUpperCase()}</Chip>
-          <Chip tone="success">{stats.streak} DAY STREAK</Chip>
-          <Chip>{stats.xp.toLocaleString()} XP</Chip>
-        </div>
-      </section>
-
-      <AuthPanel />
-
-      <section className="grid-4">
-        <div className="card"><div className="t-hmd">{stats.completedLessons.length}</div><p className="t-body-sm" style={{ marginTop: 4 }}>Lessons verified</p></div>
-        <div className="card"><div className="t-hmd">{stats.completedQuestions.length}</div><p className="t-body-sm" style={{ marginTop: 4 }}>Questions solved</p></div>
-        <div className="card"><div className="t-hmd">{stats.unlockedAchievements.length}</div><p className="t-body-sm" style={{ marginTop: 4 }}>Milestones</p></div>
-        <div className="card"><div className="t-hmd">{stats.bestStreak}</div><p className="t-body-sm" style={{ marginTop: 4 }}>Best streak</p></div>
-      </section>
-
-      <section className="card">
-        <div className="label-mono" style={{ marginBottom: 12 }}>DATA & PRIVACY</div>
-        <p className="t-body" style={{ maxWidth: 640 }}>Without a Supabase backend, your progress lives only on this device (local cache). With Supabase configured, the server copy in your account is authoritative and syncs across devices.</p>
-        <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-          <Link className="btn btn-secondary" to="/progress">View telemetry</Link>
-          <button className="btn btn-ghost" style={{ color: 'var(--error)' }} onClick={() => { if (window.confirm('Reset all local progress? This cannot be undone.')) resetProgress(); }}>
-            Reset local progress
+          <Link className="btn btn-secondary" to="/progress">View Progress</Link>
+          <button type="button" className="btn btn-destructive" onClick={() => { if (window.confirm('Reset all local progress? This cannot be undone.')) resetProgress(); }}>
+            Reset Local Progress
           </button>
         </div>
       </section>
