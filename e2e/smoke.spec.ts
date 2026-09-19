@@ -1,47 +1,50 @@
 import { test, expect } from '@playwright/test';
-import { KEY_ROUTES, OVERFLOW_WIDTHS, collectConsoleErrors, expectMainRendered, expectNoHorizontalOverflow } from './helpers';
+import {
+  KEY_ROUTES, OVERFLOW_WIDTHS,
+  collectConsoleErrors, collectFailedRequests, expectMainRendered, expectNoHorizontalOverflow, expectWithinViewport,
+} from './helpers';
+
+const ALL_ROUTES = [
+  ...KEY_ROUTES,
+  '/learn/level/level-1',
+  '/learn/lesson/what-is-a-computer',
+  '/explore/viz/bubble-sort',
+];
 
 test.describe('startup + route smoke', () => {
-  for (const route of KEY_ROUTES) {
+  for (const route of ALL_ROUTES) {
     test(`route ${route} renders with no console errors`, async ({ page }) => {
       const errors = await collectConsoleErrors(page);
+      const failed = await collectFailedRequests(page);
       await page.goto(route);
       await expectMainRendered(page);
       expect(errors.filter(e => !e.includes('favicon'))).toEqual([]);
+      expect(failed).toEqual([]);
     });
   }
-
-  test('deep links work (level, lesson, viz lab, admin login)', async ({ page }) => {
-    const errors = await collectConsoleErrors(page);
-    for (const route of ['/learn/level/level-1', '/learn/lesson/what-is-a-computer', '/explore/viz/bubble-sort', '/admin']) {
-      await page.goto(route);
-      await expectMainRendered(page);
-    }
-    expect(errors.filter(e => !e.includes('favicon'))).toEqual([]);
-  });
 });
 
-test.describe('responsive regression', () => {
+test.describe('responsive overflow + viewport containment', () => {
   for (const width of OVERFLOW_WIDTHS) {
     test(`no horizontal overflow at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      for (const route of ['/', '/learn', '/practice', '/explore']) {
+      for (const route of ['/', '/learn', '/practice', '/explore', '/progress']) {
         await page.goto(route);
         await expectMainRendered(page);
         await expectNoHorizontalOverflow(page);
+        await expectWithinViewport(page, page.locator('main > *').first());
       }
     });
   }
+});
 
-  test('internal scrollers stay inside their containers (lesson code, journey lanes)', async ({ page }) => {
-    await page.goto('/learn/lesson/what-is-a-computer');
-    await expectMainRendered(page);
-    await expectNoHorizontalOverflow(page);
+test.describe('browser back / forward', () => {
+  test('back/forward preserve navigation', async ({ page }) => {
+    await page.goto('/');
     await page.goto('/learn');
-    const lane = page.locator('.jl-lane').first();
-    if (await lane.isVisible()) {
-      const fits = await lane.evaluate(el => el.scrollWidth >= el.clientWidth);
-      expect(fits).toBe(true);
-    }
+    await page.goBack();
+    await expect(page).toHaveURL(/\/$/);
+    await page.goForward();
+    await expect(page).toHaveURL(/\/learn/);
   });
 });
