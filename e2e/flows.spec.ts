@@ -42,7 +42,7 @@ test('lesson practice answers give immediate feedback', async ({ page }) => {
 
 test('practice tracker filters respond', async ({ page }) => {
   await page.goto('/practice');
-  await page.getByRole('button', { name: 'Problem Tracker' }).click();
+  await page.getByRole('tab', { name: 'Problem Tracker' }).click();
   const before = await page.locator('.card-interactive').count();
   await page.getByLabel('Difficulty filter').selectOption('HARD');
   const after = await page.locator('.card-interactive').count();
@@ -73,6 +73,16 @@ test('quick find dialog opens, focuses and closes with Escape', async ({ page },
   await expect(dialog).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
+});
+
+test('notifications popover closes with Escape and returns focus', async ({ page }) => {
+  await page.goto('/');
+  const bell = page.getByRole('button', { name: 'Notifications' });
+  await bell.click();
+  await expect(page.getByRole('dialog', { name: 'Notifications' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Notifications' })).toBeHidden();
+  await expect(bell).toBeFocused();
 });
 
 test('admin login screen renders without credentials', async ({ page }) => {
