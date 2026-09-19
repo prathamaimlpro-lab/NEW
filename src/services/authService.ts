@@ -2,7 +2,7 @@ import { getSupabase, isSupabaseConfigured } from './supabaseClient';
 import { storageService } from './storageService';
 
 export type Role = 'student' | 'reviewer' | 'content_admin' | 'super_admin';
-export interface Session { email: string; role: Role; mode: 'supabase' | 'local' }
+export interface Session { email: string; role: Role; mode: 'supabase' | 'local'; name?: string }
 
 const SKEY = 'it_quest_admin_session';
 const AKEY = 'it_quest_admin_accounts';
@@ -70,8 +70,10 @@ export async function refreshSession(): Promise<Session | null> {
     if (!user) { cachedRole = null; emit(null); return null; }
     const { data: profile } = await sb.from('profiles').select('role').eq('id', user.id).maybeSingle();
     const role = (profile?.role as Role) ?? 'student';
+    const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+    const name = String(meta.full_name ?? meta.first_name ?? meta.name ?? '') || '';
     cachedRole = role;
-    const s: Session = { email: user.email ?? '', role, mode: 'supabase' };
+    const s: Session = { email: user.email ?? '', role, mode: 'supabase', name };
     emit(s);
     return s;
   }
@@ -93,7 +95,6 @@ export function initAuth(): Promise<Session | null> {
   return refreshSession();
 }
 
-// ---- DEV MODE ONLY (no backend configured). NOT a security boundary. ----
 export const hasLocalAccounts = () => storageService.get<LocalAccount[]>(AKEY, []).length > 0;
 
 export async function bootstrapLocalAdmin(email: string, password: string): Promise<boolean> {
