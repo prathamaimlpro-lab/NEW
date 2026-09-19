@@ -55,12 +55,13 @@ const bumpDay = (s: PlayerStats, patch: Partial<DayActivity>): Record<string, Da
 const pushEvent = (s: PlayerStats, ev: ActivityEvent): ActivityEvent[] => [...s.events, ev].slice(-300);
 
 export type SyncState = 'idle' | 'loading' | 'ready' | 'error';
+export type DataState = 'loading' | 'error' | 'ready';
 const hasCache = () => storageService.get<Partial<PlayerStats> | null>(KEY, null) !== null;
-const needsBoot = () => isSupabaseConfigured() && !hasCache();
 
 interface Ctx {
   stats: PlayerStats;
   syncState: SyncState;
+  dataState: DataState;
   retrySync: () => void;
   visitLesson: (id: string) => void;
   answerQuestion: (q: Question, correct: boolean) => void;
@@ -80,8 +81,8 @@ const PlayerContext = createContext<Ctx | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<PlayerStats>(() => finalize(migrate(storageService.get<Partial<PlayerStats>>(KEY, {}))));
-  const [booting, setBooting] = useState<boolean>(() => needsBoot());
-  const [syncState, setSyncState] = useState<SyncState>(() => (needsBoot() ? 'loading' : 'idle'));
+  const [booting, setBooting] = useState<boolean>(() => isSupabaseConfigured() && !hasCache());
+  const [syncState, setSyncState] = useState<SyncState>(() => (isSupabaseConfigured() && !hasCache() ? 'loading' : 'idle'));
 
   useEffect(() => {
     storageService.set(KEY, stats);
@@ -91,6 +92,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [stats]);
 
   const retrySync = useCallback(() => {
+    if (!isSupabaseConfigured()) { setSyncState('ready'); setBooting(false); return; }
     setSyncState('loading');
     loadRemoteProgress()
       .then(remote => {
@@ -114,18 +116,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return () => window.clearInterval(id);
   }, []);
 
-  if (booting) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#090A0D', display: 'grid', placeItems: 'center' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.05em', textTransform: 'uppercase', color: '#64748B' }}>Syncing progress…</span>
-          <div style={{ width: 220, height: 6, borderRadius: 999, background: '#181B22', overflow: 'hidden' }}>
-            <div style={{ width: '40%', height: '100%', background: '#232732' }} />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const hasLocalData = stats.completedLessons.length > 0 || stats.visitedLessons.length > 0 || (stats.events ?? []).length > 0 || Object.keys(stats.activity).length > 0;
+  const dataState: DataState = booting ? 'loading' : (syncState === 'error' && !hasLocalData ? 'error' : 'ready');
 
   const visitLesson = (id: string) => setStats(prev => prev.visitedLessons.includes(id) ? prev : finalize({ ...prev, visitedLessons: [...prev.visitedLessons, id] }));
 
@@ -178,7 +170,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   return (
     <PlayerContext.Provider value={{
-      stats, syncState, retrySync,
+      stats, syncState, dataState, retrySync,
       visitLesson, answerQuestion, completeLesson, completeProject, solveProblem, completeVisualization, resetProgress,
       toggleFavourite: id => patchProblem(id, r => ({ ...r, favourite: !r.favourite })),
       toggleReview: id => patchProblem(id, r => ({ ...r, review: !r.review })),
@@ -196,4 +188,4 @@ export function usePlayer(): Ctx {
   const ctx = useContext(PlayerContext);
   if (!ctx) throw new Error('usePlayer must be used within PlayerProvider');
   return ctx;
-}
+  }
