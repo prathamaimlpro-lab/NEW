@@ -18,7 +18,6 @@ export function isLevelUnlocked(stats: PlayerStats, level: Level): boolean {
   return levels.filter(l => l.number < level.number && publishedLessons(l).length > 0).every(l => isLevelCompleted(stats, l));
 }
 
-/* Lesson progress: completed = 100; else visited (25) + answered share (70), capped 95. */
 export function getLessonProgress(stats: PlayerStats, lesson: Lesson): number {
   if (stats.completedLessons.includes(lesson.id)) return 100;
   const all = [...lesson.practice, ...lesson.masteryTest];
@@ -28,7 +27,16 @@ export function getLessonProgress(stats: PlayerStats, lesson: Lesson): number {
   return Math.min(95, visited + Math.round((answered / all.length) * 70));
 }
 
-/* Aggregation chain: lesson → level → world → overall. Single source. */
+/* SINGLE SOURCE OF TRUTH: progress value and status label come from the same record. */
+export type LessonProgressStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+export interface LessonProgressSummary { progress: number; status: LessonProgressStatus; label: string }
+export function getLessonProgressSummary(stats: PlayerStats, lesson: Lesson): LessonProgressSummary {
+  const progress = getLessonProgress(stats, lesson);
+  const status: LessonProgressStatus = progress >= 100 ? 'COMPLETED' : progress > 0 ? 'IN_PROGRESS' : 'NOT_STARTED';
+  const label = status === 'COMPLETED' ? 'Completed' : status === 'IN_PROGRESS' ? 'In progress' : 'Not opened yet';
+  return { progress, status, label };
+}
+
 export function getLevelProgress(stats: PlayerStats, level: Level): number {
   const ls = publishedLessons(level);
   if (ls.length === 0) return 0;
@@ -45,8 +53,7 @@ export function getLevelState(stats: PlayerStats, level: Level, currentLevelId: 
 export function getLessonState(stats: PlayerStats, lesson: Lesson): 'completed' | 'in-progress' | 'available' | 'locked' {
   if (stats.completedLessons.includes(lesson.id)) return 'completed';
   if (!isLessonUnlocked(stats, lesson)) return 'locked';
-  if (getLessonProgress(stats, lesson) > 0) return 'in-progress';
-  return 'available';
+  return getLessonProgressSummary(stats, lesson).status === 'IN_PROGRESS' ? 'in-progress' : 'available';
 }
 
 export function getWorldProgress(stats: PlayerStats, worldId: string): number {
@@ -61,7 +68,6 @@ export function getOverallProgress(stats: PlayerStats): number {
 export function getCompletedLevelCount(stats: PlayerStats): number {
   return levels.filter(l => isLevelCompleted(stats, l)).length;
 }
-/* Completion ratio is a SEPARATE metric from the progress mean; label honestly. */
 export function getOverallCompletion(stats: PlayerStats): number {
   return levels.length ? Math.round((getCompletedLevelCount(stats) / levels.length) * 100) : 0;
 }
@@ -79,12 +85,10 @@ export function getCurrentLevelId(stats: PlayerStats): string | null {
 }
 
 export interface RevisionItem { kind: 'lesson' | 'problem'; id: string; title: string; days: number }
-
 function problemTitle(id: string): string {
   const q = Object.values(lessons).flatMap(l => [...l.practice, ...l.masteryTest]).find(x => x.id === id);
   return q?.question ?? id;
 }
-
 export function getRevisionDue(stats: PlayerStats): RevisionItem[] {
   const out: RevisionItem[] = [];
   for (const [id, date] of Object.entries(stats.lessonCompletedAt)) {
