@@ -25,9 +25,8 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="sb-foot">
-        <div className="sb-env">
-          <span className="t-caption">Environment</span>
-          <span className="chip chip-success">● Online</span>
+        <div className="sb-env" aria-label="Connection status" title="Connection status">
+          <span className="dot" style={{ background: 'var(--signal-mastered)' }} aria-hidden="true" />
         </div>
       </div>
     </aside>
