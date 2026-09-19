@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { AssessmentRunner } from '../components/assessment/AssessmentRunner';
 import { ConceptRevisionSession } from '../components/revision/ConceptRevisionSession';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { ProblemTracker } from '../components/practice/ProblemTracker';
+import { getAllAssessments } from '../services/assessmentService';
 import { getPracticeBank } from '../services/practiceService';
 import { getRevisionDue } from '../services/progressService';
 import { usePlayer } from '../store/PlayerContext';
 import type { Difficulty } from '../types';
 
-type Mode = 'knowledge' | 'coding' | 'revision';
+type Mode = 'knowledge' | 'coding' | 'revision' | 'assessments';
 type KnowledgeView = 'questions' | 'tracker';
 
 export default function Practice() {
@@ -21,6 +23,7 @@ export default function Practice() {
   const bankSize = useMemo(() => getPracticeBank().length, []);
   const pool = useMemo(() => getPracticeBank(diff), [diff]);
   const revision = useMemo(() => getRevisionDue(stats), [stats]);
+  const assessments = useMemo(() => getAllAssessments(), []);
 
   return (
     <>
@@ -28,19 +31,24 @@ export default function Practice() {
         <div className="d-eyebrow" style={{ marginBottom: 8 }}>Practice</div>
         <h1 className="d-h1" style={{ fontSize: 28, lineHeight: '36px' }}>Choose your practice mode</h1>
         <p className="d-body" style={{ marginTop: 8, maxWidth: 640 }}>
-          Knowledge Practice checks how well concepts stuck, one question at a time. Coding Practice will host real programming tasks once an execution environment ships. Revision resurfaces material due for spaced revision.
+          Knowledge Practice checks how well concepts stuck, one question at a time. Assessments evaluate a configured set of published questions. Revision resurfaces material due for spaced revision.
         </p>
       </header>
 
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
         <button type="button" className="card card-interactive" onClick={() => setMode('knowledge')} aria-pressed={mode === 'knowledge'}>
           <div className="d-title" style={{ fontSize: 16 }}>Knowledge Practice</div>
-          <div className="d-micro" style={{ marginTop: 6 }}>{bankSize} concept questions · multiple choice & reasoning</div>
+          <div className="d-micro" style={{ marginTop: 6 }}>{bankSize} concept questions</div>
           <span className="chip chip-success" style={{ marginTop: 10 }}>Available</span>
+        </button>
+        <button type="button" className="card card-interactive" onClick={() => setMode('assessments')} aria-pressed={mode === 'assessments'}>
+          <div className="d-title" style={{ fontSize: 16 }}>Assessments</div>
+          <div className="d-micro" style={{ marginTop: 6 }}>{assessments.length} published</div>
+          <span className={`chip ${assessments.length ? 'chip-success' : ''}`} style={{ marginTop: 10 }}>{assessments.length ? 'Available' : 'No Data'}</span>
         </button>
         <button type="button" className="card card-interactive" onClick={() => setMode('coding')} aria-pressed={mode === 'coding'}>
           <div className="d-title" style={{ fontSize: 16 }}>Coding Practice</div>
-          <div className="d-micro" style={{ marginTop: 6 }}>Write-and-run programming tasks</div>
+          <div className="d-micro" style={{ marginTop: 6 }}>Write-and-run tasks</div>
           <span className="chip chip-warning" style={{ marginTop: 10 }}>Coming Soon</span>
         </button>
         <button type="button" className="card card-interactive" onClick={() => setMode('revision')} aria-pressed={mode === 'revision'}>
@@ -64,25 +72,25 @@ export default function Practice() {
                 ))}
               </section>
               {pool.length === 0
-                ? <div className="dempty">No published questions at this difficulty yet. Try another difficulty, or check back as content is published.</div>
+                ? <div className="dempty">No published questions at this difficulty yet.</div>
                 : <PracticeEngine key={`${diff}-${session}`} questions={pool as any} title={`${d(diff)} knowledge practice`} />}
             </>
           ) : <ProblemTracker />}
         </>
       )}
 
+      {mode === 'assessments' && (
+        <section className="p-list" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {assessments.length === 0
+            ? <div className="dempty">No published assessments yet. They appear here once authored and published in the Content Studio.</div>
+            : assessments.map(a => <AssessmentRunner key={a.id} assessment={a} />)}
+        </section>
+      )}
+
       {mode === 'coding' && (
         <section className="p-chart">
-          <div className="p-head">
-            <span className="d-eyebrow">Coding Practice</span>
-            <span className="chip chip-warning">Coming Soon</span>
-          </div>
-          <div className="dempty">
-            Code execution is not available yet. Coding tasks will appear here when the execution environment ships — no simulated runner is provided.
-          </div>
-          <p className="d-micro" style={{ marginTop: 10, color: 'var(--text-muted)' }}>
-            Meanwhile, Knowledge Practice covers concept-level reasoning for the same topics.
-          </p>
+          <div className="p-head"><span className="d-eyebrow">Coding Practice</span><span className="chip chip-warning">Coming Soon</span></div>
+          <div className="dempty">Code execution is not available yet. Coding tasks will appear here when the execution environment ships — no simulated runner is provided.</div>
         </section>
       )}
 
@@ -92,7 +100,7 @@ export default function Practice() {
           <div>
             <div className="p-head"><span className="d-eyebrow">Lesson & problem revision</span></div>
             {revision.length === 0 ? (
-              <div className="dempty">Nothing is due for revision yet. Completed lessons return here after 7 days, and problems you flag for revision appear here.</div>
+              <div className="dempty">Nothing is due for revision yet.</div>
             ) : revision.map(r => (
               <Link key={`${r.kind}-${r.id}`} className="lrow" to={r.kind === 'lesson' ? `/learn/lesson/${r.id}` : `/practice/problems/${r.id}`}>
                 <span className="rail"><span className="dot" style={{ background: 'var(--signal-weak)' }} /></span>
