@@ -8,7 +8,7 @@ import { usePlayer } from '../../store/PlayerContext';
 export default function AppLayout() {
   const location = useLocation();
   const navType = useNavigationType();
-  const { dataState, retrySync } = usePlayer();
+  const { dataState, syncState, retrySync } = usePlayer();
   const isDash = location.pathname === '/';
 
   useEffect(() => {
@@ -17,7 +17,6 @@ export default function AppLayout() {
 
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main-content">Skip to content</a>
       <Sidebar />
       <div className="shell-main">
         <Topbar />
@@ -26,13 +25,21 @@ export default function AppLayout() {
             <PageSkeleton route={location.pathname} />
           ) : dataState === 'error' ? (
             <div className="state-error" role="alert" style={{ maxWidth: 560, margin: '48px auto', padding: 20 }}>
-              <span>Unable to load your progress. Nothing was lost — try again, or continue with this device's saved data once loading succeeds.</span>
+              <span>Unable to load your progress. Check your connection and try again.</span>
               <button type="button" className="btn btn-secondary btn-sm" onClick={retrySync}>Try again</button>
             </div>
           ) : (
-            <div className={isDash ? 'page-inner-full' : 'page-inner fade-in'} key={location.pathname}>
-              <Outlet />
-            </div>
+            <>
+              {syncState === 'error' && (
+                <div className="state-error" role="status" style={{ margin: '0 16px 12px', padding: '10px 14px' }}>
+                  <span>Couldn't sync with the server — showing your saved progress on this device.</span>
+                  <button type="button" className="btn btn-secondary btn-sm" onClick={retrySync}>Retry</button>
+                </div>
+              )}
+              <div className={isDash ? 'page-inner-full' : 'page-inner fade-in'} key={location.pathname}>
+                <Outlet />
+              </div>
+            </>
           )}
         </main>
       </div>
