@@ -51,7 +51,7 @@ export default function ProgressPage() {
       <section className="p-chart">
         <div className="p-head">
           <h2 className="d-eyebrow" style={{ margin: 0 }}>Practice</h2>
-          <Link className="d-micro" style={{ color: 'var(--accent-text)' }} to="/practice">Open tracker →</Link>
+          <Link className="d-micro" style={{ color: 'var(--action-text)' }} to="/practice">Open tracker →</Link>
         </div>
         <div className="p-strip" style={{ border: '1px solid var(--border-subtle)', borderRadius: 6 }}>
           <div><span className="d-big">{coding.solved}</span><span className="lbl">solved</span></div>
