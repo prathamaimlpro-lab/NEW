@@ -7,7 +7,7 @@ import { getRevisionDue } from '../services/progressService';
 import { usePlayer } from '../store/PlayerContext';
 import type { Difficulty } from '../types';
 
-type Mode = 'knowledge' | 'coding' | 'review';
+type Mode = 'knowledge' | 'coding' | 'revision';
 type KnowledgeView = 'questions' | 'tracker';
 
 export default function Practice() {
@@ -27,25 +27,25 @@ export default function Practice() {
         <div className="d-eyebrow" style={{ marginBottom: 8 }}>Practice</div>
         <h1 className="d-h1" style={{ fontSize: 28, lineHeight: '36px' }}>Choose your practice mode</h1>
         <p className="d-body" style={{ marginTop: 8, maxWidth: 640 }}>
-          Knowledge Practice tests concepts with questions. Coding Practice will host real programming tasks once an execution environment ships. Review resurfaces material due for revision.
+          Knowledge Practice tests concepts with questions. Coding Practice will host real programming tasks once an execution environment ships. Revision resurfaces material due for spaced revision.
         </p>
       </header>
 
       <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
         <button type="button" className="card card-interactive" onClick={() => setMode('knowledge')} aria-pressed={mode === 'knowledge'}>
           <div className="d-title" style={{ fontSize: 16 }}>Knowledge Practice</div>
-          <div className="d-micro" style={{ marginTop: 6 }}>{allQuestions.length} concept questions · MCQ & reasoning</div>
+          <div className="d-micro" style={{ marginTop: 6 }}>{allQuestions.length} concept questions · multiple choice & reasoning</div>
           <span className="chip chip-success" style={{ marginTop: 10 }}>Available</span>
         </button>
         <button type="button" className="card card-interactive" onClick={() => setMode('coding')} aria-pressed={mode === 'coding'}>
           <div className="d-title" style={{ fontSize: 16 }}>Coding Practice</div>
           <div className="d-micro" style={{ marginTop: 6 }}>Write-and-run programming tasks</div>
-          <span className="chip chip-warning" style={{ marginTop: 10 }}>Coming soon</span>
+          <span className="chip chip-warning" style={{ marginTop: 10 }}>Coming Soon</span>
         </button>
-        <button type="button" className="card card-interactive" onClick={() => setMode('review')} aria-pressed={mode === 'review'}>
-          <div className="d-title" style={{ fontSize: 16 }}>Review / Revision</div>
+        <button type="button" className="card card-interactive" onClick={() => setMode('revision')} aria-pressed={mode === 'revision'}>
+          <div className="d-title" style={{ fontSize: 16 }}>Revision</div>
           <div className="d-micro" style={{ marginTop: 6 }}>{revision.length} item{revision.length === 1 ? '' : 's'} due</div>
-          <span className={`chip ${revision.length > 0 ? 'chip-info' : ''}`} style={{ marginTop: 10 }}>{revision.length > 0 ? 'Available' : 'Empty'}</span>
+          <span className={`chip ${revision.length > 0 ? 'chip-info' : ''}`} style={{ marginTop: 10 }}>{revision.length > 0 ? 'Available' : 'No Data'}</span>
         </button>
       </section>
 
@@ -63,8 +63,8 @@ export default function Practice() {
                 ))}
               </section>
               {pool.length === 0
-                ? <div className="dempty">No questions at this difficulty yet.</div>
-                : <PracticeEngine key={`${diff}-${session}`} questions={pool} title={`${d(diff)} knowledge practice`} />}
+                ? <div className="dempty">No questions at this difficulty yet. Try another difficulty, or check back as new lessons are published.</div>
+                : <PracticeEngine key={`${diff}-${session}`} questions={pool} title={`${diff.charAt(0) + diff.slice(1).toLowerCase()} knowledge practice`} />}
             </>
           ) : <ProblemTracker />}
         </>
@@ -74,7 +74,7 @@ export default function Practice() {
         <section className="p-chart">
           <div className="p-head">
             <span className="d-eyebrow">Coding Practice</span>
-            <span className="chip chip-warning">Coming soon</span>
+            <span className="chip chip-warning">Coming Soon</span>
           </div>
           <div className="dempty">
             Code execution is not available yet. Coding tasks will appear here when the execution environment ships — no simulated runner is provided.
@@ -85,9 +85,9 @@ export default function Practice() {
         </section>
       )}
 
-      {mode === 'review' && (
+      {mode === 'revision' && (
         <section className="p-list">
-          <div className="p-head"><span className="d-eyebrow">Review / Revision</span></div>
+          <div className="p-head"><span className="d-eyebrow">Revision</span></div>
           {revision.length === 0 ? (
             <div className="dempty">Nothing is due for revision yet. Completed lessons return here after 7 days, and problems you flag for review appear here.</div>
           ) : revision.map(r => (
@@ -96,18 +96,14 @@ export default function Practice() {
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)', display: 'block' }}>{r.title}</span>
                 <span className="d-micro" style={{ color: 'var(--text-muted, #64748B)' }}>
-                  {r.kind === 'lesson' ? `Revision due · ${r.days}d since completion` : 'Flagged for review'}
+                  {r.kind === 'lesson' ? `Due for revision · ${r.days} days since completion` : 'Flagged for review'}
                 </span>
               </span>
-              <span className="chip">{r.kind}</span>
+              <span className="chip">{r.kind === 'lesson' ? 'Lesson' : 'Problem'}</span>
             </Link>
           ))}
         </section>
       )}
     </>
   );
-}
-
-function d(diff: Difficulty): string {
-  return diff.charAt(0) + diff.slice(1).toLowerCase();
 }
