@@ -207,9 +207,9 @@ export function MasteryBridge() {
           {shown.map(r => (
             <div key={r.topic}>
               <button type="button" onClick={() => setOpen(open === r.topic ? null : r.topic)} aria-expanded={open === r.topic}
-                style={{ display: 'grid', gridTemplateColumns: '92px minmax(0,1fr) 44px', gap: 10, alignItems: 'center', width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
-                <span className="d-body" style={{ color: 'var(--text-primary)', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.topic}</span>
-                <span style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                style={{ display: 'grid', gridTemplateColumns: 'minmax(96px, 140px) minmax(0,1fr) 44px', gap: 10, alignItems: 'center', width: '100%', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <span className="d-body" style={{ color: 'var(--text-primary)', textAlign: 'left', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere', textWrap: 'balance' }}>{r.topic}</span>
+                <span style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                   <span style={{ height: 3, borderRadius: 2, background: 'rgba(217,201,178,.35)', position: 'relative', display: 'block' }}>
                     <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${r.completion}%`, background: 'rgba(217,201,178,.6)', borderRadius: 2, display: 'block' }} />
                   </span>
@@ -251,7 +251,7 @@ export function CurriculumJourney() {
         return (
           <div key={row.world.id} className="jl-row">
             <div className="jl-head">
-              <span className="d-title">
+              <span className="d-title" style={{ minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere', textWrap: 'balance' }}>
                 <button type="button" className="jl-toggle" onClick={() => setCollapsed(c => ({ ...c, [row.world.id]: !isCollapsed }))} aria-expanded={!isCollapsed}>
                   {isCollapsed ? '▸' : '▾'}
                 </button>{' '}
@@ -282,7 +282,7 @@ export function CurriculumJourney() {
               return (
                 <div className="jpop" role="status">
                   <div>
-                    <div className="d-title">Level {l.number}: {l.title}</div>
+                    <div className="d-title" style={{ whiteSpace: 'normal', overflowWrap: 'anywhere' }}>Level {l.number}: {l.title}</div>
                     <div className="d-micro" style={{ marginTop: 4 }}>
                       {firstLesson ? `${firstLesson.title} · ${firstLesson.estimatedMinutes}m` : 'Lessons in authoring'}
                     </div>
@@ -343,14 +343,14 @@ export function PracticeAnalytics() {
           <p className="d-micro" style={{ marginBottom: 10, color: 'var(--text-muted)' }}>
             Practice accuracy reflects recent performance; mastery accounts for accuracy, recency, and how consistently a concept has been applied over time.
           </p>
-          <div className="mx" style={{ gridTemplateColumns: '92px repeat(3, 1fr)' }} role="table" aria-label="Accuracy by topic and difficulty">
+          <div className="mx" style={{ gridTemplateColumns: 'minmax(96px, 140px) repeat(3, minmax(0,1fr))' }} role="table" aria-label="Accuracy by topic and difficulty">
             <div role="row" style={{ display: 'contents' }}>
               <span role="columnheader" className="mx-head" aria-label="Topic" />
               {(['EASY', 'MEDIUM', 'HARD'] as const).map(d => <span key={d} role="columnheader" className="mx-head">{d}</span>)}
             </div>
             {matrix.topics.map(t => (
               <div key={t} role="row" style={{ display: 'contents' }}>
-                <span role="rowheader" className="d-body" style={{ color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t}</span>
+                <span role="rowheader" className="d-body" style={{ color: 'var(--text-primary)', minWidth: 0, whiteSpace: 'normal', overflowWrap: 'anywhere', textWrap: 'balance' }}>{t}</span>
                 {(['EASY', 'MEDIUM', 'HARD'] as const).map(d => {
                   const c = matrix.cells[`${t}||${d}`];
                   const pct = c && c.attempted > 0 ? Math.round((c.solved / c.attempted) * 100) : null;
