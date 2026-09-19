@@ -22,12 +22,12 @@ export function buildBundle(): ContentBundle {
 
   const lessons: Lesson[] = Object.values(legacyLessons).map((x: any) => ({
     id: x.id, status: st(x), updatedAt: NOW, levelId: x.levelId, order: x.order ?? 0, title: x.title,
-    summary: x.description ?? '', topicIds: (x.topics ?? []).map(t => `topic:${t}`),
+    summary: x.description ?? '', topicIds: ((x.topics ?? []) as string[]).map(t => `topic:${t}`),
     conceptIds: x.id === LEVEL1_LESSON_ID ? level1Concepts.map(c => c.id) : [],
     estimatedMinutes: x.estimatedMinutes ?? 0, xp: x.xpReward ?? 0,
   }));
 
-  const topicNames = [...new Set(Object.values(legacyLessons).flatMap((l: any) => l.topics ?? []))];
+  const topicNames = [...new Set(Object.values(legacyLessons).flatMap((l: any) => (l.topics ?? []) as string[]))];
   const topics: Topic[] = topicNames.map(name => ({
     id: `topic:${name}`, status: 'PUBLISHED', updatedAt: NOW, title: name,
     conceptIds: level1Concepts.filter(c => c.topicIds.includes(`topic:${name}`)).map(c => c.id),
