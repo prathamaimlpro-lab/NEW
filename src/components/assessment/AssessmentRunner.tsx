@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  assessmentQuestions, getRecord, recordAttempt, scoreAnswers, type AssessmentExt, type ScoreResult,
+  assessmentQuestions, getAssessmentsForLesson, getAssessmentsForLevel, getAssessmentsForWorld,
+  getRecord, recordAttempt, scoreAnswers, type AssessmentExt, type ScoreResult,
 } from '../../services/assessmentService';
 import { usePlayer } from '../../store/PlayerContext';
 
@@ -110,8 +111,11 @@ export function AssessmentRunner({ assessment }: { assessment: AssessmentExt }) 
 }
 
 export function AssessmentsForScope(props: { scope: 'lesson' | 'level' | 'world'; lessonId?: string; levelId?: string; worldId?: string }) {
-  const { getAssessmentsForLesson, getAssessmentsForLevel, getAssessmentsForWorld } = require('../../services/assessmentService');
-  const list = props.scope === 'lesson' ? getAssessmentsForLesson(props.lessonId!) : props.scope === 'level' ? getAssessmentsForLevel(props.levelId!) : getAssessmentsForWorld(props.worldId!);
+  const list = props.scope === 'lesson'
+    ? getAssessmentsForLesson(props.lessonId!)
+    : props.scope === 'level'
+      ? getAssessmentsForLevel(props.levelId!)
+      : getAssessmentsForWorld(props.worldId!);
   if (!list.length) return null;
-  return <div className="block-stack">{list.map((a: AssessmentExt) => <AssessmentRunner key={a.id} assessment={a} />)}</div>;
+  return <div className="block-stack">{list.map(a => <AssessmentRunner key={a.id} assessment={a as AssessmentExt} />)}</div>;
 }
