@@ -20,7 +20,7 @@ const STATUS_CHIP: Record<ReturnType<typeof statusOf>, { label: string; cls: str
   attempted: { label: 'Attempted', cls: 'chip chip-info' },
   solved: { label: 'Solved', cls: 'chip chip-success' },
   review: { label: 'Needs Review', cls: 'chip chip-warning' },
-  mastered: { label: 'Mastered', cls: 'chip chip-info' },
+  mastered: { label: 'Mastered', cls: 'chip chip-success' },
 };
 
 export function ProblemTracker() {
@@ -94,15 +94,15 @@ export function ProblemTracker() {
             return (
               <Link key={p.id} to={`/practice/problems/${p.id}`} className="card card-interactive" style={{ padding: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span className="d-body" style={{ color: 'var(--text-primary, #F8FAFC)', fontWeight: 500 }}>{p.title}</span>
+                  <span className="d-body" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{p.title}</span>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <span className={`chip ${p.difficulty === 'EASY' ? 'chip-success' : p.difficulty === 'MEDIUM' ? 'chip-warning' : 'chip-error'}`}>{p.difficulty}</span>
                     <span className={chip.cls}>{chip.label}</span>
                     {rec?.favourite && <span className="chip">★ Favourite</span>}
                   </div>
                 </div>
-                <p className="d-body-sm" style={{ marginTop: 8, color: 'var(--text-secondary, #94A3B8)' }}>{p.description}</p>
-                <div className="d-micro" style={{ marginTop: 8, color: 'var(--text-muted, #64748B)' }}>{p.pattern} · {p.topics.join(' · ')}</div>
+                <p className="d-body-sm" style={{ marginTop: 8, color: 'var(--text-secondary)' }}>{p.description}</p>
+                <div className="d-micro" style={{ marginTop: 8, color: 'var(--text-muted)' }}>{p.pattern} · {p.topics.join(' · ')}</div>
               </Link>
             );
           })}
