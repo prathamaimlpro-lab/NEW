@@ -29,15 +29,15 @@ export function NextBestAction() {
           <p className="d-body" style={{ marginBottom: 16 }}>
             No second action is needed right now — your current lesson is the best use of this session.
           </p>
-          <Link className="cta-outline" to="/progress">View progress</Link>
+          <Link className="cta-outline" to="/progress">View Progress</Link>
         </>
       ) : (
         <>
-          <p style={HEADLINE_STYLE}>One action unlocks everything</p>
+          <p style={HEADLINE_STYLE}>Start your first lesson</p>
           <p className="d-body" style={{ marginBottom: 16 }}>
-            Start your first lesson and Pixel begins tracking activity, mastery and practice patterns on this page.
+            Pixel begins tracking activity, mastery and practice patterns after your first lesson.
           </p>
-          <Link className="cta-outline" to="/learn">Browse the curriculum</Link>
+          <Link className="cta-outline" to="/learn">Open Curriculum</Link>
         </>
       )}
     </section>
