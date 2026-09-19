@@ -6,8 +6,8 @@ export function BarArrayRenderer({ step, calm }: { step: ArrayVizStep; calm?: bo
   const isActive = (slot: number) => !!step.active && (slot === step.active[0] || slot === step.active[1]);
   const colorFor = (slot: number) => {
     if (step.kind === 'sorted' || slot >= step.sortedFrom) return 'var(--success)';
-    if (isActive(slot)) return step.kind === 'swap' ? 'var(--accent-text)' : 'var(--action)';
-    return 'rgba(217, 201, 178, 0.30)';
+    if (isActive(slot)) return step.kind === 'swap' ? 'var(--action-text)' : 'var(--action)';
+    return 'rgba(95, 107, 118, 0.35)';
   };
   const labelFor = (slot: number) => {
     if (step.kind === 'sorted' || slot >= step.sortedFrom) return '✓';
