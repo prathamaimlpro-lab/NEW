@@ -1,15 +1,44 @@
-/* ============ PIXEL — ACCESSIBILITY OVERRIDES (Ocean Breeze) ============ */
+/* ============ PIXEL — ACCESSIBILITY + INTERACTION POLISH ============ */
+
+/* Skip link (keyboard entry point) */
 .skip-link { position: absolute; left: -9999px; top: 0; z-index: 100; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border-strong); border-radius: var(--r-control); padding: 10px 16px; font-size: 14px; font-weight: 500; }
 .skip-link:focus { left: 16px; top: 16px; }
-.bxl span, .hm-days span { color: var(--text-muted); }
+
+/* Graph/scroll containers keep natural touch panning */
 .sk-viewport { touch-action: pan-y; }
+.hm-scroll, .jl-lane, .vizrow, .sk-scroll { overscroll-behavior-x: contain; }
+
+/* Loading buttons are non-interactive + non-spammy */
 .btn[aria-busy="true"] { opacity: .6; cursor: progress; }
-:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--action), 0 0 0 4px rgba(59, 167, 242, .25); border-radius: var(--r-control); }
-/* keyboard users get the same label reveal that hover provides */
+
+/* High-visibility focus for SMALL interactive cells where the global ring is hard to see */
+.hm-cell:focus-visible,
+.jnode:focus-visible,
+.sk-node:focus-visible,
+.bcol:focus-visible,
+.tab:focus-visible,
+.chip2:focus-visible,
+.rtoggle button:focus-visible {
+  outline: 2px solid var(--action);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* Keyboard parity for hover-revealed skill-node sub-labels */
 .sk-node:focus small.hide, .sk-node:focus-visible small.hide { display: block; }
+
+/* Dialog container itself should not show a focus ring (focus goes to its content) */
+.dialog:focus { outline: none; }
+
+/* Dock links keep a clear focus ring inside the rounded dock */
+.sb-link:focus-visible { outline: 2px solid var(--action); outline-offset: -2px; }
+
+/* REDUCED MOTION: kill non-essential animation; state stays readable via color/border/text */
 @media (prefers-reduced-motion: reduce) {
   .skel, .skeleton { animation: none !important; }
-  .sk-viewport, .hm-scroll { scroll-behavior: auto !important; }
+  .fade-in, .dash { animation: none !important; }
   .jnode-current { animation: none !important; }
+  .sk-viewport, .hm-scroll { scroll-behavior: auto !important; }
+  .chevron, .chevron[aria-expanded="true"] { transition: none; transform: none; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
