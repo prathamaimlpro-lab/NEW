@@ -84,7 +84,7 @@ export default function Curriculum() {
       </>
     );
     return locked ? (
-      <div key={l.id} className="lrow" style={{ opacity: 0.55, cursor: 'not-allowed' }} aria-disabled="true" aria-label={`Level ${l.number}: ${l.title} — locked`}>
+      <div key={l.id} className="lrow" style={{ opacity: 0.55, cursor: 'not-allowed' }} aria-disabled="true" aria-label={`Level ${l.number}: ${l.title} — Locked`}>
         {inner}
       </div>
     ) : (
@@ -105,14 +105,17 @@ export default function Curriculum() {
       </header>
 
       <section className="p-strip" style={{ border: '1px solid var(--border-subtle, #232732)', borderRadius: 6 }}>
-        <div><span className="d-big">{currentWorld ? `W${currentWorld.number}` : '—'}</span><span className="lbl">{currentWorld ? currentWorld.title : 'no position yet'}</span></div>
-        <div><span className="d-big">L{currentLevel?.number ?? 0}</span><span className="lbl">current level</span></div>
-        <div><span className="d-big">{overall}%</span><span className="lbl">overall</span></div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div><span className="d-big">{currentWorld ? `W${currentWorld.number}` : '—'}</span><span className="lbl">{currentWorld ? currentWorld.title : 'No position yet'}</span></div>
+        <div><span className="d-big">L{currentLevel?.number ?? 0}</span><span className="lbl">Current level</span></div>
+        <div><span className="d-big">{overall}%</span><span className="lbl">Overall progress</span></div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
           {next && (
-            <Link className="cta-solid" style={{ minHeight: 36, fontSize: 13 }} to={`/learn/lesson/${next.id}`}>
-              {nextProg > 0 ? 'Resume' : 'Start'}: {next.title}
-            </Link>
+            <>
+              <Link className="cta-solid" style={{ minHeight: 36, fontSize: 13 }} to={`/learn/lesson/${next.id}`}>
+                {nextProg > 0 ? 'Continue Lesson' : 'Start Lesson'}
+              </Link>
+              <span className="d-micro" style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{next.title}</span>
+            </>
           )}
         </div>
       </section>
@@ -127,7 +130,7 @@ export default function Curriculum() {
             <span className="d-eyebrow">Search results</span>
             <span className="d-micro">{matches.length} level{matches.length === 1 ? '' : 's'}</span>
           </div>
-          {matches.length === 0 ? <div className="dempty">No levels match “{query}”.</div> : matches.map(l => renderLevel(l, true))}
+          {matches.length === 0 ? <div className="dempty">No levels match “{query}”. Try a different topic or level name.</div> : matches.map(l => renderLevel(l, true))}
         </section>
       ) : (
         worlds.map(w => {
@@ -163,7 +166,7 @@ export default function Curriculum() {
               </button>
               {isOpen && (
                 <div id={`world-${w.id}-levels`} style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column' }}>
-                  {allAuthoring ? <div className="dempty">Lessons for this world are in authoring.</div> : wl.map(l => renderLevel(l, false))}
+                  {allAuthoring ? <div className="dempty">Lessons for this world are in authoring and will appear here once published.</div> : wl.map(l => renderLevel(l, false))}
                 </div>
               )}
             </section>
