@@ -9,7 +9,6 @@ import * as contentStore from '../services/contentStore';
 import { usePlayer } from '../store/PlayerContext';
 import type { Lesson } from '../types';
 
-/* Prefer the admin-editable content store; fall back to the bundled seed. */
 const source: Record<string, Lesson> =
   typeof (contentStore as any).getLessons === 'function' ? (contentStore as any).getLessons() : dataLessons;
 
@@ -49,6 +48,8 @@ export default function LessonPage() {
     );
   }
 
+  const blocks = (lesson as any).blocks ?? (lesson as any).sections ?? (lesson as any).content ?? [];
+
   return (
     <>
       <header style={{ padding: '24px 2px 0' }}>
@@ -62,7 +63,7 @@ export default function LessonPage() {
       </header>
 
       <div className="reading" style={{ marginTop: 24 }}>
-        <ContentRenderer lesson={lesson} />
+        <ContentRenderer blocks={blocks} />
         <div style={{ marginTop: 24 }}>
           <PublishedConcepts lessonId={lesson.id} />
         </div>
