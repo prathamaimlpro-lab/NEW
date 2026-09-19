@@ -5,4 +5,11 @@
 .sk-viewport { touch-action: pan-y; }
 .btn[aria-busy="true"] { opacity: .6; cursor: progress; }
 :focus-visible { outline: none; box-shadow: 0 0 0 1px var(--action), 0 0 0 4px rgba(59, 167, 242, .25); border-radius: var(--r-control); }
-@media (prefers-reduced-motion: reduce) { .skel, .skeleton { animation: none !important; } .sk-viewport, .hm-scroll { scroll-behavior: auto !important; } }
+/* keyboard users get the same label reveal that hover provides */
+.sk-node:focus small.hide, .sk-node:focus-visible small.hide { display: block; }
+@media (prefers-reduced-motion: reduce) {
+  .skel, .skeleton { animation: none !important; }
+  .sk-viewport, .hm-scroll { scroll-behavior: auto !important; }
+  .jnode-current { animation: none !important; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
