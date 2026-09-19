@@ -17,10 +17,11 @@ export default function AppLayout() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <Sidebar />
       <div className="shell-main">
         <Topbar />
-        <main className={`page ${isDash ? 'page-full' : ''}`}>
+        <main id="main-content" className={`page ${isDash ? 'page-full' : ''}`}>
           {dataState === 'loading' ? (
             <PageSkeleton route={location.pathname} />
           ) : dataState === 'error' ? (
