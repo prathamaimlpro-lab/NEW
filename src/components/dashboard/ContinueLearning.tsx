@@ -28,16 +28,16 @@ export function ContinueLearning({ state }: { state: CurrentLearningState | null
         <div className="hero-grid">
           <div>
             <div className="d-eyebrow" style={{ marginBottom: 10 }}>Continue Learning</div>
-            <h2 className="d-cardtitle">All published lessons complete</h2>
+            <h2 className="d-cardtitle">All published lessons are complete</h2>
             <p className="d-body" style={{ marginTop: 8 }}>New content is being authored. Revisit mastery or practice in the meantime.</p>
           </div>
-          <div className="cl-actions"><Link className="cta-outline" to="/practice">Open practice</Link></div>
+          <div className="cl-actions"><Link className="cta-outline" to="/practice">Open Knowledge Practice</Link></div>
         </div>
       </section>
     );
   }
 
-  const verb = state.mode === 'begin' ? 'Begin' : state.mode === 'resume' ? 'Continue Learning' : 'Start Lesson';
+  const verb = state.mode === 'begin' ? 'Start First Lesson' : state.mode === 'resume' ? 'Continue Lesson' : 'Start Lesson';
 
   return (
     <section className="p-hero">
@@ -62,7 +62,7 @@ export function ContinueLearning({ state }: { state: CurrentLearningState | null
           ) : (
             <>
               <p className="d-micro" style={{ marginBottom: 12 }}>
-                Lesson {state.lessonIndex} of {state.lessonCount} · {state.minutesRemaining}m · +{state.xp} XP
+                Lesson {state.lessonIndex} of {state.lessonCount} · {state.minutesRemaining} min remaining · +{state.xp} XP on completion
               </p>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }} className="d-micro"><span>{state.lessonProgress}%</span></div>
               <div className="hero-bar" style={{ marginTop: 4 }} role="progressbar" aria-valuenow={state.lessonProgress} aria-valuemin={0} aria-valuemax={100}>
