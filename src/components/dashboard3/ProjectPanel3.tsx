@@ -20,7 +20,9 @@ export function ProjectPanel3() {
   const lastDoneEvent = [...(stats.events ?? [])].filter(e => e.kind === 'project_completed').pop();
   const active = rows.find(r => r.project.id === lastDoneEvent?.id && !r.done) ?? rows.find(r => !r.done) ?? rows[0];
   const others = rows.filter(r => r.project.id !== active.project.id);
-  const milestones = active.project.requirements ?? [];
+  const p = active.project as any;
+  const summary: string = p.summary ?? p.description ?? '';
+  const milestones: string[] = p.requirements ?? [];
   const doneCount = active.done ? milestones.length : 0;
 
   return (
@@ -33,9 +35,9 @@ export function ProjectPanel3() {
       <article className="d3-project">
         <div className="d3-project-top">
           <span className="d3-project-title">{active.project.title}</span>
-          <span className="chip">{(active.project as any).difficulty ?? 'project'}</span>
+          <span className="chip">{p.difficulty ?? 'project'}</span>
         </div>
-        <p className="d3-project-sum">{active.project.summary}</p>
+        {summary && <p className="d3-project-sum">{summary}</p>}
 
         <div className="d3-stepper" role="list" aria-label="Project milestones">
           {milestones.map((m, i) => (
@@ -56,7 +58,7 @@ export function ProjectPanel3() {
         )}
 
         <div>
-          <Link className="cta-outline" to={(active.project as any).levelId ? `/learn/level/${(active.project as any).levelId}` : '/learn'}>
+          <Link className="cta-outline" to={p.levelId ? `/learn/level/${p.levelId}` : '/learn'}>
             {active.done ? 'Review project' : 'Open project'}
           </Link>
         </div>
