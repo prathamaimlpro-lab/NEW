@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { selectPracticeAnalytics, } from '../../dashboard/selectors';
+import { selectPracticeAnalytics } from '../../dashboard/selectors';
 import { selectAccuracyTrend, selectPracticeOverview, selectStrongWeak, selectTopicRows } from '../../dashboard/practiceSelectors';
 import { usePlayer } from '../../store/PlayerContext';
 
@@ -25,6 +25,9 @@ export function PracticeAnalytics4() {
     ['Improvement', overview.firstAttempt.accuracy !== null && overview.retry.accuracy !== null ? `${overview.retry.accuracy - overview.firstAttempt.accuracy >= 0 ? '+' : ''}${overview.retry.accuracy - overview.firstAttempt.accuracy} pts` : '—', 'retry vs first'],
   ];
 
+  const trendReady = trend.status === 'ready' && trend.data !== null;
+  const pts = trendReady ? trend.data : [];
+
   return (
     <section className="d4-panel" aria-label="Practice analytics">
       <div className="d3-chart-head"><span className="d3-eyebrow">Practice Analytics</span></div>
@@ -39,7 +42,6 @@ export function PracticeAnalytics4() {
         ))}
       </div>
 
-      {/* Difficulty × Topic matrix (≥10 attempts) */}
       <div className="d4-section">
         <div className="d3-eyebrow" style={{ marginBottom: 8 }}>Difficulty × Topic accuracy</div>
         {matrixZone.status !== 'ready' || !matrixZone.data ? (
@@ -50,7 +52,6 @@ export function PracticeAnalytics4() {
           </div>
         ) : (
           <>
-            {/* grid matrix (desktop/tablet) */}
             <div className="d4-matrix" role="table" aria-label="Accuracy by topic and difficulty">
               <div role="row" className="d4-mrow-head">
                 <span role="columnheader">Topic</span>
@@ -72,7 +73,6 @@ export function PracticeAnalytics4() {
                 </div>
               ))}
             </div>
-            {/* sorted list (mobile) */}
             <div className="d4-list" role="list" aria-label="Accuracy by topic">
               {rows.map(r => (
                 <div key={r.topic} role="listitem" className="d4-list-item">
@@ -89,27 +89,26 @@ export function PracticeAnalytics4() {
         )}
       </div>
 
-      {/* Accuracy trend */}
       <div className="d4-section">
         <div className="d3-eyebrow" style={{ marginBottom: 8 }}>Recent accuracy trend</div>
-        {trend.status !== 'ready' || !trend.data ? (
+        {!trendReady ? (
           <div className="dempty">{trend.status === 'insufficient' ? trend.reason : 'Accuracy trend appears after 3 active practice periods.'}</div>
         ) : (
           <div className="d4-trend" style={{ position: 'relative' }}>
-            {hoverPt !== null && trend.data[hoverPt] && (
+            {hoverPt !== null && pts[hoverPt] && (
               <div className="d3-tip" role="status">
-                <div className="d3-tip-title">{trend.data[hoverPt].label}</div>
-                <div className="d3-tip-row">accuracy {trend.data[hoverPt].accuracy}%</div>
-                <div className="d3-tip-row">{trend.data[hoverPt].submissions} submissions</div>
+                <div className="d3-tip-title">{pts[hoverPt].label}</div>
+                <div className="d3-tip-row">accuracy {pts[hoverPt].accuracy}%</div>
+                <div className="d3-tip-row">{pts[hoverPt].submissions} submissions</div>
               </div>
             )}
             <svg viewBox="0 0 100 32" preserveAspectRatio="none" className="d4-trend-svg" role="img"
-              aria-label={`Accuracy trend: ${trend.data.map(p => `${p.label} ${p.accuracy}%`).join(', ')}`}>
+              aria-label={`Accuracy trend: ${pts.map(p => `${p.label} ${p.accuracy}%`).join(', ')}`}>
               <polyline fill="none" stroke="var(--action)" strokeWidth="1.5" vectorEffect="non-scaling-stroke"
-                points={trend.data.map((p, i) => `${(i / Math.max(1, trend.data.length - 1)) * 96 + 2},${30 - (p.accuracy / 100) * 28}`).join(' ')} />
+                points={pts.map((p, i) => `${(i / Math.max(1, pts.length - 1)) * 96 + 2},${30 - (p.accuracy / 100) * 28}`).join(' ')} />
             </svg>
             <div className="d4-trend-pts">
-              {trend.data.map((p, i) => (
+              {pts.map((p, i) => (
                 <button key={i} type="button" className="d4-pt"
                   onMouseEnter={() => setHoverPt(i)} onMouseLeave={() => setHoverPt(h => (h === i ? null : h))}
                   onFocus={() => setHoverPt(i)} onBlur={() => setHoverPt(h => (h === i ? null : h))}
@@ -123,7 +122,6 @@ export function PracticeAnalytics4() {
         )}
       </div>
 
-      {/* Strong / weak topics */}
       <div className="d4-section d4-sw">
         <div>
           <div className="d3-eyebrow" style={{ marginBottom: 8 }}>Strong areas</div>
