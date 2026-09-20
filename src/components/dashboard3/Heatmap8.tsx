@@ -17,7 +17,11 @@ export function Heatmap8() {
     const n = range === '30D' ? 30 : range === '90D' ? 90 : all.length;
     return all.slice(Math.max(0, all.length - n));
   }, [all, range]);
-  const weeks = useMemo(() => { const w: typeof days[] = []; for (let i = 0; i < days.length; i += 7) w.push(days.slice(i, i + 7)); return w; }, [days]);
+  const weeks = useMemo(() => {
+    const out: typeof days = [];
+    for (let i = 0; i < days.length; i += 7) out.push(days.slice(i, i + 7));
+    return out;
+  }, [days]);
   const selDay = days.find(d => d.date === sel) ?? null;
   const total = days.reduce((s, d) => s + d.value, 0);
 
