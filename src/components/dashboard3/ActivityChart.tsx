@@ -12,7 +12,9 @@ const SERIES: { key: ActivitySeriesKey; label: string; color: string }[] = [
 
 export function ActivityChart() {
   const { stats } = usePlayer();
-  const [range, setRange] = useState<ActivityRange>('30D');
+  const [range, setRange] = useState<ActivityRange>(() =>
+    typeof window !== 'undefined' && window.innerWidth < 768 ? '7D' : '30D',
+  );
   const [hidden, setHidden] = useState<Set<ActivitySeriesKey>>(new Set());
   const [hover, setHover] = useState<number | null>(null);
 
