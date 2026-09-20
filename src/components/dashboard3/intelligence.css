@@ -1,0 +1,16 @@
+/* ============ D6 INTELLIGENCE AREA (Ocean Breeze) ============ */
+.d6-area { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--border-subtle); border: 1px solid var(--border-subtle); border-radius: var(--r-card); overflow: hidden; }
+.d6-col { background: var(--surface-1); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.d6-head { padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle); }
+.d6-row { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; border-top: 1px solid var(--border-subtle); }
+.d6-row:first-of-type { border-top: none; }
+.d6-row-top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.d6-title { color: var(--text-primary); font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d6-ev { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.d6-risk { color: var(--warning); }
+.d6-why { font-size: 12px; color: var(--text-secondary); }
+.d6-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.d6-note { font-size: 12px; color: var(--text-muted); }
+
+@media (max-width: 1023px) { .d6-area { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767px) { .d6-area { grid-template-columns: minmax(0, 1fr); } }
