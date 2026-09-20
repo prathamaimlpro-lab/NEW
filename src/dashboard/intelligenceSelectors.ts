@@ -67,8 +67,6 @@ export function selectRevisionItems(stats: PlayerStats): ZoneResult<RevisionItem
   const due = getRevisionDue(stats);
   const plan = getRevisionPlan(stats);
 
-  /* A completed revision cycle = lesson completed, became due (≥7d), and the learner
-     produced activity on/after the due date. Real evidence only. */
   const cycles: { id: string; title: string; daysSinceActivity: number }[] = [];
   for (const [id, date] of Object.entries(stats.lessonCompletedAt)) {
     const dueAt = new Date(`${date}T00:00:00`).getTime() + INTERVAL * 86400000;
