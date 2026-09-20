@@ -1,11 +1,8 @@
 /* ============ DASHBOARD 3.0 — STRUCTURE + ANALYTICS (Ocean Breeze) ============ */
 .d3-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--text-secondary); }
-.d3-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding: 8px 0 16px; }
+.d3-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 4px 0 16px; }
 .d3-header-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.d3-context { color: var(--text-secondary); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.d3-header-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.d3-xpstrip { display: flex; gap: 6px; }
-.d3-search .sb-search { margin: 0; width: 220px; height: 36px; background: var(--surface-1); }
+.d3-context { color: var(--text-primary); font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .d3-workspace { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); border: 1px solid var(--border-subtle); border-radius: var(--r-card); background: var(--surface-1); overflow: hidden; }
 .d3-ws-main { padding: 24px; border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 10px; }
 .d3-ws-side { padding: 24px; background: var(--surface-2); display: flex; flex-direction: column; gap: 10px; }
@@ -86,18 +83,20 @@
 
 /* ---- Responsive recomposition ---- */
 @media (max-width: 1279px) {
-  .d3-search .sb-search { width: 180px; }
   .d3-band { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* 5 units in a 3-col grid leaves 1 empty cell on row 2 — let the last
+     unit span the remainder instead of leaving a blank box. */
+  .d3-band-unit:last-child:nth-child(3n - 1) { grid-column: span 2; }
 }
 @media (max-width: 1023px) {
   .d3-workspace { grid-template-columns: minmax(0, 1fr); }
   .d3-ws-main { border-right: none; border-bottom: 1px solid var(--border-subtle); }
   .d3-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .d3-band-unit:last-child:nth-child(odd) { grid-column: span 2; }
   .d3-plot .bars { height: 180px; }
 }
 @media (max-width: 767px) {
   .d3-header { flex-direction: column; align-items: flex-start; }
-  .d3-search .sb-search { width: 100%; }
   .d3-ws-main, .d3-ws-side { padding: 16px; }
   .d3-lane-levels { flex-wrap: nowrap; overflow-x: auto; }
   .d3-band { grid-template-columns: minmax(0, 1fr); }

@@ -10,11 +10,14 @@ import Explore from './pages/Explore';
 import VisualizationPage from './pages/VisualizationPage';
 import ProgressPage from './pages/Progress';
 import Profile from './pages/Profile';
+import Achievements from './pages/Achievements';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ContentAdmin from './pages/admin/ContentAdmin';
 import CollectionAdmin from './pages/admin/CollectionAdmin';
 import ContentStudio from './pages/admin/ContentStudio';
+import SettingsAdmin from './pages/admin/SettingsAdmin';
+import ThemeAdmin from './pages/admin/ThemeAdmin';
 import { getSession, signOut } from './services/authService';
 
 /* Admin shell: completely separate from the learner AppLayout.
@@ -32,6 +35,8 @@ function AdminShell() {
     ['/admin/content', 'Content'],
     ['/admin/collections', 'Collections'],
     ['/admin/studio', 'Studio'],
+    ['/admin/settings', 'Settings'],
+    ['/admin/theme', 'Theme'],
   ];
 
   return (
@@ -95,6 +100,7 @@ export default function App() {
         <Route path="explore/viz/:vizId" element={<VisualizationPage />} />
         <Route path="progress" element={<ProgressPage />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="achievements" element={<Achievements />} />
       </Route>
 
       {/* Admin app — completely separate from learner shell */}
@@ -105,6 +111,8 @@ export default function App() {
           <Route path="content" element={<ContentAdmin />} />
           <Route path="collections" element={<CollectionAdmin />} />
           <Route path="studio" element={<ContentStudio />} />
+          <Route path="settings" element={<SettingsAdmin />} />
+          <Route path="theme" element={<ThemeAdmin />} />
         </Route>
       </Route>
 
