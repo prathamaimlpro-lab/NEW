@@ -1,0 +1,21 @@
+/* ============ D7 WHAT CHANGED (Ocean Breeze) ============ */
+.d7-panel { border: 1px solid var(--border-subtle); border-radius: var(--r-card); background: var(--surface-1); padding: 16px 20px; }
+.d7-list { list-style: none; margin: 0; padding: 0; position: relative; }
+.d7-list::before { content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 1px; background: var(--border-subtle); }
+.d7-item { position: relative; display: flex; gap: 12px; padding: 8px 0; }
+.d7-dot { flex: none; position: relative; z-index: 1; width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--border-strong); background: var(--surface-1); margin-top: 4px; }
+.d7-dot-lesson { border-color: var(--action); }
+.d7-dot-practice { border-color: var(--success); }
+.d7-dot-revision { border-color: var(--warning); }
+.d7-dot-project { border-color: var(--text-secondary); }
+.d7-dot-level, .d7-dot-world { background: var(--action); border-color: var(--action); }
+.d7-dot-velocity, .d7-dot-accuracy { background: var(--color-accent-secondary); border-color: var(--color-accent-secondary); }
+.d7-body { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.d7-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.d7-title { color: var(--text-primary); font-size: 13px; font-weight: 600; }
+.d7-time { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.d7-ev { font-size: 12px; color: var(--text-secondary); }
+.d7-kind { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+.d7-delta { color: var(--action-text); font-family: var(--font-mono); }
+.d7-action { font-size: 12px; color: var(--action-text); }
+@media (max-width: 767px) { .d7-top { flex-direction: column; gap: 2px; } .d7-time { white-space: normal; } }
