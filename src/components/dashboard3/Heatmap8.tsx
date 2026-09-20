@@ -18,7 +18,7 @@ export function Heatmap8() {
     return all.slice(Math.max(0, all.length - n));
   }, [all, range]);
   const weeks = useMemo(() => {
-    const out: typeof days = [];
+    const out: (typeof days)[] = [];
     for (let i = 0; i < days.length; i += 7) out.push(days.slice(i, i + 7));
     return out;
   }, [days]);
