@@ -5,8 +5,8 @@ import { CONTRACTS } from './contracts';
 import type { ZoneResult } from './types';
 
 const ready = <T,>(d: T, s: number, t: number): ZoneResult<T> => ({ status: 'ready', data: d, sampleSize: s, threshold: t });
-const insufficient = <T,>(s: number, t: number, r: string): ZoneResult<T> => ({ status: 'insufficient', data: null, sampleSize: s, threshold: t, reason: r });
-const empty = <T,>(t = 0): ZoneResult<T> => ({ status: 'empty', data: null, sampleSize: 0, threshold: t });
+const insufficient = (s: number, t: number, r: string): ZoneResult<never> => ({ status: 'insufficient', data: null, sampleSize: s, threshold: t, reason: r });
+const empty = (t = 0): ZoneResult<never> => ({ status: 'empty', data: null, sampleSize: 0, threshold: t });
 
 export interface PracticeOverview {
   attempts: number; solved: number; overallAccuracy: number | null;
@@ -15,8 +15,6 @@ export interface PracticeOverview {
   avgSolveSeconds: number | null;
 }
 
-/* All values from real records: activity submissions/solves, practice tries/correct,
-   problem timeSpent. Nothing inferred beyond what is stored. */
 export function selectPracticeOverview(stats: PlayerStats): PracticeOverview {
   let attempts = 0, solved = 0;
   for (const k of Object.keys(stats.activity)) {
