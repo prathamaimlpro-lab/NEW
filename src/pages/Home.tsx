@@ -1,62 +1,41 @@
 import { useMemo } from 'react';
-import { ActivityAnalytics, CurriculumJourney, HeatmapSection, MasteryBridge, PracticeAnalytics } from '../components/dashboard/analytics';
-import { CompactStrip } from '../components/dashboard/CompactStrip';
-import { ContinueLearning } from '../components/dashboard/ContinueLearning';
-import { NextBestAction } from '../components/dashboard/NextBestAction';
-import { OnboardingPanel, ProjectAnalytics, StrengthWeakness, TimelineSection, VisualizationActivity } from '../components/dashboard/panels';
+import { ActivityAnalytics, HeatmapSection, MasteryBridge, PracticeAnalytics } from '../components/dashboard/analytics';
+import { OnboardingPanel, StrengthWeakness, TimelineSection, VisualizationActivity } from '../components/dashboard/panels';
 import { SkillMap } from '../components/dashboard/SkillMap';
-import { getSession } from '../services/authService';
-import { buildSkillGraph, getDashboardDisclosure, getCurrentLearningState } from '../services/dashboardService';
+import { CurriculumJourney3 } from '../components/dashboard3/CurriculumJourney3';
+import { DashboardHeader } from '../components/dashboard3/DashboardHeader';
+import { LearningWorkspace } from '../components/dashboard3/LearningWorkspace';
+import { ProjectPanel3 } from '../components/dashboard3/ProjectPanel3';
+import '../components/dashboard3/dashboard3.css';
+import { useDashboardData } from '../dashboard/useDashboard';
+import { buildSkillGraph } from '../services/dashboardService';
 import { usePlayer } from '../store/PlayerContext';
 import '../styles/dashboard.css';
 import '../styles/dashboard-motion.css';
 
 export default function Home() {
+  const d = useDashboardData();
   const { stats } = usePlayer();
-  const session = getSession();
-  const firstName = (session?.name ?? '').trim().split(' ')[0] || '';
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-
-  const learningState = useMemo(() => getCurrentLearningState(stats), [stats]);
-  const disclosure = useMemo(() => getDashboardDisclosure(stats), [stats]);
   const graph = useMemo(() => buildSkillGraph(stats), [stats]);
 
   return (
     <div className="dash">
-      <header style={{ padding: '24px 2px 0' }}>
-        <h1 className="d-h1">{firstName ? `${greeting}, ${firstName}` : greeting}</h1>
-        {learningState && (
-          <p className="d-body" style={{ marginTop: 8 }}>
-            {learningState.worldTitle} · Level {learningState.levelNumber} · {learningState.lessonTitle}
-          </p>
-        )}
-      </header>
+      <DashboardHeader />
+      <LearningWorkspace />
+      {d.stage === 'day0' && <OnboardingPanel />}
+      <CurriculumJourney3 />
+      <ProjectPanel3 />
 
-      <div className="dgrid" style={{ marginTop: 32 }}>
-        <div className="span8"><ContinueLearning state={learningState} /></div>
-        <div className="span4"><NextBestAction /></div>
-
-        <div className="span12"><CompactStrip /></div>
-
-        {disclosure.isNew && <div className="span12"><OnboardingPanel /></div>}
-
-        {disclosure.showActivity && <div className="span12"><ActivityAnalytics /></div>}
-
-        {disclosure.showHeat && <div className="span7"><HeatmapSection /></div>}
-        {disclosure.showMastery && <div className="span5"><MasteryBridge /></div>}
-
-        <div className="span12"><CurriculumJourney /></div>
-
-        {disclosure.showSkill && <div className="span12"><SkillMap graph={graph} /></div>}
-
-        {disclosure.showPractice && <div className="span7"><PracticeAnalytics /></div>}
-        {disclosure.showInsights && <div className="span5"><StrengthWeakness /></div>}
-
-        {disclosure.showProjects && <div className="span6"><ProjectAnalytics /></div>}
-        {disclosure.showViz && <div className="span6"><VisualizationActivity /></div>}
-
-        {disclosure.showTimeline && <div className="span12"><TimelineSection /></div>}
+      {/* Existing analytics zones retained until D3–D6 replace them */}
+      <div className="dgrid" style={{ marginTop: 8 }}>
+        {d.activity.status === 'ready' && <div className="span12"><ActivityAnalytics /></div>}
+        {d.heatmap.status === 'ready' && <div className="span7"><HeatmapSection /></div>}
+        {d.mastery.status === 'ready' && <div className="span5"><MasteryBridge /></div>}
+        {d.practice.summary.status === 'ready' && <div className="span7"><PracticeAnalytics /></div>}
+        {d.strength.status === 'ready' && <div className="span5"><StrengthWeakness /></div>}
+        {d.knowledgeGraph.status === 'ready' && <div className="span12"><SkillMap graph={graph} /></div>}
+        {d.visualizations.status === 'ready' && <div className="span6"><VisualizationActivity /></div>}
+        {d.whatChanged.status === 'ready' && <div className="span6"><TimelineSection /></div>}
       </div>
     </div>
   );
