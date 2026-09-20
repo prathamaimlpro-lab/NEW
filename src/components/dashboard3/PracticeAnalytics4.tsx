@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { selectPracticeAnalytics } from '../../dashboard/selectors';
-import { selectAccuracyTrend, selectPracticeOverview, selectStrongWeak, selectTopicRows } from '../../dashboard/practiceSelectors';
+import { selectAccuracyTrend, selectPracticeOverview, selectStrongWeak, selectTopicRows, type AccuracyPoint } from '../../dashboard/practiceSelectors';
 import { usePlayer } from '../../store/PlayerContext';
 
 const tier = (acc: number) => (acc >= 80 ? 'd4-t-strong' : acc >= 60 ? 'd4-t-ok' : acc >= 40 ? 'd4-t-watch' : 'd4-t-weak');
@@ -15,6 +15,9 @@ export function PracticeAnalytics4() {
   const { strong, weak } = useMemo(() => selectStrongWeak(stats), [stats]);
   const [hoverPt, setHoverPt] = useState<number | null>(null);
 
+  const trendReady = trend.status === 'ready' && trend.data !== null;
+  const pts: AccuracyPoint[] = trend.data ?? [];
+
   const metrics: [string, string, string][] = [
     ['Total attempts', `${overview.attempts}`, 'submissions recorded'],
     ['Solved', `${overview.solved}`, 'problems completed'],
@@ -24,9 +27,6 @@ export function PracticeAnalytics4() {
     ['Avg solve time', fmtTime(overview.avgSolveSeconds), overview.avgSolveSeconds === null ? 'not captured' : 'solved problems'],
     ['Improvement', overview.firstAttempt.accuracy !== null && overview.retry.accuracy !== null ? `${overview.retry.accuracy - overview.firstAttempt.accuracy >= 0 ? '+' : ''}${overview.retry.accuracy - overview.firstAttempt.accuracy} pts` : '—', 'retry vs first'],
   ];
-
-  const trendReady = trend.status === 'ready' && trend.data !== null;
-  const pts = trendReady ? trend.data : [];
 
   return (
     <section className="d4-panel" aria-label="Practice analytics">
