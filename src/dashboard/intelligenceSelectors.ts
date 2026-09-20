@@ -1,7 +1,7 @@
 import { lessons as legacyLessons } from '../data/lessons';
 import { getRevisionPlan } from '../services/conceptMastery';
 import { getStrengthEvidence, getWeaknessEvidence } from '../services/dashboardService';
-import { getLesson, getRevisionDue } from '../services/progressService';
+import { getRevisionDue } from '../services/progressService';
 import type { PlayerStats } from '../types';
 import { CONTRACTS } from './contracts';
 import type { ZoneResult } from './types';
@@ -77,7 +77,9 @@ export function selectRevisionItems(stats: PlayerStats): ZoneResult<RevisionItem
         if (t >= dueAt && t > lastAfter) lastAfter = t;
       }
     }
-    if (lastAfter >= 0) cycles.push({ id, title: getLesson(id)?.title ?? id, daysSinceActivity: Math.floor((Date.now() - lastAfter) / 86400000) });
+    if (lastAfter >= 0) {
+      cycles.push({ id, title: (legacyLessons as any)[id]?.title ?? id, daysSinceActivity: Math.floor((Date.now() - lastAfter) / 86400000) });
+    }
   }
 
   const items: RevisionItem[] = [];
