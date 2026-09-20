@@ -3,7 +3,6 @@ import { getRevisionDue } from '../services/progressService';
 import { getRevisionPlan } from '../services/conceptMastery';
 import type { PlayerStats } from '../types';
 import { CONTRACTS } from './contracts';
-import { buildActivitySeries } from './activitySeries';
 
 export interface BandUnit {
   key: string; label: string; value: string;
@@ -11,9 +10,7 @@ export interface BandUnit {
   status: 'ready' | 'insufficient' | 'empty'; reason?: string;
 }
 
-const weekStart = (d: Date) => { const t = new Date(d); const day = (t.getDay() + 6) % 7; t.setDate(t.getDate() - day); return t.toISOString().slice(0, 10); };
-
-function weekly(stats: PlayerStats, weeks: number, pick: (k: string) => number): number[] {
+function weekly(weeks: number, pick: (dayKey: string) => number): number[] {
   const out: number[] = [];
   for (let w = weeks - 1; w >= 0; w--) {
     const start = new Date(); start.setDate(start.getDate() - w * 7 - 6);
@@ -30,8 +27,7 @@ export function selectAnalyticsBandUnits(stats: PlayerStats): BandUnit[] {
   const first = stats.firstActiveDate;
   const weeksSince = first ? Math.floor((Date.now() - new Date(`${first}T00:00:00`).getTime()) / (7 * 86400000)) : 0;
 
-  /* Learning Velocity (≥2 weeks) */
-  const lessonsPerWeek = weekly(stats, 8, k => (stats.lessonCompletedAt[k] ? 1 : 0) + evs.filter(e => e.at.slice(0, 10) === k && e.kind === 'lesson_completed').length);
+  const lessonsPerWeek = weekly(8, k => (stats.lessonCompletedAt[k] ? 1 : 0) + evs.filter(e => e.at.slice(0, 10) === k && e.kind === 'lesson_completed').length);
   if (!first || weeksSince < CONTRACTS.velocity.minWeeks) {
     units.push({ key: 'velocity', label: 'Learning Velocity', value: '—', series: [], seriesLabel: '', status: 'insufficient', reason: `Needs ${CONTRACTS.velocity.minWeeks} weeks of history.` });
   } else {
@@ -41,17 +37,16 @@ export function selectAnalyticsBandUnits(stats: PlayerStats): BandUnit[] {
     units.push({ key: 'velocity', label: 'Learning Velocity', value: `${avg} lessons/wk`, comparison: `this wk ${cur} vs last ${prev}`, series: lessonsPerWeek, seriesLabel: 'lessons per week', status: 'ready' });
   }
 
-  /* Mastery (completion reported separately; series = mastery across topics) */
   const rows = getMasteryRows(stats);
   if (rows.length === 0) {
     units.push({ key: 'mastery', label: 'Mastery', value: '—', series: [], seriesLabel: '', status: 'empty', reason: 'No mastery evidence yet.' });
   } else {
     const avg = Math.round(rows.reduce((s, r) => s + r.mastery, 0) / rows.length);
-    units.push({ key: 'mastery', label: 'Mastery', value: `${avg}%`, comparison: `gap to completion ${rows.reduce((s, r) => s + r.gap, 0) / rows.length >= 0 ? '+' : ''}${Math.round(rows.reduce((s, r) => s + r.gap, 0) / rows.length)} pts`, series: rows.map(r => r.mastery), seriesLabel: 'mastery by topic', status: 'ready' });
+    const gap = Math.round(rows.reduce((s, r) => s + r.gap, 0) / rows.length);
+    units.push({ key: 'mastery', label: 'Mastery', value: `${avg}%`, comparison: `gap to completion ${gap >= 0 ? '+' : ''}${gap} pts`, series: rows.map(r => r.mastery), seriesLabel: 'mastery by topic', status: 'ready' });
   }
 
-  /* Consistency (active days per week) */
-  const activeDays = weekly(stats, 8, k => (stats.activity[k]?.count ?? 0) > 0 ? 1 : 0);
+  const activeDays = weekly(8, k => (stats.activity[k]?.count ?? 0) > 0 ? 1 : 0);
   const totalActive = activeDays.reduce((a, b) => a + b, 0);
   if (totalActive === 0) {
     units.push({ key: 'consistency', label: 'Consistency', value: '—', series: [], seriesLabel: '', status: 'empty', reason: 'No active days yet.' });
@@ -61,10 +56,9 @@ export function selectAnalyticsBandUnits(stats: PlayerStats): BandUnit[] {
     units.push({ key: 'consistency', label: 'Consistency', value: `${+(totalActive / Math.max(1, weeksSince || 1)).toFixed(1)} days/wk`, comparison: `this wk ${cur} vs last ${prev}`, series: activeDays, seriesLabel: 'active days per week', status: 'ready' });
   }
 
-  /* Practice Accuracy (≥3 solves for a trend comparison) */
   const submissions = Object.values(stats.problems).reduce((s, r) => s + r.attempts, 0);
   const solved = Object.values(stats.problems).filter(r => r.solved).length;
-  const solvesPerWeek = weekly(stats, 8, k => evs.filter(e => e.at.slice(0, 10) === k && e.kind === 'problem_solved').length);
+  const solvesPerWeek = weekly(8, k => evs.filter(e => e.at.slice(0, 10) === k && e.kind === 'problem_solved').length);
   if (submissions === 0) {
     units.push({ key: 'accuracy', label: 'Practice Accuracy', value: '—', series: [], seriesLabel: '', status: 'empty', reason: 'No practice attempts yet.' });
   } else {
@@ -79,7 +73,6 @@ export function selectAnalyticsBandUnits(stats: PlayerStats): BandUnit[] {
     });
   }
 
-  /* Revision Load (0 due is honest once learner has completions) */
   const due = getRevisionDue(stats);
   const plan = getRevisionPlan(stats);
   if (stats.completedLessons.length === 0 && plan.length === 0) {
