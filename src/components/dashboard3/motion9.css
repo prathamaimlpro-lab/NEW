@@ -1,0 +1,26 @@
+/* ============ D9 MOTION POLISH (state-change only, Ocean Breeze) ============ */
+
+/* Graph node repositioning animates smoothly when filters/layout change (transform only). */
+.kg-node, .sk-node {
+  transition:
+    transform var(--motion-slow) var(--ease),
+    opacity var(--motion-normal) var(--ease),
+    border-color var(--motion-fast) var(--ease),
+    background-color var(--motion-fast) var(--ease);
+}
+
+/* Chart value changes interpolate instead of jumping. */
+.bseg { transition: height var(--motion-slow) var(--ease), background-color var(--motion-fast) var(--ease); }
+.hero-bar > div, .pbar > div, .d3-bar > div { transition: width var(--motion-slow) var(--ease); }
+
+/* List insertion (What Changed) and expand/collapse (curriculum lanes) get a subtle fade-rise. */
+.d7-item { animation: dTip var(--motion-normal) var(--ease) both; }
+.d3-lane-levels { animation: dTip var(--motion-fast) var(--ease) both; }
+
+/* Reduced motion: information stays fully usable, movement removed. */
+@media (prefers-reduced-motion: reduce) {
+  .kg-node, .sk-node, .bseg, .hero-bar > div, .pbar > div, .d3-bar > div, .d7-item, .d3-lane-levels {
+    transition: none !important;
+    animation: none !important;
+  }
+}
