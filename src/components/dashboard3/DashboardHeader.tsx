@@ -8,6 +8,7 @@ export function DashboardHeader() {
   const band = d.analyticsBand.data;
   return (
     <header className="d3-header">
+      <h1 className="sr-only">Pixel Dashboard</h1>
       <div className="d3-header-id">
         <PixelWordmark size={14} />
         <span className="d3-context">
