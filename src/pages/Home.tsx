@@ -19,7 +19,9 @@ import '../components/dashboard3/knowledgegraph.css';
 import '../components/dashboard3/intelligence.css';
 import '../components/dashboard3/whatchanged.css';
 import '../components/dashboard3/heatmap8.css';
+import '../components/dashboard3/motion9.css';
 import { useDashboardData } from '../dashboard/useDashboard';
+import { useRealtimeRefresh } from '../dashboard/useRealtimeRefresh';
 import { usePlayer } from '../store/PlayerContext';
 import '../styles/dashboard.css';
 import '../styles/dashboard-motion.css';
@@ -27,6 +29,7 @@ import '../styles/dashboard-motion.css';
 export default function Home() {
   const d = useDashboardData();
   const { stats } = usePlayer();
+  useRealtimeRefresh();
   void useMemo; void stats;
 
   return (
