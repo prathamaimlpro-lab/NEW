@@ -1,6 +1,6 @@
 import { getHeatmapDays } from '../services/activityService';
 import {
-  getAccuracyMatrix, getCurrentLearningState, getCurriculumProgress, getMasteryRows,
+  getAccuracyMatrix, getActivitySeries, getCurrentLearningState, getCurriculumProgress, getMasteryRows,
   getProjectRows, getRankedAction, getSolvedSparkline, getStrengthEvidence, getVisualizationRows,
   getWeaknessEvidence, type Range,
 } from '../services/dashboardService';
@@ -14,9 +14,9 @@ import type { LearnerStage, ZoneResult } from './types';
 
 const ready = <T,>(data: T, sample: number, threshold: number): ZoneResult<T> =>
   ({ status: 'ready', data, sampleSize: sample, threshold });
-const insufficient = <T,>(sample: number, threshold: number, reason: string): ZoneResult<T> =>
+const insufficient = (sample: number, threshold: number, reason: string): ZoneResult<never> =>
   ({ status: 'insufficient', data: null, sampleSize: sample, threshold, reason });
-const empty = <T,>(threshold = 0): ZoneResult<T> =>
+const empty = (threshold = 0): ZoneResult<never> =>
   ({ status: 'empty', data: null, sampleSize: 0, threshold });
 
 export function classifyLearner(stats: PlayerStats): LearnerStage {
