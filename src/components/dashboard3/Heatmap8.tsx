@@ -37,15 +37,6 @@ export function Heatmap8() {
     if (n >= 0 && n < cells.length) { e.preventDefault(); cells[n].focus(); }
   };
 
-  if (total === 0) {
-    return (
-      <section className="d8-panel" aria-label="Learning heatmap">
-        <div className="d3-chart-head"><span className="d3-eyebrow">Learning Heatmap</span></div>
-        <div className="dempty">No learning activity recorded yet. Lessons, practice, revision, projects and visualizations will fill this map as you work.</div>
-      </section>
-    );
-  }
-
   return (
     <section className="d8-panel" aria-label="Learning heatmap">
       <div className="d3-chart-head">
@@ -62,21 +53,29 @@ export function Heatmap8() {
         </div>
       </div>
 
+      {total === 0 && (
+        <p className="d8-tip">No activity in this range yet — every day below is genuinely empty. Complete a lesson or practice question and the first cell fills in.</p>
+      )}
+
       <div className="d8-tip" role="status">
         {selDay ? `${fmt(selDay.date)} — ${selDay.value} activities` : 'Hover or focus a day for exact activity.'}
       </div>
 
       {listView ? (
-        <ul className="d8-list" role="list" aria-label="Active days">
-          {days.filter(d => d.value > 0).slice().reverse().map(d => (
-            <li key={d.date} className="d8-list-item">
-              <span>{new Date(`${d.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-              <span className="d8-list-val">
-                {d.value} activities{d.breakdown ? ` (${d.breakdown.lessons} lessons · ${d.breakdown.problems} practice · ${d.breakdown.other} other)` : ''}
-              </span>
-            </li>
-          ))}
-        </ul>
+        days.filter(d => d.value > 0).length === 0 ? (
+          <div className="dempty">No active days in this range yet.</div>
+        ) : (
+          <ul className="d8-list" role="list" aria-label="Active days">
+            {days.filter(d => d.value > 0).slice().reverse().map(d => (
+              <li key={d.date} className="d8-list-item">
+                <span>{new Date(`${d.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                <span className="d8-list-val">
+                  {d.value} activities{d.breakdown ? ` (${d.breakdown.lessons} lessons · ${d.breakdown.problems} practice · ${d.breakdown.other} other)` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )
       ) : (
         <div className="d8-scroll">
           <div className="d8-grid" role="group" aria-label="Daily activity heatmap. Use arrow keys to move between days." onKeyDown={onKey}>
