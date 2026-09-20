@@ -1,0 +1,14 @@
+/* ============ D10 ACCESSIBILITY POLISH ============ */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Strong, visible focus for graph/heatmap interactive cells */
+.kg-node:focus-visible, .hm8-cell:focus-visible, .d3-node:focus-visible, .d4-pt:focus-visible {
+  outline: 2px solid var(--action); outline-offset: 2px;
+}
+
+/* Comfortable touch targets on coarse pointers (≥44px where appropriate) */
+@media (pointer: coarse) {
+  .btn-sm, .tab, .rtoggle button, .d3-legend-item, .kg-list-item { min-height: 44px; }
+  .hm8-cell { width: 20px; height: 20px; min-width: 20px; }
+  .d3-node, .kg-node { min-width: 44px; min-height: 44px; }
+}
