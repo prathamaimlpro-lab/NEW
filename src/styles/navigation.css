@@ -1,16 +1,11 @@
-/* ============ PIXEL — NAVIGATION / SCROLL / GESTURE ============ */
-
-/* Remove the negative-margin bleed that could force horizontal page overflow.
-   The dashboard now owns its padding instead of bleeding outside the page box. */
+/* ============ PIXEL — NAVIGATION / SCROLL / GESTURE / HEADER ============ */
 .dash { margin: 0; padding: var(--space-6) var(--space-5) 72px; }
 @media (max-width: 1023px) { .dash { padding: var(--space-4) var(--space-3) 96px; } }
 
-/* Stop scroll-chaining / accidental page movement inside nested scrollers */
 .hm-scroll, .jl-lane, .vizrow, .sk-scroll, .tabs { overscroll-behavior-x: contain; }
 .table-wrap, .code-block pre { overscroll-behavior-x: contain; }
 .sidebar, .dialog, .sk-viewport { overscroll-behavior: contain; }
 
-/* iOS / notched-device safe areas for the bottom dock and mobile sheet */
 @supports (padding: env(safe-area-inset-bottom)) {
   @media (max-width: 1023px) {
     .sidebar { bottom: calc(var(--space-3) + env(safe-area-inset-bottom)); }
@@ -19,12 +14,33 @@
   }
 }
 
-/* Stacking: sticky header below the mobile dock */
 .topbar { z-index: 30; }
 .sidebar { z-index: 40; }
-
-/* Immediate, non-blocking navigation + control feedback */
 .sb-link, .tab, .btn { transition-duration: var(--motion-fast); }
-
-/* Keep route transition subtle and short (spatial continuity, no blocking) */
 .fade-in { animation-duration: var(--motion-normal); }
+
+/* Single global header search */
+.tb-search { flex: 0 0 auto; }
+.tb-search .sb-search { display: flex; width: 220px; height: 36px; margin: 0; }
+@media (max-width: 1023px) { .sidebar .sb-search { display: none; } .tb-search .sb-search { width: 160px; } }
+@media (max-width: 560px) { .tb-search { display: none; } }
+
+/* Analytics Band auto-fit (no empty trailing cell) */
+.d3-band { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+
+/* ---- V2 rail extras ---- */
+.sb-dotmark { width: 10px; height: 10px; border: 1px solid var(--border-strong); border-radius: 2px; flex: none; }
+.sb-tools { display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
+.sb-tool { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--r-control); color: var(--text-secondary); font-size: 13px; background: none; border: none; cursor: pointer; width: 100%; text-align: left; text-decoration: none; }
+.sb-tool:hover { background: var(--hover); color: var(--text-primary); }
+.sb-tool[disabled] { opacity: .5; cursor: not-allowed; }
+.sb-pod { margin: 12px 8px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: var(--r-pod); background: var(--surface-2); display: flex; flex-direction: column; gap: 6px; }
+.tb-badge { position: absolute; top: 4px; right: 4px; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 999px; background: var(--danger); color: #14060a; font-family: var(--font-mono); font-size: 9px; font-weight: 600; display: grid; place-items: center; }
+.tb-user { display: flex; align-items: center; gap: 8px; background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--r-pill); padding: 4px 10px 4px 4px; cursor: pointer; }
+.tb-user:hover { background: var(--surface-3); }
+
+/* Mobile: collapse rail extras, keep six-item dock */
+@media (max-width: 1023px) {
+  .sb-rail-extra { display: none; }
+  .sb-nav .sb-extra { display: none; }
+}
