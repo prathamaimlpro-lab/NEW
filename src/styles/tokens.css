@@ -1,0 +1,79 @@
+/* ============ PIXEL — THEME TOKENS (light default + command dark) ============ */
+:root {
+  color-scheme: light;
+  /* chart categorical (legend always text) */
+  --chart-1: #2E97E2; /* lessons */
+  --chart-2: #0E9F86; /* practice */
+  --chart-3: #D97706; /* revision */
+  --chart-4: #64748B; /* projects */
+  --chart-5: #0B3D91; /* visualizations */
+  /* elevation */
+  --elev-1: 0 1px 2px rgba(11, 15, 20, .06);
+  --elev-2: 0 8px 24px rgba(11, 15, 20, .12);
+  /* success/mastery text on light */
+  --mint-ink: #0E6B5C;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  /* surfaces: deep blue-gray, never pure black */
+  --color-background: #0E141B;
+  --color-surface: #151D26;
+  --surface-0: #0E141B;
+  --surface-1: #151D26;
+  --surface-2: #1B2530;
+  --surface-3: #223040;
+  --hover: #223040;
+  --elevated: #1B2530;
+  /* hairlines */
+  --color-border: #24313F;
+  --border-subtle: #24313F;
+  --border-strong: #33465A;
+  /* type: off-white, never pure white */
+  --color-text-primary: #E8EEF4;
+  --text-primary: #E8EEF4;
+  --fg-0: #E8EEF4;
+  --color-text-secondary: #9FB0BF;
+  --text-secondary: #9FB0BF;
+  --text-muted: #7A8B99;
+  --fg-1: #9FB0BF; --fg-2: #9FB0BF;
+  --text-subtle: #5C6B78;
+  --fg-3: #5C6B78;
+  --disabled: #5C6B78;
+  --neutral: #9FB0BF;
+  /* identity + interactive */
+  --color-primary: #6FBDF7;
+  --primary: #6FBDF7;
+  --primary-hover: #8CCBFA;
+  --primary-subtle: rgba(59, 167, 242, .16);
+  --action: #3BA7F2;
+  --action-text: #6FBDF7;
+  --focus-marker: #6FBDF7;
+  /* semantic */
+  --success: #7FE7D6;
+  --success-text: #9BE8DA;
+  --mint-ink: #9BE8DA;
+  --warning: #E0A458;
+  --danger: #F0867A;
+  --error: #F0867A;
+  --info: #6FBDF7;
+  --signal-mastered: #7FE7D6;
+  --signal-strong: #3BA7F2;
+  --signal-developing: #9FB0BF;
+  --signal-weak: #E0A458;
+  --signal-critical: #F0867A;
+  --signal-focus: #6FBDF7;
+  /* charts (dark-safe) */
+  --chart-1: #4DA3F5;
+  --chart-2: #2FBFA0;
+  --chart-3: #E0A458;
+  --chart-4: #8FA3B5;
+  --chart-5: #7FA9E6;
+  /* elevation via borders mostly; subtle shadows */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --elev-2: 0 8px 24px rgba(0, 0, 0, .5);
+}
+
+/* theme-scoped affordances that reference raw rgba in older sheets */
+[data-theme='dark'] ::selection { background: rgba(59, 167, 242, .35); color: #E8EEF4; }
+[data-theme='dark'] *::-webkit-scrollbar-thumb { background: rgba(159, 176, 191, .3); }
