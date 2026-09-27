@@ -1,0 +1,93 @@
+/* ============ PIXEL — COMMAND DARK (single theme, per reference + research) ============ */
+:root {
+  color-scheme: dark;
+  /* surfaces: deep blue-gray, never pure black */
+  --color-background: #0B1016;
+  --color-surface: #12181F;
+  --surface-0: #0B1016;
+  --surface-1: #12181F;
+  --surface-2: #171F28;
+  --surface-3: #1E2833;
+  --hover: #1E2833;
+  --elevated: #171F28;
+  --canvas: #0B1016;
+  --surface: #12181F;
+  /* hairlines */
+  --color-border: #232E3A;
+  --border-subtle: #232E3A;
+  --border-strong: #33414F;
+  /* type: off-white, never pure white */
+  --color-text-primary: #E6EDF3;
+  --text-primary: #E6EDF3;
+  --fg-0: #E6EDF3;
+  --color-text-secondary: #9DAEBD;
+  --text-secondary: #9DAEBD;
+  --fg-1: #9DAEBD;
+  --fg-2: #9DAEBD;
+  --text-muted: #7C8B99;
+  --text-subtle: #5A6875;
+  --fg-3: #5A6875;
+  --disabled: #5A6875;
+  --neutral: #9DAEBD;
+  /* identity + interactive (restrained) */
+  --color-primary: #6FBDF7;
+  --primary: #6FBDF7;
+  --primary-hover: #8CCBFA;
+  --primary-subtle: rgba(59, 167, 242, .16);
+  --action: #3BA7F2;
+  --action-text: #6FBDF7;
+  --focus-marker: #6FBDF7;
+  /* semantic: mint success/mastery, amber attention, red danger */
+  --success: #7FE7D6;
+  --success-text: #8FE9DB;
+  --mint-ink: #8FE9DB;
+  --warning: #E0A458;
+  --danger: #F0867A;
+  --error: #F0867A;
+  --info: #6FBDF7;
+  --signal-mastered: #7FE7D6;
+  --signal-strong: #3BA7F2;
+  --signal-developing: #9DAEBD;
+  --signal-weak: #E0A458;
+  --signal-critical: #F0867A;
+  --signal-focus: #6FBDF7;
+  --accent-soft: #7FE7D6;
+  /* chart categorical (legend always text) */
+  --chart-1: #4DA3F5;
+  --chart-2: #2FBFA0;
+  --chart-3: #E0A458;
+  --chart-4: #8FA3B5;
+  --chart-5: #7FA9E6;
+  /* elevation: borders first, shadows subtle */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, .5);
+  --elev-2: 0 10px 28px rgba(0, 0, 0, .55);
+}
+
+/* dark-safe overrides for hardcoded tints in legacy sheets */
+::selection { background: rgba(59, 167, 242, .35); color: #E6EDF3; }
+*::-webkit-scrollbar-thumb { background: rgba(159, 176, 191, .25); }
+:focus-visible { box-shadow: 0 0 0 1px var(--action), 0 0 0 4px rgba(111, 189, 247, .30); }
+.dialog-scrim { background: rgba(4, 8, 12, .62); }
+.chip-success { background: rgba(127, 231, 214, .12); border-color: rgba(127, 231, 214, .35); color: var(--success-text); }
+.chip-warning { background: rgba(224, 164, 88, .12); border-color: rgba(224, 164, 88, .35); color: var(--warning); }
+.chip-error { background: rgba(240, 134, 122, .10); border-color: rgba(240, 134, 122, .35); color: var(--danger); }
+.chip-info, .chip-primary { background: rgba(59, 167, 242, .14); border-color: rgba(59, 167, 242, .40); color: var(--action-text); }
+.state-error { background: rgba(240, 134, 122, .08); border-color: rgba(240, 134, 122, .40); color: var(--text-primary); }
+.btn-destructive { background: rgba(240, 134, 122, .10); border-color: rgba(240, 134, 122, .40); color: var(--danger); }
+.q-option.correct { border-color: rgba(127, 231, 214, .50); background: rgba(127, 231, 214, .10); color: var(--text-primary); }
+.q-option.correct .letter { border-color: var(--success); color: var(--success-text); }
+.q-option.wrong { border-color: rgba(240, 134, 122, .50); background: rgba(240, 134, 122, .08); }
+.q-option.wrong .letter { border-color: var(--danger); background: rgba(240, 134, 122, .15); color: var(--danger); }
+.sk-mastered { border-color: rgba(127, 231, 214, .40); background: rgba(127, 231, 214, .12); color: var(--success-text); }
+.sk-strong { border-color: rgba(59, 167, 242, .50); background: rgba(59, 167, 242, .14); color: var(--action-text); }
+.sk-weak { border-color: rgba(224, 164, 88, .40); background: rgba(224, 164, 88, .12); color: var(--warning); }
+.mx-c-high { background: rgba(127, 231, 214, .20); }
+.mx-c-mid { background: rgba(59, 167, 242, .22); }
+.mx-c-low { background: rgba(224, 164, 88, .18); }
+.mx-c-bad { background: rgba(240, 134, 122, .20); }
+.d4-t-strong { background: rgba(127, 231, 214, .20); }
+.d4-t-ok { background: rgba(59, 167, 242, .22); }
+.d4-t-watch { background: rgba(224, 164, 88, .18); }
+.d4-t-weak { background: rgba(240, 134, 122, .20); }
+.jnode-done { background: var(--success); color: #062033; }
+.cta-solid, .btn-primary { color: #062033; }
