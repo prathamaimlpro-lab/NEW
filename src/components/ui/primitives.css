@@ -1,0 +1,33 @@
+/* ============ PIXEL — UI PRIMITIVES (command dark) ============ */
+.ui-panel { border: 1px solid var(--border-subtle); border-radius: var(--r-card); background: var(--surface-1); padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.ui-panel-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.ui-index { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); }
+.ui-question { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.ui-mono { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+.ui-muted { color: var(--text-subtle); }
+
+.ui-kpi { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ui-kpi-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.ui-kpi-value { font-family: var(--font-mono); font-size: 32px; line-height: 1; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.ui-kpi-unit { font-size: 13px; color: var(--text-muted); }
+.ui-delta { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+.ui-delta.up { color: var(--success-text); }
+.ui-delta.down { color: var(--danger); }
+
+.ui-prov { font-family: var(--font-mono); font-size: 9px; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--border-subtle); border-radius: var(--r-tag); padding: 1px 5px; color: var(--text-subtle); }
+.ui-prov-estimate { color: var(--warning); border-color: var(--warning); }
+.ui-prov-derived { color: var(--action-text); border-color: var(--border-strong); }
+
+.ui-pod { border: 1px solid var(--border-subtle); border-radius: var(--r-control); background: var(--surface-2); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ui-pod-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.ui-pod-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.ui-statusdot { display: inline-flex; gap: 6px; align-items: center; font-size: 11px; color: var(--text-secondary); }
+.ui-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+
+.ui-statement { display: flex; flex-direction: column; gap: 8px; }
+.ui-statement-lead { font-size: clamp(22px, 3.4vw, 32px); line-height: 1.2; font-weight: 500; color: var(--text-subtle); letter-spacing: -0.01em; }
+.ui-statement-em { color: var(--text-primary); font-weight: 600; }
+.ui-statement-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.ui-sectionindex { display: flex; gap: 10px; align-items: center; }
+.ui-rule { flex: 1; height: 1px; background: var(--border-subtle); }
