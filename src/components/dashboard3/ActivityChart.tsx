@@ -1,13 +1,18 @@
 import { useMemo, useState } from 'react';
 import { buildActivitySeries, type ActivityRange, type ActivitySeriesKey } from '../../dashboard/activitySeries';
+import { SegmentedTabs } from '../ui/primitives';
 import { usePlayer } from '../../store/PlayerContext';
 
 const SERIES: { key: ActivitySeriesKey; label: string; color: string }[] = [
-  { key: 'lessons', label: 'Lessons', color: 'var(--action)' },
-  { key: 'practice', label: 'Practice', color: 'var(--success)' },
-  { key: 'revision', label: 'Revision', color: 'var(--warning)' },
-  { key: 'projects', label: 'Projects', color: 'var(--text-secondary)' },
-  { key: 'visualizations', label: 'Visualizations', color: 'var(--color-accent-secondary)' },
+  { key: 'lessons', label: 'Lessons', color: 'var(--chart-1)' },
+  { key: 'practice', label: 'Practice', color: 'var(--chart-2)' },
+  { key: 'revision', label: 'Revision', color: 'var(--chart-3)' },
+  { key: 'projects', label: 'Projects', color: 'var(--chart-4)' },
+  { key: 'visualizations', label: 'Visualizations', color: 'var(--chart-5)' },
+];
+
+const RANGES: { value: ActivityRange; label: string }[] = [
+  { value: '7D', label: '7D' }, { value: '30D', label: '30D' }, { value: '90D', label: '90D' }, { value: '1Y', label: '1Y' },
 ];
 
 export function ActivityChart() {
@@ -35,11 +40,12 @@ export function ActivityChart() {
     <section className="d3-chart" aria-label="Learning activity over time">
       <div className="d3-chart-head">
         <span className="d3-eyebrow">Learning Activity</span>
-        <div className="rtoggle" role="group" aria-label="Activity range">
-          {(['7D', '30D', '90D', '1Y'] as ActivityRange[]).map(r => (
-            <button key={r} type="button" className={range === r ? 'on' : ''} aria-pressed={range === r} onClick={() => { setRange(r); setHover(null); }}>{r}</button>
-          ))}
-        </div>
+        <SegmentedTabs
+          ariaLabel="Activity range"
+          value={range}
+          onChange={v => { setRange(v as ActivityRange); setHover(null); }}
+          options={RANGES}
+        />
       </div>
 
       <div className="d3-legend" role="group" aria-label="Toggle series">
