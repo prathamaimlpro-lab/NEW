@@ -42,6 +42,27 @@ export function StatementHeader({ lead, emphasis, chips }: { lead: string; empha
   );
 }
 
+/* Pill segmented tabs; seam=true bridges the hairline between two blocks */
+export function SegmentedTabs(props: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  ariaLabel: string;
+  seam?: boolean;
+}) {
+  const { options, value, onChange, ariaLabel, seam = false } = props;
+  const tabs = (
+    <div className="ui-tabs" role="tablist" aria-label={ariaLabel}>
+      {options.map(o => (
+        <button key={o.value} type="button" role="tab" className="ui-tab" aria-selected={value === o.value} onClick={() => onChange(o.value)}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+  return seam ? <div className="ui-seam">{tabs}</div> : tabs;
+}
+
 export function Panel(props: {
   index?: string; title: string; question?: string; provenance?: Provenance;
   actions?: React.ReactNode; children: React.ReactNode; className?: string;
@@ -90,11 +111,11 @@ export function KpiValue(props: {
 
 export function StatPod(props: {
   tone: Tone; statusLabel: string; id: string; title?: string; timestamp?: string;
-  children?: React.ReactNode; action?: React.ReactNode;
+  glass?: boolean; children?: React.ReactNode; action?: React.ReactNode;
 }) {
-  const { tone, statusLabel, id, title, timestamp, children, action } = props;
+  const { tone, statusLabel, id, title, timestamp, glass = false, children, action } = props;
   return (
-    <article className="ui-pod">
+    <article className={`ui-pod ${glass ? 'ui-glass' : ''}`}>
       <div className="ui-pod-top">
         <StatusDot tone={tone} label={statusLabel} />
         <span className="ui-mono">{id}</span>
