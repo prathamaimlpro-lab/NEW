@@ -46,7 +46,7 @@ export function Sidebar() {
             <Icon name="practice" size={18} /> <span className="sb-label">Practice</span>
             {due > 0 && <span className="sb-badge" aria-hidden="true">{due}</span>}
           </NavLink>
-          <NavLink to="/projects" title="Projects" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/projects" title="Projects" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''} sb-nodock`}>
             <ProjectsIcon /> <span className="sb-label">Projects</span>
           </NavLink>
 
@@ -54,7 +54,7 @@ export function Sidebar() {
           <NavLink to="/explore" title="Visualizations" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
             <Icon name="explore" size={18} /> <span className="sb-label">Visualizations</span>
           </NavLink>
-          <NavLink to="/graph" title="Knowledge graph" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/graph" title="Knowledge graph" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''} sb-nodock`}>
             <GraphIcon /> <span className="sb-label">Knowledge graph</span>
           </NavLink>
 
