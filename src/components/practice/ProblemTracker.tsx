@@ -34,14 +34,15 @@ export function ProblemTracker() {
     if (topic !== 'all' && !(p.topics ?? []).includes(topic)) return false;
     const q = query.trim().toLowerCase();
     if (q) {
-      const hay = `${p.title} ${(p as any).prompt ?? ${(p as any).description ?? ''}} ${(p.topics ?? []).join(' ')} ${(p.patterns ?? []).join(' ')}`.toLowerCase();
+      const desc = ((p as any).prompt ?? (p as any).description ?? '') as string;
+      const hay = [p.title, desc, (p.topics ?? []).join(' '), (p.patterns ?? []).join(' ')].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
 
   const activeChips: { label: string; clear: () => void }[] = [];
-  if (diff !== 'all') activeChips.push({ label: diff.toLowerCase(), clear: () => setDiff('all') });
+  if (diff !== 'all') activeChips.push({ label: diff.charAt(0) + diff.slice(1).toLowerCase(), clear: () => setDiff('all') });
   if (status !== 'all') activeChips.push({ label: STATUS_LABEL[status as Exclude<Status, 'all'>], clear: () => setStatus('all') });
   if (topic !== 'all') activeChips.push({ label: topic, clear: () => setTopic('all') });
 
@@ -53,7 +54,7 @@ export function ProblemTracker() {
           <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search problems" />
         </label>
         <button type="button" className="btn btn-secondary" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(v => !v)}>
-          Filters{activeChips.length ? ` · ${activeChips.length}` : ''}
+          Filters{activeChips.length > 0 ? ` · ${activeChips.length}` : ''}
         </button>
       </div>
 
@@ -107,6 +108,7 @@ export function ProblemTracker() {
         {filtered.length === 0 && <div className="dempty">No problems match your search or filters.</div>}
         {filtered.map(p => {
           const st = statusOf(p.id);
+          const diffLabel = p.difficulty.charAt(0) + p.difficulty.slice(1).toLowerCase();
           return (
             <Link key={p.id} role="listitem" className="pt-row" to={`/practice/problems/${p.id}`}>
               <span className="pt-main">
@@ -115,7 +117,7 @@ export function ProblemTracker() {
               </span>
               <span className="pt-badges">
                 <span className={`chip ${p.difficulty === 'HARD' ? 'chip-error' : p.difficulty === 'MEDIUM' ? 'chip-warning' : 'chip-success'}`}>
-                  {p.difficulty.charAt(0) + p.difficulty.slice(1).toLowerCase()}
+                  {diffLabel}
                 </span>
                 <span className="chip">{STATUS_LABEL[st]}</span>
               </span>
