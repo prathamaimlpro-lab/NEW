@@ -1,19 +1,59 @@
-/* ============ V4/VIZ LAYOUT ============ */
+/* ============ PIXEL — LESSON META + VISUALIZATION WORKSPACE (full replacement) ============ */
+
+/* lesson meta pods */
 .v4-meta { display: flex; gap: 10px; flex-wrap: wrap; }
 .v4-meta .ui-pod { flex: 1; min-width: 140px; }
 
-/* viz workspace: rail + full-width canvas (component owns its internal layout) */
+/* viz workspace: rail + full-width canvas */
 .v4-viz2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 @media (min-width: 1024px) { .v4-viz2 { grid-template-columns: 220px minmax(0, 1fr); } }
+
 .v4-rail { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.v4-rail-item { display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px; min-height: 36px; border-radius: var(--r-ctl); border: 1px solid transparent; background: none; color: var(--text-2); font-size: var(--fs-sm); cursor: pointer; text-align: left; text-decoration: none; align-items: center; }
+.v4-rail-item {
+  display: flex; justify-content: space-between; gap: 8px; align-items: center;
+  padding: 7px 10px; min-height: 36px; border-radius: var(--r-ctl);
+  border: 1px solid transparent; background: none; color: var(--text-2);
+  font-size: var(--fs-sm); cursor: pointer; text-align: left; text-decoration: none;
+}
 .v4-rail-item.on { background: var(--surface-3); color: var(--text); border-color: var(--line); }
-.v4-canvas { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-card); padding: 12px; min-height: 320px; min-width: 0; overflow-x: auto; }
+@media (hover: hover) and (pointer: fine) { .v4-rail-item:hover { background: var(--surface-3); color: var(--text); } }
+
+.v4-canvas {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-card);
+  padding: 12px; min-height: 360px; min-width: 0; overflow-x: auto;
+}
+.v4-canvas svg, .v4-canvas canvas { max-width: 100%; }
+
 .v4-below { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-.v4-controlbar { display: flex; justify-content: space-between; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; flex-wrap: wrap; }
+.v4-controlbar {
+  display: flex; justify-content: space-between; gap: 10px; align-items: center;
+  border-top: 1px solid var(--line); padding-top: 10px; flex-wrap: wrap;
+}
 
 @media (max-width: 1023px) {
   .v4-rail { flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
   .v4-rail .ui-index { display: none; }
   .v4-rail-item { flex: 0 0 auto; white-space: nowrap; }
 }
+
+/* ---- STRUCTURAL GUARD: an embedded viz shell can never collapse its stage ----
+   Pattern A (flat shell): root has header + 3 regions as direct children.
+   Pattern B (nested shell): root > body-wrapper > 3 regions.
+   :has() keeps each rule inert unless the pattern actually matches. */
+.v4-canvas > * { width: 100%; min-width: 960px; }
+@media (max-width: 1023px) { .v4-canvas > * { min-width: 0; } }
+
+/* Pattern A */
+.v4-canvas > *:has(> *:nth-child(4)) { display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch; }
+.v4-canvas > *:has(> *:nth-child(4)) > *:nth-child(1) { flex: 1 1 100%; }
+.v4-canvas > *:has(> *:nth-child(4)) > *:nth-child(2) { flex: 1 1 260px; min-width: 240px; }
+.v4-canvas > *:has(> *:nth-child(4)) > *:nth-child(3) { flex: 3 1 380px; min-width: 320px; }
+.v4-canvas > *:has(> *:nth-child(4)) > *:nth-child(4) { flex: 1 1 280px; min-width: 260px; }
+
+/* Pattern B */
+.v4-canvas > * > *:nth-child(2):has(> *:nth-child(3)):not(:has(> *:nth-child(4))) {
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch;
+}
+.v4-canvas > * > *:nth-child(2):has(> *:nth-child(3)):not(:has(> *:nth-child(4))) > *:nth-child(1) { flex: 1 1 260px; min-width: 240px; }
+.v4-canvas > * > *:nth-child(2):has(> *:nth-child(3)):not(:has(> *:nth-child(4))) > *:nth-child(2) { flex: 3 1 380px; min-width: 320px; }
+.v4-canvas > * > *:nth-child(2):has(> *:nth-child(3)):not(:has(> *:nth-child(4))) > *:nth-child(3) { flex: 1 1 280px; min-width: 260px; }
