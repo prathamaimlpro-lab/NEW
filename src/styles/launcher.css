@@ -1,0 +1,33 @@
+/* ============ PIXEL SUITE LAUNCHER (waffle menu) ============ */
+.waffle {
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: var(--r-ctl); border: 1px solid transparent;
+  background: none; color: var(--text-2); cursor: pointer;
+}
+.waffle:hover { background: var(--surface-3); color: var(--text); }
+
+.launcher {
+  position: absolute; right: 0; top: 48px;
+  width: min(400px, calc(100vw - 32px));
+  z-index: 56; background: var(--surface-2);
+  border: 1px solid var(--line-strong); border-radius: var(--r-card);
+  box-shadow: var(--elev-2); padding: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.launcher-head { display: flex; justify-content: space-between; align-items: center; }
+.launcher-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.launcher-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  padding: 12px 6px; min-height: 92px; border-radius: var(--r-ctl);
+  border: 1px solid transparent; background: var(--surface-1);
+  color: var(--text-2); text-decoration: none; text-align: center; cursor: pointer;
+}
+.launcher-tile:hover { background: var(--surface-3); color: var(--text); }
+.launcher-tile.on { border-color: var(--accent); color: var(--text); background: var(--accent-dim); }
+.launcher-tile.soon { opacity: .7; cursor: not-allowed; }
+.launcher-label { font-size: var(--fs-sm); font-weight: 600; color: inherit; }
+.launcher-sub { font-size: var(--fs-xs); color: var(--text-3); line-height: 1.3; }
+
+@media (max-width: 479px) {
+  .launcher { position: fixed; left: 16px; right: 16px; top: 64px; width: auto; }
+}
