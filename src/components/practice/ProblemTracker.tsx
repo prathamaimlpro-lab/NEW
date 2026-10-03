@@ -34,8 +34,8 @@ export function ProblemTracker() {
     if (topic !== 'all' && !(p.topics ?? []).includes(topic)) return false;
     const q = query.trim().toLowerCase();
     if (q) {
-      const desc = ((p as any).prompt ?? (p as any).description ?? '') as string;
-      const hay = [p.title, desc, (p.topics ?? []).join(' '), (p.patterns ?? []).join(' ')].join(' ').toLowerCase();
+      const desc = ((p as any).prompt ?? p.description ?? '') as string;
+      const hay = [p.title, desc, (p.topics ?? []).join(' '), p.pattern ?? ''].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -109,11 +109,12 @@ export function ProblemTracker() {
         {filtered.map(p => {
           const st = statusOf(p.id);
           const diffLabel = p.difficulty.charAt(0) + p.difficulty.slice(1).toLowerCase();
+          const topicLine = [p.pattern ?? '', ...(p.topics ?? [])].filter(Boolean).join(' · ');
           return (
             <Link key={p.id} role="listitem" className="pt-row" to={`/practice/problems/${p.id}`}>
               <span className="pt-main">
                 <span className="pt-title">{p.title}</span>
-                <span className="pt-topics">{[...(p.patterns ?? []), ...(p.topics ?? [])].join(' · ')}</span>
+                <span className="pt-topics">{topicLine}</span>
               </span>
               <span className="pt-badges">
                 <span className={`chip ${p.difficulty === 'HARD' ? 'chip-error' : p.difficulty === 'MEDIUM' ? 'chip-warning' : 'chip-success'}`}>
