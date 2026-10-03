@@ -1,0 +1,26 @@
+/* ============ PROFILE (cards + danger zone + reset dialog) ============ */
+.pf-cards { display: flex; flex-direction: column; gap: 16px; }
+.pf-card { border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-1); padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.pf-card h2 { margin: 0; }
+.pf-rows { display: flex; flex-direction: column; }
+.pf-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); font-size: var(--fs-sm); color: var(--text-2); flex-wrap: wrap; }
+.pf-row:first-child { border-top: none; }
+.pf-row strong { color: var(--text); font-weight: 600; }
+.pf-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pf-danger { border-color: rgba(248, 81, 73, .55); }
+.pf-danger h2 { color: var(--danger); }
+.pf-milestones { display: flex; flex-direction: column; gap: 6px; }
+.pf-milestone { display: flex; gap: 8px; align-items: flex-start; font-size: var(--fs-sm); color: var(--text-2); }
+.pf-milestone strong { color: var(--text); font-weight: 600; }
+
+/* reset dialog: centred modal on md+, bottom sheet on xs-sm */
+.pf-modal { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: var(--z-modal); width: min(440px, calc(100vw - 32px)); background: var(--surface-2); border: 1px solid var(--line-strong); border-radius: var(--r-dialog); padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--elev-2); }
+.pf-modal .sheet-handle { display: none; }
+.pf-modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+@media (max-width: 767px) {
+  .pf-modal { top: auto; bottom: 0; left: 0; transform: none; width: auto; border-radius: 16px 16px 0 0; border-bottom: none; max-height: 80dvh; overflow-y: auto; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .pf-modal .sheet-handle { display: block; width: 40px; height: 4px; border-radius: 999px; background: var(--line-strong); margin: 0 auto 4px; }
+}
+@media (max-width: 479px) {
+  .pf-actions .btn, .pf-modal-actions .btn { width: 100%; }
+}
