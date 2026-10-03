@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AssessmentRunner } from '../components/assessment/AssessmentRunner';
+import { CodingPractice } from '../components/practice/CodingPractice';
 import { ConceptRevisionSession } from '../components/revision/ConceptRevisionSession';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { ProblemTracker } from '../components/practice/ProblemTracker';
@@ -11,7 +13,7 @@ import { usePlayer } from '../store/PlayerContext';
 import type { Difficulty } from '../types';
 import '../styles/practice5.css';
 
-type Mode = 'knowledge' | 'assessments' | 'revision';
+type Mode = 'knowledge' | 'assessments' | 'coding' | 'revision';
 type KnowledgeView = 'questions' | 'tracker';
 type DiffFilter = 'all' | Difficulty;
 
@@ -51,6 +53,7 @@ export default function Practice() {
         options={[
           { value: 'knowledge', label: 'Knowledge' },
           { value: 'assessments', label: 'Assessments' },
+          { value: 'coding', label: 'Coding' },
           { value: 'revision', label: 'Revision' },
         ]}
       />
@@ -85,6 +88,8 @@ export default function Practice() {
           : <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>{assessments.map(a => <AssessmentRunner key={a.id} assessment={a} />)}</div>
       )}
 
+      {mode === 'coding' && <CodingPractice />}
+
       {mode === 'revision' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <ConceptRevisionSession />
@@ -116,5 +121,3 @@ export default function Practice() {
     </div>
   );
 }
-
-import { Link } from 'react-router-dom';
