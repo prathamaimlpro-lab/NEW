@@ -1,12 +1,19 @@
-/* ============ V4 PAGE COMPOSITION (lesson / practice / viz workspace) ============ */
+/* ============ V4/VIZ LAYOUT ============ */
 .v4-meta { display: flex; gap: 10px; flex-wrap: wrap; }
 .v4-meta .ui-pod { flex: 1; min-width: 140px; }
 
-.v4-viz { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-@media (min-width: 1024px) { .v4-viz { grid-template-columns: 200px minmax(0, 1fr) 280px; } }
+/* viz workspace: rail + full-width canvas (component owns its internal layout) */
+.v4-viz2 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 1024px) { .v4-viz2 { grid-template-columns: 220px minmax(0, 1fr); } }
 .v4-rail { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.v4-rail-item { display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px; border-radius: var(--r-control); border: 1px solid transparent; background: none; color: var(--text-secondary); font-size: 12px; cursor: pointer; text-align: left; }
-.v4-rail-item.on { background: var(--surface-3); color: var(--emphasis); border-color: var(--border-subtle); }
-.v4-canvas { background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--r-card); padding: 12px; min-height: 320px; min-width: 0; }
-.v4-inspector { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.v4-controlbar { display: flex; justify-content: space-between; gap: 10px; align-items: center; border-top: 1px solid var(--border-subtle); padding-top: 10px; flex-wrap: wrap; }
+.v4-rail-item { display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px; min-height: 36px; border-radius: var(--r-ctl); border: 1px solid transparent; background: none; color: var(--text-2); font-size: var(--fs-sm); cursor: pointer; text-align: left; text-decoration: none; align-items: center; }
+.v4-rail-item.on { background: var(--surface-3); color: var(--text); border-color: var(--line); }
+.v4-canvas { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-card); padding: 12px; min-height: 320px; min-width: 0; overflow-x: auto; }
+.v4-below { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.v4-controlbar { display: flex; justify-content: space-between; gap: 10px; align-items: center; border-top: 1px solid var(--line); padding-top: 10px; flex-wrap: wrap; }
+
+@media (max-width: 1023px) {
+  .v4-rail { flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 4px; }
+  .v4-rail .ui-index { display: none; }
+  .v4-rail-item { flex: 0 0 auto; white-space: nowrap; }
+}
