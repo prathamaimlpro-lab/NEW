@@ -1,0 +1,21 @@
+/* ============ CODING PRACTICE ============ */
+.cd-wrap { display: flex; flex-direction: column; gap: 16px; }
+.cd-tasks { display: flex; flex-direction: column; gap: 8px; }
+.cd-task { display: flex; justify-content: space-between; gap: 10px; align-items: center; width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-1); color: var(--text-2); cursor: pointer; text-align: left; font-size: var(--fs-sm); }
+.cd-task.on { border-color: var(--accent); color: var(--text); background: var(--surface-2); }
+.cd-task-title { font-weight: 600; color: var(--text); }
+.cd-task-meta { display: flex; gap: 6px; align-items: center; flex: none; }
+
+.cd-editor { width: 100%; min-height: 260px; resize: vertical; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-strong); border-radius: var(--r-ctl); padding: 12px; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; tab-size: 2; white-space: pre; overflow-x: auto; }
+.cd-editor:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.cd-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.cd-results { border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface-1); padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+.cd-case { display: flex; gap: 8px; align-items: flex-start; font-size: var(--fs-sm); color: var(--text-2); }
+.cd-case-ok { color: var(--ok); flex: none; }
+.cd-case-bad { color: var(--danger); flex: none; }
+.cd-case-detail { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-3); display: block; margin-top: 2px; }
+.cd-summary { font-size: var(--fs-sm); color: var(--text); font-weight: 600; }
+.cd-error { border: 1px solid rgba(248, 81, 73, .5); background: rgba(248, 81, 73, .08); border-radius: var(--r-ctl); padding: 10px 12px; font-size: var(--fs-sm); color: var(--danger); }
+.cd-hints { border-left: 2px solid var(--line-strong); padding-left: 12px; display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-sm); color: var(--text-2); }
+@media (max-width: 479px) { .cd-actions .btn { width: 100%; } }
