@@ -5,7 +5,7 @@ export type Tone = 'ok' | 'warn' | 'danger' | 'info' | 'neutral';
 
 const TONE_COLOR: Record<Tone, string> = {
   ok: 'var(--success)', warn: 'var(--warning)', danger: 'var(--danger)',
-  info: 'var(--action)', neutral: 'var(--text-subtle)',
+  info: 'var(--info)', neutral: 'var(--text-3)',
 };
 
 export function ProvenanceChip({ kind }: { kind: Provenance }) {
@@ -21,22 +21,21 @@ export function StatusDot({ tone, label }: { tone: Tone; label: string }) {
   );
 }
 
-export function SectionIndex({ index, label }: { index: string; label: string }) {
+export function SectionIndex({ label }: { index?: string; label: string }) {
   return (
     <div className="ui-sectionindex">
-      <span className="ui-mono">{index}</span>
-      <h2 className="ui-index" style={{ margin: 0 }}>{label}</h2>
+      <h2 className="ui-h2">{label}</h2>
       <span className="ui-rule" aria-hidden="true" />
     </div>
   );
 }
 
 export function StatementHeader({ lead, emphasis, chips }: { lead: string; emphasis?: string; chips?: React.ReactNode }) {
+  const title = lead.replace(/\s*—\s*$/, '');
   return (
     <header className="ui-statement">
-      <p className="ui-statement-lead">
-        {lead}{emphasis ? <> <strong className="ui-statement-em">{emphasis}</strong></> : null}
-      </p>
+      <h1 className="ui-h1">{title}</h1>
+      {emphasis && <p className="ui-desc">{emphasis}</p>}
       {chips && <div className="ui-statement-chips">{chips}</div>}
     </header>
   );
@@ -63,21 +62,17 @@ export function SegmentedTabs(props: {
 }
 
 export function Panel(props: {
-  index?: string; title: string; question?: string; provenance?: Provenance;
-  actions?: React.ReactNode; children: React.ReactNode; className?: string;
+  title: string; question?: string; actions?: React.ReactNode; children: React.ReactNode; className?: string;
 }) {
-  const { index, title, question, provenance, actions, children, className = '' } = props;
+  const { title, question, actions, children, className = '' } = props;
   return (
     <section className={`ui-panel ${className}`} aria-label={title}>
       <header className="ui-panel-head">
         <div>
-          <div className="ui-index">{index ? `${index} · ${title}` : title}</div>
+          <h2 className="ui-h2">{title}</h2>
           {question && <p className="ui-question">{question}</p>}
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {provenance && <ProvenanceChip kind={provenance} />}
-          {actions}
-        </div>
+        {actions && <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>{actions}</div>}
       </header>
       {children}
     </section>
@@ -86,9 +81,9 @@ export function Panel(props: {
 
 export function KpiValue(props: {
   label: string; value: string | number; unit?: string;
-  delta?: number; deltaSuffix?: string; provenance?: Provenance; children?: React.ReactNode;
+  delta?: number; deltaSuffix?: string; children?: React.ReactNode;
 }) {
-  const { label, value, unit, delta, deltaSuffix = '', provenance, children } = props;
+  const { label, value, unit, delta, deltaSuffix = '', children } = props;
   return (
     <div className="ui-kpi">
       <div className="ui-index">{label}</div>
@@ -97,13 +92,11 @@ export function KpiValue(props: {
         {unit && <span className="ui-kpi-unit">{unit}</span>}
         {delta !== undefined && (
           <span className={`ui-delta ${delta > 0 ? 'up' : delta < 0 ? 'down' : ''}`}>
-            {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '■ '}
-            {Math.abs(delta)}{deltaSuffix}
+            {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '■ '}{Math.abs(delta)}{deltaSuffix}
           </span>
         )}
       </div>
       {children}
-      {provenance && <ProvenanceChip kind={provenance} />}
     </div>
   );
 }
