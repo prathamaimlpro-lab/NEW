@@ -3,11 +3,13 @@ import { Link, useParams } from 'react-router-dom';
 import { ContentRenderer } from '../components/lesson/ContentRenderer';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { PublishedConcepts } from '../components/lesson/PublishedConcepts';
+import { EmptyState, SectionIndex, StatementHeader } from '../components/ui/primitives';
 import { lessons as dataLessons } from '../data/lessons';
 import { getLevel, getLessonProgress, getLessonState, getWorld, publishedLessons } from '../services/progressService';
 import * as contentStore from '../services/contentStore';
 import { usePlayer } from '../store/PlayerContext';
 import type { Lesson } from '../types';
+import '../components/dashboard3/pagev4.css';
 
 const source: Record<string, Lesson> =
   typeof (contentStore as any).getLessons === 'function' ? (contentStore as any).getLessons() : dataLessons;
@@ -30,20 +32,22 @@ export default function LessonPage() {
 
   if (!lesson) {
     return (
-      <div className="card">
-        <h1 className="t-hmd">Lesson not found</h1>
-        <p className="t-body" style={{ marginTop: 8 }}>This lesson may have been unpublished or moved.</p>
-        <Link className="btn btn-secondary" style={{ marginTop: 16 }} to="/learn">Back to Curriculum</Link>
+      <div className="ui-panel">
+        <StatementHeader lead="Lesson not found —" emphasis="it may have been unpublished or moved." />
+        <EmptyState action={<Link className="btn btn-secondary btn-sm" to="/learn">Back to Curriculum</Link>}>
+          No lesson exists at this address.
+        </EmptyState>
       </div>
     );
   }
 
   if (state === 'locked') {
     return (
-      <div className="card">
-        <h1 className="t-hmd">{lesson.title}</h1>
-        <p className="t-body" style={{ marginTop: 8 }}>This lesson is locked. Complete the previous lessons in this level to unlock it.</p>
-        <Link className="btn btn-secondary" style={{ marginTop: 16 }} to={`/learn/level/${lesson.levelId}`}>View level</Link>
+      <div className="ui-panel">
+        <StatementHeader lead={lesson.title} emphasis="is locked." />
+        <EmptyState action={<Link className="btn btn-secondary btn-sm" to={`/learn/level/${lesson.levelId}`}>View level</Link>}>
+          Complete the previous lessons in this level to unlock it.
+        </EmptyState>
       </div>
     );
   }
@@ -52,17 +56,23 @@ export default function LessonPage() {
 
   return (
     <>
-      <header style={{ padding: '24px 2px 0' }}>
-        <div className="d-eyebrow" style={{ marginBottom: 8 }}>
-          {world ? `W${world.number} · ${world.title}` : ''}{level ? ` · Level ${level.number}` : ''}
-        </div>
-        <h1 className="d-h1" style={{ fontSize: 28, lineHeight: '36px' }}>{lesson.title}</h1>
-        <p className="d-micro" style={{ marginTop: 8 }}>
-          {lesson.estimatedMinutes} min · +{lesson.xpReward} XP · {progress}% complete
-        </p>
-      </header>
+      <StatementHeader
+        lead={`World ${world?.number ?? '—'} · Level ${level?.number ?? '—'} · Lesson ${idx + 1}/${siblings.length}`}
+        emphasis={lesson.title}
+      />
 
-      <div className="reading" style={{ marginTop: 24 }}>
+      <div className="v4-meta">
+        <div className="ui-pod"><span className="ui-index">Duration</span><span className="ui-mono" style={{ color: 'var(--text-primary)' }}>{lesson.estimatedMinutes} min</span></div>
+        <div className="ui-pod"><span className="ui-index">Reward</span><span className="ui-mono" style={{ color: 'var(--text-primary)' }}>+{lesson.xpReward} XP</span></div>
+        <div className="ui-pod">
+          <span className="ui-index">Progress</span>
+          <div className="hero-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Lesson progress"><div style={{ width: `${progress}%` }} /></div>
+          <span className="ui-mono ui-muted">{progress}% complete</span>
+        </div>
+      </div>
+
+      <SectionIndex index="01" label="Read" />
+      <div className="reading">
         <ContentRenderer blocks={blocks} />
         <div style={{ marginTop: 24 }}>
           <PublishedConcepts lessonId={lesson.id} />
@@ -70,32 +80,35 @@ export default function LessonPage() {
       </div>
 
       {lesson.practice.length > 0 && (
-        <section className="card" style={{ marginTop: 24 }}>
-          <div className="d-eyebrow" style={{ marginBottom: 12 }}>Knowledge check</div>
-          <PracticeEngine questions={lesson.practice} title={lesson.title} />
-        </section>
+        <>
+          <SectionIndex index="02" label="Knowledge check" />
+          <div className="ui-panel">
+            <PracticeEngine questions={lesson.practice} title={lesson.title} />
+          </div>
+        </>
       )}
 
       {lesson.masteryTest.length > 0 && (
-        <section className="card" style={{ marginTop: 16 }}>
-          <div className="d-eyebrow" style={{ marginBottom: 12 }}>Mastery test</div>
-          <PracticeEngine questions={lesson.masteryTest} title={`${lesson.title} — mastery`} />
-        </section>
+        <>
+          <SectionIndex index="03" label="Mastery test" />
+          <div className="ui-panel">
+            <PracticeEngine questions={lesson.masteryTest} title={`${lesson.title} — mastery`} />
+          </div>
+        </>
       )}
 
-      <section className="card" style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <SectionIndex index="04" label="Complete" />
+      <div className="ui-panel" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div className="d-title">{completed ? 'Lesson completed' : 'Finish this lesson'}</div>
-          <div className="d-micro" style={{ marginTop: 4 }}>
+          <div className="ui-pod-title">{completed ? 'Lesson completed' : 'Finish this lesson'}</div>
+          <div className="ui-mono ui-muted" style={{ marginTop: 4 }}>
             {completed ? `+${lesson.xpReward} XP awarded` : 'Complete the checks above, then mark complete.'}
           </div>
         </div>
         {!completed && (
-          <button type="button" className="btn btn-primary" onClick={() => completeLesson(lesson.id, lesson.xpReward)}>
-            Mark complete
-          </button>
+          <button type="button" className="btn btn-primary" onClick={() => completeLesson(lesson.id, lesson.xpReward)}>Mark complete</button>
         )}
-      </section>
+      </div>
 
       <nav style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 24, flexWrap: 'wrap' }} aria-label="Lesson navigation">
         {prev ? <Link className="btn btn-ghost" to={`/learn/lesson/${prev.id}`}>← {prev.title}</Link> : <span />}
