@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { getOverallCompletion } from '../../services/progressService';
+import { getOverallCompletion, getRevisionDue } from '../../services/progressService';
 import { usePlayer } from '../../store/PlayerContext';
 import { PixelWordmark } from '../brand/PixelLogo';
 import { Icon } from '../common/Icon';
@@ -15,14 +15,12 @@ const CollapseIcon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill
 export function Sidebar() {
   const { stats } = usePlayer();
   const overall = getOverallCompletion(stats);
-  const [collapsed, setCollapsed] = useState<boolean>(() => {
-    try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch { return false; }
-  });
+  const due = getRevisionDue(stats).length;
+  const [collapsed, setCollapsed] = useState<boolean>(() => { try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch { return false; } });
   const [drawer, setDrawer] = useState(false);
 
   useEffect(() => { try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch { /* ignore */ } }, [collapsed]);
 
-  const toggleCollapse = () => setCollapsed(c => !c);
   const openSearch = () => (document.querySelector('.tb-search button') as HTMLButtonElement | null)?.click();
 
   return (
@@ -31,7 +29,7 @@ export function Sidebar() {
       <aside className={`sidebar ${collapsed ? 'rail' : ''} ${drawer ? 'drawer' : ''}`} aria-label="Primary navigation">
         <div className="sb-head">
           <PixelWordmark size={15} />
-          <button type="button" className="sb-collapse" onClick={toggleCollapse} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-pressed={collapsed}><CollapseIcon /></button>
+          <button type="button" className="sb-collapse" onClick={() => setCollapsed(c => !c)} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-pressed={collapsed}><CollapseIcon /></button>
           <button type="button" className="sb-expand" onClick={() => setDrawer(true)} aria-label="Expand navigation"><CollapseIcon /></button>
         </div>
 
@@ -44,8 +42,9 @@ export function Sidebar() {
           <NavLink to="/learn" title="Curriculum" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
             <Icon name="learn" size={18} /> <span className="sb-label">Curriculum</span>
           </NavLink>
-          <NavLink to="/practice" title="Practice" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/practice" title={due ? `Practice, ${due} revision due` : 'Practice'} className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
             <Icon name="practice" size={18} /> <span className="sb-label">Practice</span>
+            {due > 0 && <span className="sb-badge" aria-hidden="true">{due}</span>}
           </NavLink>
           <NavLink to="/projects" title="Projects" className={({ isActive }) => `sb-link ${isActive ? 'active' : ''}`}>
             <ProjectsIcon /> <span className="sb-label">Projects</span>
