@@ -25,7 +25,7 @@ export function SectionIndex({ index, label }: { index: string; label: string })
   return (
     <div className="ui-sectionindex">
       <span className="ui-mono">{index}</span>
-      <span className="ui-index">{label}</span>
+      <h2 className="ui-index" style={{ margin: 0 }}>{label}</h2>
       <span className="ui-rule" aria-hidden="true" />
     </div>
   );
@@ -42,7 +42,6 @@ export function StatementHeader({ lead, emphasis, chips }: { lead: string; empha
   );
 }
 
-/* Pill segmented tabs; seam=true bridges the hairline between two blocks */
 export function SegmentedTabs(props: {
   options: { value: string; label: string }[];
   value: string;
