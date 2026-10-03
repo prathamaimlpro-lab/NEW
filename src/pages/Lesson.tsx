@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ContentRenderer } from '../components/lesson/ContentRenderer';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { PublishedConcepts } from '../components/lesson/PublishedConcepts';
+import { toast } from '../components/feedback/Toasts';
 import { EmptyState, SectionIndex, StatementHeader } from '../components/ui/primitives';
 import { lessons as dataLessons } from '../data/lessons';
 import { getLevel, getLessonProgress, getLessonState, getWorld, publishedLessons } from '../services/progressService';
@@ -30,10 +31,19 @@ export default function LessonPage() {
   const prev = idx > 0 ? siblings[idx - 1] : undefined;
   const nextLesson = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : undefined;
 
+  const onComplete = () => {
+    if (!lesson || !level) return;
+    completeLesson(lesson.id, lesson.xpReward);
+    const after = new Set([...stats.completedLessons, lesson.id]);
+    if (siblings.every(l => after.has(l.id))) {
+      toast(`Level ${level.number} complete. The next level is now open.`);
+    }
+  };
+
   if (!lesson) {
     return (
       <div className="ui-panel">
-        <StatementHeader lead="Lesson not found —" emphasis="it may have been unpublished or moved." />
+        <StatementHeader lead="Lesson not found" emphasis="it may have been unpublished or moved." />
         <EmptyState action={<Link className="btn btn-secondary btn-sm" to="/learn">Back to Curriculum</Link>}>
           No lesson exists at this address.
         </EmptyState>
@@ -71,7 +81,7 @@ export default function LessonPage() {
         </div>
       </div>
 
-      <SectionIndex index="01" label="Read" />
+      <SectionIndex label="Read" />
       <div className="reading">
         <ContentRenderer blocks={blocks} />
         <div style={{ marginTop: 24 }}>
@@ -81,7 +91,7 @@ export default function LessonPage() {
 
       {lesson.practice.length > 0 && (
         <>
-          <SectionIndex index="02" label="Knowledge check" />
+          <SectionIndex label="Knowledge check" />
           <div className="ui-panel">
             <PracticeEngine questions={lesson.practice} title={lesson.title} />
           </div>
@@ -90,14 +100,14 @@ export default function LessonPage() {
 
       {lesson.masteryTest.length > 0 && (
         <>
-          <SectionIndex index="03" label="Mastery test" />
+          <SectionIndex label="Mastery test" />
           <div className="ui-panel">
             <PracticeEngine questions={lesson.masteryTest} title={`${lesson.title} — mastery`} />
           </div>
         </>
       )}
 
-      <SectionIndex index="04" label="Complete" />
+      <SectionIndex label="Complete" />
       <div className="ui-panel" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <div className="ui-pod-title">{completed ? 'Lesson completed' : 'Finish this lesson'}</div>
@@ -106,7 +116,7 @@ export default function LessonPage() {
           </div>
         </div>
         {!completed && (
-          <button type="button" className="btn btn-primary" onClick={() => completeLesson(lesson.id, lesson.xpReward)}>Mark complete</button>
+          <button type="button" className="btn btn-primary" onClick={onComplete}>Mark complete</button>
         )}
       </div>
 
