@@ -1,113 +1,128 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { levels } from '../../data/curriculum';
 import { problems } from '../../data/problems';
 import { usePlayer } from '../../store/PlayerContext';
-import type { Difficulty } from '../../types';
 
-type StatusFilter = 'ALL' | 'not-started' | 'attempted' | 'solved' | 'review' | 'mastered' | 'favourite' | 'recent';
+type Status = 'all' | 'not-started' | 'in-progress' | 'solved' | 'mastered';
+type Diff = 'all' | 'EASY' | 'MEDIUM' | 'HARD';
 
-export function statusOf(stats: ReturnType<typeof usePlayer>['stats'], id: string): 'not-started' | 'attempted' | 'solved' | 'review' | 'mastered' {
-  const r = stats.problems[id];
-  if (!r || r.attempts === 0) return 'not-started';
-  if (r.mastered) return 'mastered';
-  if (r.review && r.solved) return 'review';
-  return r.solved ? 'solved' : 'attempted';
-}
-
-const STATUS_CHIP: Record<ReturnType<typeof statusOf>, { label: string; cls: string }> = {
-  'not-started': { label: 'Not Started', cls: 'chip' },
-  attempted: { label: 'Attempted', cls: 'chip chip-info' },
-  solved: { label: 'Solved', cls: 'chip chip-success' },
-  review: { label: 'Needs Revision', cls: 'chip chip-warning' },
-  mastered: { label: 'Mastered', cls: 'chip chip-success' },
+const STATUS_LABEL: Record<Exclude<Status, 'all'>, string> = {
+  'not-started': 'Not started', 'in-progress': 'In progress', solved: 'Solved', mastered: 'Mastered',
 };
 
 export function ProblemTracker() {
   const { stats } = usePlayer();
-  const [q, setQ] = useState('');
-  const [diff, setDiff] = useState<'ALL' | Difficulty>('ALL');
-  const [status, setStatus] = useState<StatusFilter>('ALL');
-  const [topic, setTopic] = useState('ALL');
-  const [pattern, setPattern] = useState('ALL');
-  const [level, setLevel] = useState('ALL');
+  const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [diff, setDiff] = useState<Diff>('all');
+  const [status, setStatus] = useState<Status>('all');
+  const [topic, setTopic] = useState('all');
 
-  const topics = useMemo(() => [...new Set(problems.flatMap(p => p.topics))].sort(), []);
-  const patterns = useMemo(() => [...new Set(problems.map(p => p.pattern))].sort(), []);
-  const activeCount = [diff !== 'ALL', status !== 'ALL', topic !== 'ALL', pattern !== 'ALL', level !== 'ALL', q !== ''].filter(Boolean).length;
+  const topics = useMemo(() => [...new Set(problems.flatMap(p => (p.topics ?? []) as string[]))].sort(), []);
 
-  const filtered = problems.filter(p => p.status === 'PUBLISHED').filter(p => {
-    const st = statusOf(stats, p.id);
-    const rec = stats.problems[p.id];
-    if (q && !(p.title + p.description).toLowerCase().includes(q.toLowerCase())) return false;
-    if (diff !== 'ALL' && p.difficulty !== diff) return false;
-    if (topic !== 'ALL' && !p.topics.includes(topic)) return false;
-    if (pattern !== 'ALL' && p.pattern !== pattern) return false;
-    if (level !== 'ALL' && p.relatedLevel !== level) return false;
-    if (status === 'favourite') return !!rec?.favourite;
-    if (status === 'recent') return !!rec?.lastAttempted && (Date.now() - new Date(rec.lastAttempted).getTime()) < 7 * 86400000;
-    if (status !== 'ALL' && st !== status) return false;
+  const statusOf = (id: string): Exclude<Status, 'all'> => {
+    const r = (stats.problems as any)[id];
+    if (!r || !r.attempts) return 'not-started';
+    if (r.mastered) return 'mastered';
+    if (r.solved) return 'solved';
+    return 'in-progress';
+  };
+
+  const filtered = problems.filter(p => {
+    if (diff !== 'all' && p.difficulty !== diff) return false;
+    if (status !== 'all' && statusOf(p.id) !== status) return false;
+    if (topic !== 'all' && !(p.topics ?? []).includes(topic)) return false;
+    const q = query.trim().toLowerCase();
+    if (q) {
+      const hay = `${p.title} ${(p as any).prompt ?? ${(p as any).description ?? ''}} ${(p.topics ?? []).join(' ')} ${(p.patterns ?? []).join(' ')}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div className="pfilters">
-        <button type="button" className="btn btn-sm btn-ghost pfilters-toggle" onClick={() => setOpen(v => !v)} aria-expanded={open}>
-          Filters{activeCount > 0 ? ` (${activeCount})` : ''}
-        </button>
-        <div className={`pfilters-row ${open ? 'open' : ''}`}>
-          <input className="input" style={{ flex: '1 1 200px' }} placeholder="Search problems…" value={q} onChange={e => setQ(e.target.value)} aria-label="Search problems" />
-          <select className="input" style={{ width: 120 }} value={diff} onChange={e => setDiff(e.target.value as 'ALL' | Difficulty)} aria-label="Difficulty filter">
-            <option value="ALL">Difficulty</option><option value="EASY">Easy</option><option value="MEDIUM">Medium</option><option value="HARD">Hard</option>
-          </select>
-          <select className="input" style={{ width: 150 }} value={status} onChange={e => setStatus(e.target.value as StatusFilter)} aria-label="Status filter">
-            <option value="ALL">Status</option><option value="not-started">Not Started</option><option value="attempted">Attempted</option><option value="solved">Solved</option><option value="review">Needs Revision</option><option value="mastered">Mastered</option><option value="favourite">Favourite</option><option value="recent">Recently Solved</option>
-          </select>
-          <select className="input" style={{ width: 130 }} value={topic} onChange={e => setTopic(e.target.value)} aria-label="Topic filter">
-            <option value="ALL">Topic</option>{topics.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select className="input" style={{ width: 150 }} value={pattern} onChange={e => setPattern(e.target.value)} aria-label="Pattern filter">
-            <option value="ALL">Pattern</option>{patterns.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <select className="input" style={{ width: 130 }} value={level} onChange={e => setLevel(e.target.value)} aria-label="Related level filter">
-            <option value="ALL">Level</option>
-            {levels.filter(l => problems.some(p => p.relatedLevel === l.id)).map(l => <option key={l.id} value={l.id}>Level {l.number}</option>)}
-          </select>
-        </div>
-      </div>
-      <style>{`
-        .pfilters-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        @media (max-width: 767px) { .pfilters-row { display: none; } .pfilters-row.open { display: flex; } }
-        @media (min-width: 768px) { .pfilters-toggle { display: none; } }
-      `}</style>
+  const activeChips: { label: string; clear: () => void }[] = [];
+  if (diff !== 'all') activeChips.push({ label: diff.toLowerCase(), clear: () => setDiff('all') });
+  if (status !== 'all') activeChips.push({ label: STATUS_LABEL[status as Exclude<Status, 'all'>], clear: () => setStatus('all') });
+  if (topic !== 'all') activeChips.push({ label: topic, clear: () => setTopic('all') });
 
-      {filtered.length === 0 ? (
-        <div className="dempty">No problems match the current filters. Clear a filter or search a different term.</div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {filtered.map(p => {
-            const st = statusOf(stats, p.id);
-            const rec = stats.problems[p.id];
-            const chip = STATUS_CHIP[st];
-            return (
-              <Link key={p.id} to={`/practice/problems/${p.id}`} className="card card-interactive" style={{ padding: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span className="d-body" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{p.title}</span>
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <span className={`chip ${p.difficulty === 'EASY' ? 'chip-success' : p.difficulty === 'MEDIUM' ? 'chip-warning' : 'chip-error'}`}>{p.difficulty}</span>
-                    <span className={chip.cls}>{chip.label}</span>
-                    {rec?.favourite && <span className="chip">★ Favourite</span>}
-                  </div>
-                </div>
-                <p className="d-body-sm" style={{ marginTop: 8, color: 'var(--text-secondary)' }}>{p.description}</p>
-                <div className="d-micro" style={{ marginTop: 8, color: 'var(--text-muted)' }}>{p.pattern} · {p.topics.join(' · ')}</div>
-              </Link>
-            );
-          })}
+  return (
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div className="pt-head">
+        <label className="pt-search">
+          <span className="sr-only">Search problems</span>
+          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search problems" />
+        </label>
+        <button type="button" className="btn btn-secondary" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(v => !v)}>
+          Filters{activeChips.length ? ` · ${activeChips.length}` : ''}
+        </button>
+      </div>
+
+      {activeChips.length > 0 && (
+        <div className="chip-row" aria-label="Active filters">
+          {activeChips.map(c => (
+            <button key={c.label} type="button" className="chip-btn" aria-pressed="true" onClick={c.clear}>
+              {c.label} ✕
+            </button>
+          ))}
         </div>
       )}
+
+      {open && (
+        <>
+          <button type="button" className="sheet-scrim" aria-label="Close filters" onClick={() => setOpen(false)} />
+          <div className="pt-filters" role="dialog" aria-label="Problem filters">
+            <div className="pt-fgroup">
+              <span className="ui-index">Difficulty</span>
+              <div className="chip-row">
+                {(['all', 'EASY', 'MEDIUM', 'HARD'] as Diff[]).map(d => (
+                  <button key={d} type="button" className="chip-btn" aria-pressed={diff === d} onClick={() => setDiff(d)}>
+                    {d === 'all' ? 'All' : d.charAt(0) + d.slice(1).toLowerCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pt-fgroup">
+              <span className="ui-index">Status</span>
+              <div className="chip-row">
+                {(['all', 'not-started', 'in-progress', 'solved', 'mastered'] as Status[]).map(s => (
+                  <button key={s} type="button" className="chip-btn" aria-pressed={status === s} onClick={() => setStatus(s)}>
+                    {s === 'all' ? 'All' : STATUS_LABEL[s as Exclude<Status, 'all'>]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="pt-fgroup">
+              <span className="ui-index">Topic</span>
+              <select className="input" value={topic} onChange={e => setTopic(e.target.value)} aria-label="Filter by topic">
+                <option value="all">All topics</option>
+                {topics.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <button type="button" className="btn btn-primary" onClick={() => setOpen(false)}>Done</button>
+          </div>
+        </>
+      )}
+
+      <div className="pt-list" role="list" aria-label="Problems">
+        {filtered.length === 0 && <div className="dempty">No problems match your search or filters.</div>}
+        {filtered.map(p => {
+          const st = statusOf(p.id);
+          return (
+            <Link key={p.id} role="listitem" className="pt-row" to={`/practice/problems/${p.id}`}>
+              <span className="pt-main">
+                <span className="pt-title">{p.title}</span>
+                <span className="pt-topics">{[...(p.patterns ?? []), ...(p.topics ?? [])].join(' · ')}</span>
+              </span>
+              <span className="pt-badges">
+                <span className={`chip ${p.difficulty === 'HARD' ? 'chip-error' : p.difficulty === 'MEDIUM' ? 'chip-warning' : 'chip-success'}`}>
+                  {p.difficulty.charAt(0) + p.difficulty.slice(1).toLowerCase()}
+                </span>
+                <span className="chip">{STATUS_LABEL[st]}</span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }
