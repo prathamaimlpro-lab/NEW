@@ -20,7 +20,6 @@ import { OnboardingPanel } from '../components/dashboard/panels';
 import { SectionIndex, StatementHeader } from '../components/ui/primitives';
 import { useDashboardData } from '../dashboard/useDashboard';
 import { useRealtimeRefresh } from '../dashboard/useRealtimeRefresh';
-import * as auth from '../services/authService';
 import { usePlayer } from '../store/PlayerContext';
 import '../styles/dashboard.css';
 import '../styles/dashboard-motion.css';
@@ -30,7 +29,6 @@ export default function Home() {
   useRealtimeRefresh();
   const { stats } = usePlayer();
 
-  const name = ((auth as any).getName?.() ?? (auth as any).getDisplayName?.() ?? null) as string | null;
   const hour = new Date().getHours();
   const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   const vel = d.velocity.status === 'ready' && d.velocity.data ? d.velocity.data.lessonsPerWeek : null;
@@ -44,7 +42,7 @@ export default function Home() {
       <h1 className="sr-only">Pixel Dashboard</h1>
 
       <div className="v3-top">
-        <StatementHeader lead={`${greet}${name ? `, ${name.split(' ')[0]}` : ''} —`} emphasis={evidence} />
+        <StatementHeader lead={`${greet} —`} emphasis={evidence} />
         <ContextCard />
       </div>
 
