@@ -10,10 +10,10 @@ import { QuickFind } from './QuickFind';
 
 const SEEN_KEY = 'pixel_notif_seen';
 const LABELS: [string, string][] = [
-  ['/learn/lesson', 'LESSON'], ['/learn/level', 'LEVEL'], ['/learn', 'CURRICULUM'],
-  ['/practice/problems', 'PROBLEM'], ['/practice', 'PRACTICE'], ['/progress', 'PROGRESS'],
-  ['/projects', 'PROJECTS'], ['/graph', 'KNOWLEDGE GRAPH'], ['/books', 'BOOKS'], ['/community', 'COMMUNITY'],
-  ['/settings', 'SETTINGS'], ['/explore/viz', 'VISUALIZATION LAB'], ['/explore', 'EXPLORE'], ['/', 'LEARNING OS'],
+  ['/learn/lesson', 'Lesson'], ['/learn/level', 'Level'], ['/learn', 'Curriculum'],
+  ['/practice/problems', 'Problem'], ['/practice', 'Practice'], ['/progress', 'Progress'],
+  ['/projects', 'Projects'], ['/graph', 'Knowledge Graph'], ['/settings', 'Settings'],
+  ['/explore/viz', 'Visualization Lab'], ['/explore', 'Explore'], ['/', 'Home'],
 ];
 
 export function Topbar() {
@@ -25,7 +25,7 @@ export function Topbar() {
   const popRef = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
 
-  const routeLabel = LABELS.find(([p]) => (p === '/' ? pathname === '/' : pathname.startsWith(p)))?.[1] ?? 'LEARNING OS';
+  const routeLabel = LABELS.find(([p]) => (p === '/' ? pathname === '/' : pathname.startsWith(p)))?.[1] ?? 'Home';
   const insights = selectWhatChangedInsights(stats);
   const seen = storageService.get<string>(SEEN_KEY, '');
   const unread = insights.filter(i => i.when > seen).length;
@@ -35,9 +35,7 @@ export function Topbar() {
   useEffect(() => {
     if (!bellOpen && !userOpen) return;
     popRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setBellOpen(false); setUserOpen(false); bellRef.current?.focus(); }
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setBellOpen(false); setUserOpen(false); bellRef.current?.focus(); } };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [bellOpen, userOpen]);
@@ -63,8 +61,8 @@ export function Topbar() {
     <header className="topbar">
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, color: 'var(--text-primary)' }}>
         <PixelWordmark size={11} />
-        <span style={{ color: 'var(--text-subtle)' }} aria-hidden="true">/</span>
-        <span className="label-mono" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{routeLabel}</span>
+        <span style={{ color: 'var(--text-3)' }} aria-hidden="true">/</span>
+        <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{routeLabel}</span>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -79,11 +77,11 @@ export function Topbar() {
             <>
               <button type="button" className="dialog-scrim" style={{ zIndex: 55, background: 'transparent' }} aria-label="Close notifications" onClick={() => setBellOpen(false)} />
               <div ref={popRef} tabIndex={-1} role="dialog" aria-label="Notifications" className="dialog" style={{ position: 'absolute', right: 0, top: 44, width: 300, zIndex: 56, padding: 12 }}>
-                <div className="label-mono" style={{ padding: '4px 8px 8px' }}>What changed</div>
-                {insights.length === 0 && <p className="t-body-sm" style={{ padding: 8, color: 'var(--text-secondary)' }}>No progress changes yet.</p>}
+                <div className="ui-index" style={{ padding: '4px 8px 8px' }}>What changed</div>
+                {insights.length === 0 && <p className="ui-desc" style={{ padding: 8 }}>No progress changes yet.</p>}
                 {insights.slice(0, 6).map(i => (
                   <div key={i.id} style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span className="t-body-sm" style={{ color: 'var(--text-primary)' }}>{i.title}</span>
+                    <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>{i.title}</span>
                     <span className="ui-mono">{formatWhen(i.when)}</span>
                   </div>
                 ))}
@@ -95,11 +93,10 @@ export function Topbar() {
         <div style={{ position: 'relative' }}>
           <button ref={userRef} type="button" className="tb-user" aria-expanded={userOpen} aria-haspopup="menu" onClick={() => { setUserOpen(v => !v); setBellOpen(false); }}>
             <span className="avatar" aria-hidden="true"><Icon name="profile" size={16} /></span>
-            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.15 }}>
-              <span className="t-body-sm" style={{ color: 'var(--text-primary)' }}>{session?.email ? session.email.split('@')[0] : 'Learner'}</span>
-              <span className="ui-mono">Lv {stats.level} · {stats.xp.toLocaleString()} XP</span>
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1.2 }}>
+              <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>{session?.email ? session.email.split('@')[0] : 'Learner'}</span>
+              <span className="ui-mono">Level {stats.level} · {stats.xp.toLocaleString()} XP</span>
             </span>
-            <Icon name="progress" size={12} />
           </button>
           {userOpen && (
             <>
@@ -108,9 +105,7 @@ export function Topbar() {
                 <Link role="menuitem" className="sb-tool" to="/profile">Profile</Link>
                 <Link role="menuitem" className="sb-tool" to="/settings">Settings</Link>
                 {isAdmin && <Link role="menuitem" className="sb-tool" to="/admin/dashboard">Admin</Link>}
-                {session && (
-                  <button role="menuitem" type="button" className="sb-tool" onClick={async () => { await signOut(); setUserOpen(false); }}>Sign out</button>
-                )}
+                {session && <button role="menuitem" type="button" className="sb-tool" onClick={async () => { await signOut(); setUserOpen(false); }}>Sign out</button>}
               </div>
             </>
           )}
