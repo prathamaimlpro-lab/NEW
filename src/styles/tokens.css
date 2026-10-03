@@ -1,77 +1,107 @@
-/* ============ PIXEL — DESIGN TOKENS (audit-approved, single source of truth) ============
-   Contrast measured: text 16.3:1 / text-2 8.5:1 / text-3 5.3:1 on --bg.
-   Orange = primary action + current location only. Green/amber/red = status only. */
+/* ============ PIXEL — CENTRAL DESIGN TOKENS (single source of truth) ============
+   Canonical names per spec; legacy aliases kept so existing components re-theme
+   without per-file rewrites. No colour/size/spacing/radius may be hard-coded elsewhere. */
 :root {
   color-scheme: dark;
   /* surfaces */
-  --bg: #0b0d10; --surface-0: #0b0d10; --color-background: #0b0d10; --canvas: #0b0d10;
-  --surface-1: #12151a; --color-surface: #12151a; --surface: #12151a; --elevated: #12151a;
-  --surface-2: #181c22; --surface-3: #1e242b; --hover: #1e242b;
-  /* lines */
-  --line: #2a3039; --border-subtle: #2a3039; --color-border: #2a3039;
-  --border-strong: #3a424d;
-  /* text */
-  --text: #e8ebef; --text-primary: #e8ebef; --color-text-primary: #e8ebef; --fg-0: #e8ebef; --emphasis: #ffffff;
-  --text-2: #a3acb8; --text-secondary: #a3acb8; --color-text-secondary: #a3acb8; --fg-1: #a3acb8; --fg-2: #a3acb8; --neutral: #a3acb8;
-  --text-3: #7d8793; --text-muted: #7d8793; --text-subtle: #7d8793; --fg-3: #7d8793; --disabled: #7d8793;
+  --bg: #0b0d10; --surface-1: #12151a; --surface-2: #181c22; --surface-3: #20252d;
+  --line: #2a3039; --line-strong: #3a424e;
+  /* text (16.3 / 8.5 / 5.3 : 1 on --bg) */
+  --text: #e8ebef; --text-2: #a3acb8; --text-3: #7d8793;
   /* brand + status */
-  --accent: #ff8a3d; --on-accent: #1a0e05;
-  --action: #ff8a3d; --action-text: #ff8a3d; --focus-marker: #ff8a3d;
-  --ok: #3fb950; --success: #3fb950; --success-text: #56d364; --mint-ink: #56d364; --accent-soft: #3fb950;
-  --warn: #d29922; --warning: #d29922;
-  --danger: #f85149; --error: #f85149;
-  --info: #58a6ff;
-  --signal-mastered: #3fb950; --signal-strong: #58a6ff; --signal-developing: #a3acb8; --signal-weak: #d29922; --signal-critical: #f85149; --signal-focus: #ff8a3d;
-  --color-primary: #e8ebef; --primary: #e8ebef; --primary-hover: #ffffff; --primary-subtle: rgba(255, 255, 255, .08);
-  /* type: one sans for UI; mono for numbers/code only */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --fs-xs: 12px; --fs-sm: 13px; --fs-md: 14px; --fs-lg: 16px; --fs-h2: 16px; --fs-h1: 24px; --fs-num: 28px;
-  /* space + shape */
-  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
-  --r-tag: 6px; --r-control: 6px; --r-sm: 6px; --r-md: 6px;
-  --r-card: 8px; --r-lg: 8px; --r-pod: 8px; --r-dialog: 12px; --r-xl: 12px; --r-pill: 999px;
-  /* charts: neutral ramp; orange reserved for signal */
-  --chart-1: #e8ebef; --chart-2: #a3acb8; --chart-3: #7d8793; --chart-4: #59626d; --chart-5: #3a424d; --chart-signal: #ff8a3d;
-  /* elevation + glass (floating only) */
+  --accent: #ff8a3d; --on-accent: #1a0e05; --accent-dim: #3a2514; --accent-line: #5a3a1f;
+  --ok: #3fb950; --warn: #d29922; --danger: #f85149; --info: #58a6ff;
+  /* type */
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace; /* numbers and code only */
+  --fs-xs: 12px; --fs-sm: 13px; --fs-md: clamp(14px, 0.9rem + 0.1vw, 15px);
+  --fs-lg: clamp(16px, 1rem + 0.2vw, 18px); --fs-h2: clamp(15px, 0.95rem + 0.2vw, 17px);
+  --fs-h1: clamp(22px, 1.2rem + 1vw, 30px); --fs-num: clamp(24px, 1.2rem + 1.2vw, 32px);
+  /* space / shape / layout / z */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --gutter: clamp(16px, 2.5vw, 32px);
+  --r-ctl: 6px; --r-card: 8px; --r-pill: 999px;
+  --tap: 44px;
+  --sidebar-w: 224px; --rail-w: 64px; --topbar-h: 56px; --tabbar-h: 60px;
+  --content-max: 1100px; --reading-max: 68ch;
+  --z-nav: 20; --z-top: 30; --z-sheet: 50; --z-modal: 60; --z-toast: 70;
   --elev-1: 0 1px 2px rgba(0, 0, 0, .4); --elev-2: 0 8px 24px rgba(0, 0, 0, .5);
+
+  /* ---- legacy aliases (compat only) ---- */
+  --surface-0: var(--bg); --color-background: var(--bg); --canvas: var(--bg); --surface: var(--surface-1);
+  --color-surface: var(--surface-1); --elevated: var(--surface-2); --hover: var(--surface-3);
+  --border-subtle: var(--line); --color-border: var(--line); --border-strong: var(--line-strong);
+  --text-primary: var(--text); --color-text-primary: var(--text); --fg-0: var(--text); --emphasis: #ffffff;
+  --text-secondary: var(--text-2); --color-text-secondary: var(--text-2); --fg-1: var(--text-2); --fg-2: var(--text-2); --neutral: var(--text-2);
+  --text-muted: var(--text-3); --text-subtle: var(--text-3); --fg-3: var(--text-3); --disabled: var(--text-3);
+  --action: var(--accent); --action-text: var(--accent); --focus-marker: var(--accent);
+  --color-primary: var(--text); --primary: var(--text); --primary-hover: #ffffff; --primary-subtle: var(--accent-dim);
+  --success: var(--ok); --success-text: #56d364; --mint-ink: #56d364; --accent-soft: var(--ok); --warning: var(--warn); --error: var(--danger);
+  --signal-mastered: var(--ok); --signal-strong: var(--info); --signal-developing: var(--text-2);
+  --signal-weak: var(--warn); --signal-critical: var(--danger); --signal-focus: var(--accent);
+  --font-sans: var(--font-ui);
+  --r-tag: var(--r-ctl); --r-control: var(--r-ctl); --r-sm: var(--r-ctl); --r-md: var(--r-ctl);
+  --r-lg: var(--r-card); --r-pod: var(--r-card); --r-dialog: 12px; --r-xl: 12px;
+  --chart-1: #e8ebef; --chart-2: #a3acb8; --chart-3: #7d8793; --chart-4: #59626d; --chart-5: #3a424d; --chart-signal: var(--accent);
   --glass-bg: rgba(255, 255, 255, .06); --glass-bg-strong: rgba(18, 21, 26, .8);
   --glass-border: rgba(255, 255, 255, .14); --glass-blur: blur(20px) saturate(140%);
   --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, .08);
 }
 
-body { font-size: var(--fs-md); line-height: 1.5; }
+/* ---- base typography ---- */
+body { font: 400 var(--fs-md)/1.5 var(--font-ui); background: var(--bg); color: var(--text); }
+h1, .ui-h1 { font-size: var(--fs-h1); font-weight: 600; line-height: 1.25; margin: 0; }
+h2, .ui-h2 { font-size: var(--fs-h2); font-weight: 600; margin: 0; }
+strong { font-weight: 600; color: var(--emphasis); }
+.ui-index, .label-mono, .d-eyebrow { font-family: var(--font-ui); font-size: var(--fs-xs); letter-spacing: 0; text-transform: none; color: var(--text-3); font-weight: 500; }
+.ui-mono, .d-micro, .ui-kpi-value, .hm-stat-value, .d4-metric-value { font-variant-numeric: tabular-nums; }
+.ui-mono, .d-micro { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-3); }
+.reading, .t-reading { font-size: var(--fs-lg); line-height: 1.6; max-width: var(--reading-max); }
 button[disabled], [aria-disabled='true'] { opacity: .7; }
 
-/* labels/meta: 12px sans, sentence case (no tiny mono caps) */
-.ui-index, .label-mono, .d-eyebrow { font-family: var(--font-sans); font-size: var(--fs-xs); letter-spacing: 0; text-transform: none; color: var(--text-muted); font-weight: 500; }
-.ui-mono, .d-micro { font-size: var(--fs-xs); }
-strong { font-weight: 600; color: var(--emphasis); }
-
-/* status tints on new palette */
-::selection { background: rgba(255, 138, 61, .3); color: #ffffff; }
+/* ---- focus / selection / scroll ---- */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: none; }
-.chip-success { background: rgba(63, 185, 80, .12); border-color: rgba(63, 185, 80, .4); color: var(--success-text); }
-.chip-warning { background: rgba(210, 153, 34, .12); border-color: rgba(210, 153, 34, .4); color: var(--warning); }
+::selection { background: rgba(255, 138, 61, .3); color: #ffffff; }
+*::-webkit-scrollbar-thumb { background: rgba(163, 172, 184, .25); }
+
+/* ---- status tints (colour + text/icon always) ---- */
+.chip-success { background: rgba(63, 185, 80, .12); border-color: rgba(63, 185, 80, .4); color: #56d364; }
+.chip-warning { background: rgba(210, 153, 34, .12); border-color: rgba(210, 153, 34, .4); color: var(--warn); }
 .chip-error { background: rgba(248, 81, 73, .10); border-color: rgba(248, 81, 73, .4); color: var(--danger); }
 .chip-info, .chip-primary { background: rgba(88, 166, 255, .10); border-color: rgba(88, 166, 255, .4); color: var(--info); }
-.state-error { background: rgba(248, 81, 73, .08); border-color: rgba(248, 81, 73, .4); color: var(--text-primary); }
+.state-error { background: rgba(248, 81, 73, .08); border-color: rgba(248, 81, 73, .4); color: var(--text); }
 .btn-destructive { background: rgba(248, 81, 73, .10); border-color: rgba(248, 81, 73, .4); color: var(--danger); }
 .btn-primary, .cta-solid { background: var(--accent); color: var(--on-accent); font-weight: 600; }
 .btn-primary:hover, .cta-solid:hover { background: #ffa063; color: var(--on-accent); }
 .q-option { min-height: 56px; }
 .q-option.correct { border-color: rgba(63, 185, 80, .5); background: rgba(63, 185, 80, .10); }
-.q-option.correct .letter { border-color: var(--success); color: var(--success-text); }
+.q-option.correct .letter { border-color: var(--ok); color: #56d364; }
 .q-option.wrong { border-color: rgba(248, 81, 73, .5); background: rgba(248, 81, 73, .08); }
 .q-option.wrong .letter { border-color: var(--danger); color: var(--danger); }
-.sk-mastered, .kg-mastered { border-color: rgba(63, 185, 80, .45); background: rgba(63, 185, 80, .12); color: var(--success-text); }
+.sk-mastered, .kg-mastered { border-color: rgba(63, 185, 80, .45); background: rgba(63, 185, 80, .12); color: #56d364; }
 .sk-strong, .kg-progress { border-color: rgba(88, 166, 255, .45); background: rgba(88, 166, 255, .12); color: var(--info); }
 .sk-weak { border-color: rgba(248, 81, 73, .45); background: rgba(248, 81, 73, .10); color: var(--danger); }
-.hm-cell.i1, .hm8-cell.i1 { background: rgba(63, 185, 80, .25); }
-.hm-cell.i2, .hm8-cell.i2 { background: rgba(63, 185, 80, .45); }
-.hm-cell.i3, .hm8-cell.i3 { background: rgba(63, 185, 80, .70); }
-.hm-cell.i4, .hm8-cell.i4 { background: var(--success); }
-.pbar > div, .pbar-info > div, .hero-bar > div { background: var(--accent); }
-.pbar-mastery > div, .d3-bar-mastery > div { background: var(--success); }
-.jnode-done { background: var(--success); color: #0b0d10; }
+.d4-t-strong, .mx-c-high { background: rgba(63, 185, 80, .26); }
+.d4-t-ok, .mx-c-mid { background: rgba(255, 255, 255, .10); }
+.d4-t-watch, .mx-c-low { background: rgba(210, 153, 34, .20); }
+.d4-t-weak, .mx-c-bad { background: rgba(248, 81, 73, .22); }
+.jnode-done { background: var(--ok); color: #0b0d10; }
 .sb-link.active { background: var(--surface-3); color: var(--emphasis); box-shadow: inset 2px 0 0 var(--accent); }
+
+/* ---- activity heatmap: single orange scale ---- */
+.hm-cell, .hm8-cell { background: var(--surface-2); border-color: var(--line); }
+.hm-cell.i1, .hm8-cell.i1 { background: rgba(255, 138, 61, .25); border-color: transparent; }
+.hm-cell.i2, .hm8-cell.i2 { background: rgba(255, 138, 61, .45); border-color: transparent; }
+.hm-cell.i3, .hm8-cell.i3 { background: rgba(255, 138, 61, .70); border-color: transparent; }
+.hm-cell.i4, .hm8-cell.i4 { background: var(--accent); border-color: transparent; }
+.pbar > div, .pbar-info > div, .hero-bar > div { background: var(--accent); }
+.pbar-mastery > div, .d3-bar-mastery > div { background: var(--ok); }
+
+/* ---- preferences ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (prefers-contrast: more) {
+  :root { --line: #3a424e; --line-strong: #4a5462; --text-3: #a3acb8; --text-2: #c6cdd6; --text-muted: #a3acb8; --text-subtle: #a3acb8; }
+}
+@media (pointer: fine) { :root { --tap: 36px; } }
