@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AssessmentRunner } from '../components/assessment/AssessmentRunner';
-import { CodingPractice } from '../components/practice/CodingPractice';
 import { ConceptRevisionSession } from '../components/revision/ConceptRevisionSession';
 import { PracticeEngine } from '../components/practice/PracticeEngine';
 import { ProblemTracker } from '../components/practice/ProblemTracker';
@@ -13,7 +12,7 @@ import { usePlayer } from '../store/PlayerContext';
 import type { Difficulty } from '../types';
 import '../styles/practice5.css';
 
-type Mode = 'knowledge' | 'assessments' | 'coding' | 'revision';
+type Mode = 'knowledge' | 'assessments' | 'revision';
 type KnowledgeView = 'questions' | 'tracker';
 type DiffFilter = 'all' | Difficulty;
 
@@ -46,6 +45,14 @@ export default function Practice() {
         </p>
       </header>
 
+      <div className="ui-pod" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+        <div>
+          <div className="ui-pod-title">Pixel Code</div>
+          <div className="ui-mono ui-muted">Write and run real JavaScript in the coding workspace.</div>
+        </div>
+        <Link className="btn btn-secondary" to="/coding">Open Pixel Code</Link>
+      </div>
+
       <SegmentedTabs
         ariaLabel="Practice mode"
         value={mode}
@@ -53,7 +60,6 @@ export default function Practice() {
         options={[
           { value: 'knowledge', label: 'Knowledge' },
           { value: 'assessments', label: 'Assessments' },
-          { value: 'coding', label: 'Coding' },
           { value: 'revision', label: 'Revision' },
         ]}
       />
@@ -87,8 +93,6 @@ export default function Practice() {
           ? <div className="dempty">No published assessments yet. They appear here once authored and published.</div>
           : <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>{assessments.map(a => <AssessmentRunner key={a.id} assessment={a} />)}</div>
       )}
-
-      {mode === 'coding' && <CodingPractice />}
 
       {mode === 'revision' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
