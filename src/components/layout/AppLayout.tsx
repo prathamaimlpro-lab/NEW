@@ -1,9 +1,11 @@
-import { useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { Toasts } from '../feedback/Toasts';
 import { BottomTabBar } from '../navigation/BottomTabBar';
 import { Sidebar } from '../navigation/Sidebar';
 import { Topbar } from '../navigation/Topbar';
 import { usePlayer } from '../../store/PlayerContext';
-import { getLesson, getLessonProgress } from '../../services/progressService';
+import { getLessonProgress } from '../../services/progressService';
 import { lessons as dataLessons } from '../../data/lessons';
 
 function FocusHeader({ lessonId }: { lessonId?: string }) {
@@ -42,34 +44,50 @@ export default function AppLayout() {
   const inProblem = pathname.startsWith('/practice/problems/');
   const focus = !!lessonMatch || inProblem;
 
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  useEffect(() => {
+    if (dataState !== 'loading') { setShowSkeleton(false); return; }
+    const t = window.setTimeout(() => setShowSkeleton(true), 150);
+    return () => window.clearTimeout(t);
+  }, [dataState]);
+
+  const [offline, setOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+  useEffect(() => {
+    const on = () => setOffline(false);
+    const off = () => setOffline(true);
+    window.addEventListener('online', on);
+    window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+
   return (
     <div className={`shell ${focus ? 'focus' : ''}`}>
       <a className="skip-link" href="#main">Skip to content</a>
       <Sidebar />
       <div className="shell-main">
         <Topbar />
-        {syncState === 'error' && (
+        {(offline || syncState === 'error') && (
           <div className="offline-banner" role="status">
-            <span>Connection problem. Your saved progress is still available on this device.</span>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={retrySync}>Retry</button>
+            <span>{offline ? 'You are offline. Saved progress is still available on this device.' : 'Connection problem. Your saved progress is still available on this device.'}</span>
+            {!offline && <button type="button" className="btn btn-ghost btn-sm" onClick={retrySync}>Retry</button>}
           </div>
         )}
         {focus && <FocusHeader lessonId={lessonMatch?.[1]} />}
         <main id="main" className="page" tabIndex={-1}>
-          {dataState === 'loading' ? <PageSkeleton /> : dataState === 'error' ? (
-            <div className="state-error" role="alert">
-              <span>We couldn't load your progress.</span>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={retrySync}>Retry</button>
-            </div>
-          ) : (
-            <OutletSafe />
-          )}
+          {dataState === 'loading'
+            ? (showSkeleton ? <PageSkeleton /> : null)
+            : dataState === 'error' ? (
+              <div className="state-error" role="alert">
+                <span>We couldn't load your progress.</span>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={retrySync}>Retry</button>
+              </div>
+            ) : (
+              <Outlet />
+            )}
         </main>
       </div>
       <BottomTabBar />
+      <Toasts />
     </div>
   );
 }
-
-import { Outlet } from 'react-router-dom';
-function OutletSafe() { return <Outlet />; }
