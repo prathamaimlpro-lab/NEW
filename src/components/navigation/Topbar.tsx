@@ -4,15 +4,17 @@ import { formatWhen, selectWhatChangedInsights } from '../../dashboard/changeSel
 import { getSession, signOut } from '../../services/authService';
 import { storageService } from '../../services/storageService';
 import { usePlayer } from '../../store/PlayerContext';
+import { AppLauncher } from './AppLauncher';
 import { Icon } from '../common/Icon';
 import { QuickFind } from './QuickFind';
 
 const SEEN_KEY = 'pixel_notif_seen';
 const TITLES: [string, string][] = [
   ['/learn/lesson', 'Lesson'], ['/learn/level', 'Level'], ['/learn', 'Curriculum'],
-  ['/practice/problems', 'Problem'], ['/practice', 'Practice'], ['/progress', 'Progress'],
-  ['/projects', 'Projects'], ['/graph', 'Knowledge graph'], ['/books', 'Books'], ['/community', 'Community'],
-  ['/settings', 'Settings'], ['/explore/viz', 'Visualization Lab'], ['/explore', 'Visualizations'], ['/profile', 'Profile'], ['/', 'Home'],
+  ['/practice/problems', 'Problem'], ['/practice', 'Practice'], ['/coding', 'Pixel Code'],
+  ['/progress', 'Progress'], ['/projects', 'Projects'], ['/graph', 'Knowledge graph'],
+  ['/books', 'Books'], ['/community', 'Community'], ['/settings', 'Settings'],
+  ['/explore/viz', 'Visualization Lab'], ['/explore', 'Visualizations'], ['/profile', 'Profile'], ['/', 'Home'],
 ];
 
 export function Topbar() {
@@ -61,6 +63,7 @@ export function Topbar() {
       <h1 className="tb-title">{title}</h1>
       <div className="tb-right">
         <div className="tb-search"><QuickFind /></div>
+        <AppLauncher />
         <div style={{ position: 'relative' }}>
           <button ref={bellRef} type="button" className="btn btn-ghost btn-icon" aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={bellOpen} aria-haspopup="dialog" onClick={openBell}>
             <Icon name="bell" size={18} />
