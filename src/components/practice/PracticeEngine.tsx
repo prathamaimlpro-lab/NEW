@@ -1,97 +1,104 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { usePlayer } from '../../store/PlayerContext';
-import { Question } from '../../types';
-import { Icon } from '../common/Icon';
-import { Chip } from '../common/ui';
+import type { Question } from '../../types';
+import '../../styles/practice5.css';
 
-const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
+const LETTERS = 'ABCDEFGH';
+const answerIndexOf = (q: any): number => q.answerIndex ?? q.correct ?? q.correctIndex ?? 0;
 
-export function PracticeEngine({ questions, onComplete, title = 'Practice' }: {
-  questions: Question[]; onComplete?: () => void; title?: string;
-}) {
-  const { answerQuestion } = usePlayer();
-  const [idx, setIdx] = useState(0);
-  const [revealed, setRevealed] = useState(false);
-  const [picked, setPicked] = useState<string | null>(null);
+export function PracticeEngine({ questions, title }: { questions: Question[]; title: string }) {
+  const { stats, answerQuestion } = usePlayer();
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [checked, setChecked] = useState<boolean | null>(null);
+  const [done, setDone] = useState(false);
   const [sessionXp, setSessionXp] = useState(0);
   const [sessionCorrect, setSessionCorrect] = useState(0);
-  const [done, setDone] = useState(false);
 
-  if (questions.length === 0) return null;
-  const q = questions[idx];
-  const correct = picked === q.correctAnswer;
+  if (!questions || questions.length === 0) {
+    return <div className="dempty">No questions available yet.</div>;
+  }
 
-  const pick = (opt: string) => {
-    if (revealed) return;
-    setPicked(opt); setRevealed(true);
-    const ok = opt === q.correctAnswer;
-    if (ok) { setSessionXp(x => x + q.xp); setSessionCorrect(c => c + 1); }
-    answerQuestion(q, ok);
-  };
-
-  const next = () => {
-    if (idx < questions.length - 1) { setIdx(idx + 1); setRevealed(false); setPicked(null); }
-    else { setDone(true); onComplete?.(); }
-  };
+  const reset = () => { setIndex(0); setSelected(null); setChecked(null); setDone(false); setSessionXp(0); setSessionCorrect(0); };
 
   if (done) {
+    const pct = Math.round((sessionCorrect / questions.length) * 100);
     return (
-      <div className="card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
-        <span style={{ color: 'var(--success)' }}><Icon name="check-circle" size={28} /></span>
-        <h3 className="t-hsm">{title} complete</h3>
-        <p className="t-body">{sessionCorrect} of {questions.length} correct · <span className="mono" style={{ color: '#a5a1ff' }}>+{sessionXp} XP</span></p>
-      </div>
+      <section className="pe-card" aria-label={`${title} results`}>
+        <h2 className="ui-h2">Session complete</h2>
+        <div className="pe-score">{pct}%</div>
+        <p className="ui-desc">{sessionCorrect} of {questions.length} correct · +{sessionXp} XP earned</p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Link className="btn btn-secondary" to="/">Back to Home</Link>
+          <button type="button" className="btn btn-primary" onClick={reset}>Practice again</button>
+        </div>
+      </section>
     );
   }
 
+  const q: any = questions[index];
+  const answer = answerIndexOf(q);
+
+  const check = () => {
+    if (selected === null) return;
+    const correct = selected === answer;
+    const wasCorrect = !!(stats.practice as any)[q.id]?.correct;
+    setChecked(correct);
+    answerQuestion(q, correct);
+    if (correct) {
+      setSessionCorrect(c => c + 1);
+      if (!wasCorrect) setSessionXp(x => x + (q.xp ?? 10));
+    }
+  };
+
+  const next = () => {
+    if (index + 1 < questions.length) { setIndex(i => i + 1); setSelected(null); setChecked(null); }
+    else setDone(true);
+  };
+
   return (
-    <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8, flexWrap: 'wrap' }}>
-        <span className="label-mono">QUESTION {String(idx + 1).padStart(2, '0')} OF {String(questions.length).padStart(2, '0')}</span>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Chip tone={q.difficulty === 'EASY' ? 'success' : q.difficulty === 'MEDIUM' ? 'warning' : 'error'}>{q.difficulty}</Chip>
-          <Chip tone="primary">+{q.xp} XP</Chip>
-        </div>
+    <section className="pe-card" aria-label={title}>
+      <div className="pe-top">
+        <span className="ui-index">Question {index + 1} of {questions.length}</span>
+        <span className="pe-badges">
+          <span className="chip">{q.difficulty}</span>
+          <span className="chip chip-success">+{q.xp ?? 10} XP</span>
+        </span>
       </div>
-      <h3 className="t-hsm" style={{ marginBottom: 6 }}>{q.question}</h3>
-      {q.hint && !revealed && <p className="t-body-sm" style={{ color: 'var(--fg-muted)', marginBottom: 12 }}>{q.hint}</p>}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-        {q.options.map((opt, i) => {
-          let cls = 'q-option';
-          if (revealed) {
-            if (opt === q.correctAnswer) cls += ' correct';
-            else if (opt === picked) cls += ' wrong';
-          }
+      <div className="hero-bar pe-bar" role="progressbar" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={index + 1} aria-label={`Question ${index + 1} of ${questions.length}`}>
+        <div style={{ width: `${(index / questions.length) * 100}%` }} />
+      </div>
+
+      <h2 className="pe-question">{q.question ?? q.prompt}</h2>
+
+      <div className="pe-options" role="group" aria-label="Answer options">
+        {(q.options ?? []).map((opt: string, oi: number) => {
+          const state = checked === null
+            ? (selected === oi ? 'selected' : '')
+            : (oi === answer ? 'correct' : selected === oi ? 'wrong' : '');
           return (
-            <button key={opt} className={cls} onClick={() => pick(opt)} disabled={revealed}>
-              <span className="letter">{LETTERS[i]}</span>
+            <button key={oi} type="button" className={`q-option ${state}`} disabled={checked !== null}
+              aria-pressed={selected === oi}
+              onClick={() => { if (checked === null) setSelected(oi); }}>
+              <span className="letter" aria-hidden="true">{LETTERS[oi]}</span>
               <span>{opt}</span>
             </button>
           );
         })}
       </div>
-      {revealed && (
-        <div className="fade-in" style={{ marginTop: 16, background: 'var(--canvas)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--r-md)', padding: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: correct ? 'var(--success)' : 'var(--error)' }}>
-            <Icon name={correct ? 'check-circle' : 'x'} size={16} />
-            <span className="label-mono" style={{ color: 'inherit' }}>{correct ? 'ACCURATE ANALYSIS' : 'MISANALYSIS'}</span>
-          </div>
-          <p className="t-body" style={{ color: 'var(--fg-secondary)' }}>{q.explanation}</p>
-          {q.reference && (
-            <div className="table-wrap" style={{ marginTop: 12 }}>
-              <table>
-                <thead><tr>{q.reference.columns.map(c => <th key={c} className="label-mono">{c}</th>)}</tr></thead>
-                <tbody>{q.reference.rows.map((r, ri) => <tr key={ri}>{r.map((c, ci) => <td key={ci}>{c}</td>)}</tr>)}</tbody>
-              </table>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-            <button className="btn btn-primary btn-sm" onClick={next}>
-              {idx < questions.length - 1 ? 'Next Question' : 'Finish'} <Icon name="arrow-right" size={14} />
-            </button>
-          </div>
+
+      {checked !== null && (
+        <div className={`pe-explain ${checked ? 'ok' : 'bad'}`} role="status">
+          {checked ? 'Correct. ' : 'Not quite. '}{q.explanation ?? ''}
         </div>
       )}
-    </div>
+
+      <div className="pe-cta-bar">
+        {checked === null
+          ? <button type="button" className="btn btn-primary pe-cta" disabled={selected === null} onClick={check}>Check answer</button>
+          : <button type="button" className="btn btn-primary pe-cta" onClick={next}>{index + 1 < questions.length ? 'Next question' : 'See results'}</button>}
+      </div>
+    </section>
   );
 }
