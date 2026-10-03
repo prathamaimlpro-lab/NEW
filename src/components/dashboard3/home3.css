@@ -1,0 +1,17 @@
+/* ============ HOME LAYOUT (spec: hero 2-col md+, 3 compact stats, 3fr/2fr columns) ============ */
+.hm-hero-grid { display: flex; flex-direction: column; gap: 12px; }
+@media (min-width: 768px) { .hm-hero-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: center; } }
+.hm-cta { min-height: 44px; }
+@media (max-width: 767px) { .hm-cta { width: 100%; } }
+.hm-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 479px) {
+  .hm-stats { gap: 8px; }
+  .hm-stat { padding: 12px; }
+  .hm-stat-value { font-size: 22px; }
+  .hm-stat-label { font-size: 11px; }
+}
+.hm-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+@media (min-width: 1024px) { .hm-cols { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+.hm-task-done { color: var(--text-3); }
+.hm-check { color: var(--ok); }
+.hm-streak-note { font-size: var(--fs-xs); color: var(--text-2); margin-top: 4px; }
