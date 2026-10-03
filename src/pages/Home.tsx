@@ -14,6 +14,8 @@ import { journeyState } from '../services/dashboardService';
 import { usePlayer } from '../store/PlayerContext';
 import '../styles/dashboard.css';
 
+interface TodayItem { label: string; to: string; est?: string; done?: boolean }
+
 export default function Home() {
   const d = useDashboardData();
   useRealtimeRefresh();
@@ -45,16 +47,16 @@ export default function Home() {
       : stats.streak > 0 ? `You're on a ${stats.streak}-day streak.` : 'Your next lesson is ready.';
 
   const todayKey = new Date().toISOString().slice(0, 10);
-  const doneToday = (stats.events ?? [])
+  const doneToday: TodayItem[] = (stats.events ?? [])
     .filter(e => e.at.slice(0, 10) === todayKey && e.kind === 'lesson_completed')
-    .map(e => ({ label: `Finished ${e.title ?? e.id}` }));
+    .map(e => ({ label: `Finished ${e.title ?? e.id}`, to: '', done: true }));
 
-  const tasks: { label: string; est?: string; to: string }[] = [];
-  if (cont && !doneToday.length) tasks.push({ label: `${cont.mode === 'resume' ? 'Continue' : 'Start'} ${cont.lessonTitle}`, est: lessonMeta ? `about ${lessonMeta.estimatedMinutes} min` : undefined, to: `/learn/lesson/${cont.lessonId}` });
+  const tasks: TodayItem[] = [];
+  if (cont && doneToday.length === 0) tasks.push({ label: `${cont.mode === 'resume' ? 'Continue' : 'Start'} ${cont.lessonTitle}`, est: lessonMeta ? `about ${lessonMeta.estimatedMinutes} min` : undefined, to: `/learn/lesson/${cont.lessonId}` });
   const revDue = d.revision.status === 'ready' && d.revision.data ? d.revision.data.due[0] : undefined;
   if (revDue) tasks.push({ label: `Revise ${revDue.title}`, est: 'due today', to: revDue.kind === 'lesson' ? `/learn/lesson/${revDue.id}` : `/practice/problems/${revDue.id}` });
   if (!brandNew) tasks.push({ label: 'Practice 5 questions', to: '/practice' });
-  const today = [...doneToday.map(t => ({ ...t, done: true as const, to: '' })), ...tasks.slice(0, 3 - doneToday.length)];
+  const today: TodayItem[] = [...doneToday, ...tasks.slice(0, Math.max(0, 3 - doneToday.length))];
 
   const topics = d.mastery.status === 'ready' && d.mastery.data
     ? [...d.mastery.data.rows].sort((a, b) => b.mastery - a.mastery).slice(0, 5)
@@ -133,7 +135,7 @@ export default function Home() {
           <section className="hm-col" aria-label="Today">
             <div className="hm-col-head"><h2 className="ui-h2">Today</h2><span className="ui-index">Plan is set automatically</span></div>
             {today.length === 0 ? <p className="ui-desc">Nothing due today.</p> : today.map((t, i) => (
-              'done' in t && t.done ? (
+              t.done ? (
                 <div key={i} className="hm-task hm-task-done"><span><span className="hm-check" aria-hidden="true">✓</span> {t.label}</span><span className="ui-mono">done</span></div>
               ) : (
                 <Link key={i} className="hm-task" to={t.to}><span>{t.label}</span><span className="ui-mono">{t.est ?? ''}</span></Link>
