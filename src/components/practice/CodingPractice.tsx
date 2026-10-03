@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
+import { CodeEditor } from '../coding/CodeEditor';
 import { getCodingTasks, type CodingTask } from '../../data/codingTasks';
 import { runCodingTask, type RunResult } from '../../services/codeRunner';
 import { getCodingRecord, recordRun, useCodingProgress } from '../../services/codingService';
 import '../../styles/coding.css';
+import '../../styles/coding2.css';
 
 type Diff = 'all' | 'EASY' | 'MEDIUM' | 'HARD';
 
@@ -73,43 +75,14 @@ export function CodingPractice() {
               {record && record.attempts > 0 && <span className="ui-mono">{record.attempts} run{record.attempts === 1 ? '' : 's'}</span>}
             </div>
             <p className="t-body-sm" style={{ color: 'var(--text-2)' }}>{task.prompt}</p>
-
-            <label className="ui-index" htmlFor="cd-code">Your code — define {task.fnName}</label>
-            <textarea
-              id="cd-code"
-              className="cd-editor"
-              value={code}
-              spellCheck={false}
-              aria-label={`Code editor for ${task.title}`}
-              onChange={e => setCodeByTask(prev => ({ ...prev, [task.id]: e.target.value }))}
-              onKeyDown={e => {
-                if (e.key === 'Tab') {
-                  e.preventDefault();
-                  const el = e.currentTarget;
-                  const s = el.selectionStart;
-                  const next = code.slice(0, s) + '  ' + code.slice(el.selectionEnd);
-                  setCodeByTask(prev => ({ ...prev, [task.id]: next }));
-                  requestAnimationFrame(() => { el.selectionStart = el.selectionEnd = s + 2; });
-                }
-              }}
-            />
-
+            <CodeEditor value={code} onChange={v => setCodeByTask(prev => ({ ...prev, [task.id]: v }))} ariaLabel={`Code editor for ${task.title}`} />
             <div className="cd-actions">
-              <button type="button" className="btn btn-primary" onClick={run} disabled={running}>
-                {running ? 'Running…' : 'Run tests'}
-              </button>
-              <button type="button" className="btn btn-secondary" onClick={() => { setCodeByTask(prev => ({ ...prev, [task.id]: task.starterCode })); setResult(null); }}>
-                Reset code
-              </button>
-              <button type="button" className="btn btn-ghost" aria-expanded={hintsOpen} onClick={() => setHintsOpen(v => !v)}>
-                {hintsOpen ? 'Hide hints' : 'Show hints'}
-              </button>
+              <button type="button" className="btn btn-primary" onClick={run} disabled={running}>{running ? 'Running…' : 'Run tests'}</button>
+              <button type="button" className="btn btn-secondary" onClick={() => { setCodeByTask(prev => ({ ...prev, [task.id]: task.starterCode })); setResult(null); }}>Reset code</button>
+              <button type="button" className="btn btn-ghost" aria-expanded={hintsOpen} onClick={() => setHintsOpen(v => !v)}>{hintsOpen ? 'Hide hints' : 'Show hints'}</button>
             </div>
-
             {hintsOpen && (
-              <div className="cd-hints">
-                {task.hints.map((h, i) => <span key={i}>{i + 1}. {h}</span>)}
-              </div>
+              <div className="cd-hints">{task.hints.map((h, i) => <span key={i}>{i + 1}. {h}</span>)}</div>
             )}
           </section>
 
@@ -126,10 +99,7 @@ export function CodingPractice() {
                     {result.cases.map(c => (
                       <div key={c.name} className="cd-case">
                         <span className={c.ok ? 'cd-case-ok' : 'cd-case-bad'} aria-hidden="true">{c.ok ? '✓' : '✕'}</span>
-                        <span>
-                          {c.name}
-                          {!c.ok && <span className="cd-case-detail">{c.detail}</span>}
-                        </span>
+                        <span>{c.name}{!c.ok && <span className="cd-case-detail">{c.detail}</span>}</span>
                       </div>
                     ))}
                   </>
