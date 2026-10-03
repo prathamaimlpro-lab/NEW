@@ -1,48 +1,75 @@
-import { useEffect } from 'react';
-import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
-import { PageSkeleton } from '../common/PageSkeleton';
+import { useLocation } from 'react-router-dom';
+import { BottomTabBar } from '../navigation/BottomTabBar';
 import { Sidebar } from '../navigation/Sidebar';
 import { Topbar } from '../navigation/Topbar';
 import { usePlayer } from '../../store/PlayerContext';
+import { getLesson, getLessonProgress } from '../../services/progressService';
+import { lessons as dataLessons } from '../../data/lessons';
 
-export default function AppLayout() {
-  const location = useLocation();
-  const navType = useNavigationType();
-  const { dataState, syncState, retrySync } = usePlayer();
-  const isDash = location.pathname === '/';
-
-  useEffect(() => {
-    if (navType !== 'POP') window.scrollTo(0, 0);
-  }, [location.pathname, navType]);
-
+function FocusHeader({ lessonId }: { lessonId?: string }) {
+  const { stats } = usePlayer();
+  const lesson = lessonId ? (dataLessons as any)[lessonId] : undefined;
+  const progress = lesson ? getLessonProgress(stats, lesson) : 0;
   return (
-    <div className="app-shell">
-      <Sidebar />
-      <div className="shell-main">
-        <Topbar />
-        <main id="main-content" className={`page ${isDash ? 'page-full' : ''}`}>
-          {dataState === 'loading' ? (
-            <PageSkeleton route={location.pathname} />
-          ) : dataState === 'error' ? (
-            <div className="state-error" role="alert" style={{ maxWidth: 560, margin: '48px auto', padding: 20 }}>
-              <span>Unable to load your progress. Check your connection and try again.</span>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={retrySync}>Try again</button>
-            </div>
-          ) : (
-            <>
-              {syncState === 'error' && (
-                <div className="state-error" role="status" style={{ margin: '0 16px 12px', padding: '10px 14px' }}>
-                  <span>Couldn't sync with the server — showing your saved progress on this device.</span>
-                  <button type="button" className="btn btn-secondary btn-sm" onClick={retrySync}>Retry</button>
-                </div>
-              )}
-              <div className={isDash ? 'page-inner-full' : 'page-inner fade-in'} key={location.pathname}>
-                <Outlet />
-              </div>
-            </>
-          )}
-        </main>
+    <div className="focus-header">
+      <a className="btn btn-ghost btn-sm" href={lesson ? `/learn/level/${lesson.levelId}` : '/practice'} aria-label="Back">←</a>
+      <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 'var(--fs-sm)', color: 'var(--text-2)' }}>
+        {lesson ? lesson.title : 'Practice problem'}
+      </span>
+      <div className="hero-bar" style={{ width: 90 }} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} aria-label="Lesson progress">
+        <div style={{ width: `${progress}%` }} />
       </div>
     </div>
   );
 }
+
+function PageSkeleton() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} aria-busy="true" aria-label="Loading">
+      <div className="skel" style={{ height: 34, width: '45%' }} />
+      <div className="skel" style={{ height: 150 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 16 }}>
+        <div className="skel" style={{ height: 90 }} /><div className="skel" style={{ height: 90 }} /><div className="skel" style={{ height: 90 }} />
+      </div>
+    </div>
+  );
+}
+
+export default function AppLayout() {
+  const { dataState, syncState, retrySync } = usePlayer();
+  const { pathname } = useLocation();
+  const lessonMatch = pathname.match(/^\/learn\/lesson\/([^/]+)/);
+  const inProblem = pathname.startsWith('/practice/problems/');
+  const focus = !!lessonMatch || inProblem;
+
+  return (
+    <div className={`shell ${focus ? 'focus' : ''}`}>
+      <a className="skip-link" href="#main">Skip to content</a>
+      <Sidebar />
+      <div className="shell-main">
+        <Topbar />
+        {syncState === 'error' && (
+          <div className="offline-banner" role="status">
+            <span>Connection problem. Your saved progress is still available on this device.</span>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={retrySync}>Retry</button>
+          </div>
+        )}
+        {focus && <FocusHeader lessonId={lessonMatch?.[1]} />}
+        <main id="main" className="page" tabIndex={-1}>
+          {dataState === 'loading' ? <PageSkeleton /> : dataState === 'error' ? (
+            <div className="state-error" role="alert">
+              <span>We couldn't load your progress.</span>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={retrySync}>Retry</button>
+            </div>
+          ) : (
+            <OutletSafe />
+          )}
+        </main>
+      </div>
+      <BottomTabBar />
+    </div>
+  );
+}
+
+import { Outlet } from 'react-router-dom';
+function OutletSafe() { return <Outlet />; }
