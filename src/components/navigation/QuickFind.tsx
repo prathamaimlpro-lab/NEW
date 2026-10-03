@@ -113,7 +113,13 @@ export function QuickFind() {
             </div>
             <div id="qf-list" className="qf-list" role="listbox" aria-label="Search results">
               {items.length === 0 && (
-                <div className="qf-empty">No results for "{q}". Try "level", "practice", or a topic name.</div>
+                <div className="qf-empty">
+                  No results for "{q}".
+                  <button type="button" className="qf-item" style={{ marginTop: 8 }} onClick={() => select({ group: 'Pages', label: 'Curriculum', to: '/learn' })}>
+                    <span>Closest page: Curriculum</span>
+                    <span className="qf-item-sub">Browse worlds and levels</span>
+                  </button>
+                </div>
               )}
               {items.map((item, i) => {
                 const header = item.group !== lastGroup ? item.group : null;
