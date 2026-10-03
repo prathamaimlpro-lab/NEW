@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { EmptyState, SectionIndex, StatementHeader } from '../components/ui/primitives';
+import { EmptyState, StatementHeader } from '../components/ui/primitives';
 import { listVisualizations } from '../components/visualization/registry';
 import { getConcept, listAll } from '../services/contentService';
 import '../components/dashboard3/pagev4.css';
