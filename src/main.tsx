@@ -13,6 +13,7 @@ import './styles/a11y.css';
 import './styles/responsive.css';
 import './styles/navigation.css';
 import './styles/v5-qa.css';
+import './styles/components10.css';
 
 initContentStore();
 void initAuth().then(() => syncContentFromServer());
