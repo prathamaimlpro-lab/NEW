@@ -5,7 +5,7 @@ import { levels as legacyLevels } from '../../data/curriculum';
 import { useDashboardData } from '../../dashboard/useDashboard';
 
 type Sort = 'ranked' | 'mastery-asc' | 'gap' | 'world';
-const tierOf = (m: number) => (m >= 85 ? 'Mastered' : m >= 60 ? 'Proficient' : m >= 35 ? 'Practicing' : 'Exposed');
+const tierOf = (m: number) => (m >= 85 ? 'Mastered' : m >= 60 ? 'Solid' : m >= 35 ? 'Learning' : 'Not started');
 
 const topicWorld = (topic: string): number => {
   const lesson = Object.values(legacyLessons).find(l => (l.topics ?? []).includes(topic));
@@ -31,8 +31,8 @@ export function MasteryAnalytics() {
   if (zone.status !== 'ready' || !zone.data) {
     return (
       <section className="d3-mastery" aria-label="Mastery analytics">
-        <div className="d3-chart-head"><span className="d3-eyebrow">Mastery Analytics</span></div>
-        <div className="dempty">Mastery analytics appear once you have practice or lesson evidence for at least one topic.</div>
+        <div className="d3-chart-head"><span className="d3-eyebrow">Mastery</span></div>
+        <div className="dempty">Mastery appears once you have practice or lesson evidence for at least one topic.</div>
       </section>
     );
   }
@@ -40,7 +40,7 @@ export function MasteryAnalytics() {
   return (
     <section className="d3-mastery" aria-label="Mastery analytics by topic">
       <div className="d3-chart-head">
-        <span className="d3-eyebrow">Mastery Analytics</span>
+        <span className="d3-eyebrow">Mastery</span>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <select className="input" style={{ width: 150, height: 32 }} value={sort} onChange={e => setSort(e.target.value as Sort)} aria-label="Sort mastery topics">
             <option value="ranked">Recently active</option>
@@ -54,7 +54,7 @@ export function MasteryAnalytics() {
 
       <div className="d3-mrows">
         {rows.map(r => (
-          <div key={r.topic} className="d3-mrow" role="group" aria-label={`${r.topic}: mastery ${r.mastery} percent, completion ${r.completion} percent, tier ${tierOf(r.mastery)}`}>
+          <div key={r.topic} className="d3-mrow" role="group" aria-label={`${r.topic}: mastery ${r.mastery} percent, completion ${r.completion} percent, ${tierOf(r.mastery)}`}>
             <div className="d3-mrow-top">
               <span className="d3-mrow-topic">{r.topic}</span>
               <span className="chip">{tierOf(r.mastery)}</span>
@@ -66,7 +66,7 @@ export function MasteryAnalytics() {
             </div>
             <div className="d3-mrow-foot">
               <span>completion {r.completion}%</span>
-              <span className={r.gap > 0 ? 'd3-gap' : ''}>{r.gap > 0 ? `+${r.gap} pts gap` : 'no gap'}</span>
+              <span className={r.gap > 0 ? 'd3-gap' : ''}>{r.gap > 0 ? `${r.gap} pts behind completion` : 'matches completion'}</span>
             </div>
           </div>
         ))}
