@@ -66,8 +66,9 @@ export default function Home() {
           <div className="hm-dots" role="list" aria-label={`Levels in World ${currentWorld.number}`}>
             {worldLevels.map(l => {
               const st = journeyState(stats, l.id, currentLevelId);
+              const dotClass = st === 'done' ? 'done' : st === 'current' ? 'current' : st === 'locked' ? 'locked' : '';
               return (
-                <Link key={l.id} role="listitem" className={`hm-dot ${st === 'completed' ? 'done' : st === 'current' ? 'current' : st === 'locked' ? 'locked' : ''}`}
+                <Link key={l.id} role="listitem" className={`hm-dot ${dotClass}`}
                   to={`/learn/level/${l.id}`} aria-label={`Level ${l.number}, ${st}`}>{l.number}</Link>
               );
             })}
