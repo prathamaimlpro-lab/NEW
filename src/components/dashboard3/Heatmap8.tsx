@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { getHeatmapDays } from '../../services/activityService';
 import { usePlayer } from '../../store/PlayerContext';
 
@@ -6,11 +6,12 @@ type Range = '30D' | '90D' | 'ALL';
 const level = (v: number) => (v <= 0 ? 0 : v <= 2 ? 1 : v <= 5 ? 2 : v <= 9 ? 3 : 4);
 const fmt = (date: string) => new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
-export function Heatmap8() {
+export function Heatmap8({ defaultRange, autoScrollLatest = false }: { defaultRange?: Range; autoScrollLatest?: boolean }) {
   const { stats } = usePlayer();
-  const [range, setRange] = useState<Range>(() => (typeof window !== 'undefined' && window.innerWidth < 768 ? '90D' : 'ALL'));
+  const [range, setRange] = useState<Range>(defaultRange ?? (typeof window !== 'undefined' && window.innerWidth < 768 ? '90D' : 'ALL'));
   const [sel, setSel] = useState<string | null>(null);
   const [listView, setListView] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const all = useMemo(() => getHeatmapDays(stats), [stats]);
   const days = useMemo(() => {
@@ -25,6 +26,12 @@ export function Heatmap8() {
   const selDay = days.find(d => d.date === sel) ?? null;
   const total = days.reduce((s, d) => s + d.value, 0);
 
+  useEffect(() => {
+    if (autoScrollLatest && scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [autoScrollLatest, weeks]);
+
   const onKey = (e: React.KeyboardEvent) => {
     const cells = Array.from((e.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('button.hm8-cell'));
     const i = cells.indexOf(document.activeElement as HTMLButtonElement);
@@ -37,14 +44,23 @@ export function Heatmap8() {
     if (n >= 0 && n < cells.length) { e.preventDefault(); cells[n].focus(); }
   };
 
+  if (total === 0) {
+    return (
+      <section className="d8-panel" aria-label="Learning heatmap">
+        <div className="d3-chart-head"><span className="d3-eyebrow">Activity</span></div>
+        <div className="dempty">No learning activity yet. Lessons, practice, revision, projects and visualizations will fill this map as you work.</div>
+      </section>
+    );
+  }
+
   return (
     <section className="d8-panel" aria-label="Learning heatmap">
       <div className="d3-chart-head">
-        <span className="d3-eyebrow">Learning Heatmap</span>
+        <span className="d3-eyebrow">Activity</span>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="rtoggle" role="group" aria-label="Heatmap range">
             {(['30D', '90D', 'ALL'] as Range[]).map(r => (
-              <button key={r} type="button" className={range === r ? 'on' : ''} aria-pressed={range === r} onClick={() => { setRange(r); setSel(null); }}>{r}</button>
+              <button key={r} type="button" className={range === r ? 'on' : ''} aria-pressed={range === r} onClick={() => { setRange(r); setSel(null); }}>{r === '90D' ? '12 weeks' : r === '30D' ? '30 days' : 'All'}</button>
             ))}
           </div>
           <button type="button" className="btn btn-sm btn-ghost" aria-pressed={listView} onClick={() => setListView(v => !v)}>
@@ -53,31 +69,23 @@ export function Heatmap8() {
         </div>
       </div>
 
-      {total === 0 && (
-        <p className="d8-tip">No activity in this range yet — every day below is genuinely empty. Complete a lesson or practice question and the first cell fills in.</p>
-      )}
-
       <div className="d8-tip" role="status">
         {selDay ? `${fmt(selDay.date)} — ${selDay.value} activities` : 'Hover or focus a day for exact activity.'}
       </div>
 
       {listView ? (
-        days.filter(d => d.value > 0).length === 0 ? (
-          <div className="dempty">No active days in this range yet.</div>
-        ) : (
-          <ul className="d8-list" role="list" aria-label="Active days">
-            {days.filter(d => d.value > 0).slice().reverse().map(d => (
-              <li key={d.date} className="d8-list-item">
-                <span>{new Date(`${d.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
-                <span className="d8-list-val">
-                  {d.value} activities{d.breakdown ? ` (${d.breakdown.lessons} lessons · ${d.breakdown.problems} practice · ${d.breakdown.other} other)` : ''}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )
+        <ul className="d8-list" role="list" aria-label="Active days">
+          {days.filter(d => d.value > 0).slice().reverse().map(d => (
+            <li key={d.date} className="d8-list-item">
+              <span>{new Date(`${d.date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+              <span className="d8-list-val">
+                {d.value} activities{d.breakdown ? ` (${d.breakdown.lessons} lessons · ${d.breakdown.problems} practice · ${d.breakdown.other} other)` : ''}
+              </span>
+            </li>
+          ))}
+        </ul>
       ) : (
-        <div className="d8-scroll">
+        <div className="d8-scroll" ref={scrollRef}>
           <div className="d8-grid" role="group" aria-label="Daily activity heatmap. Use arrow keys to move between days." onKeyDown={onKey}>
             {weeks.map((w, wi) => (
               <div key={wi} className="d8-col">
