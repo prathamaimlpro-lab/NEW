@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { getCodingTasks, type CodingTask } from '../../data/codingTasks';
 import { runCodingTask, type RunResult } from '../../services/codeRunner';
 import { getCodingRecord, recordRun, useCodingProgress } from '../../services/codingService';
-import '../../../styles/coding.css';
+import '../../styles/coding.css';
 
 type Diff = 'all' | 'EASY' | 'MEDIUM' | 'HARD';
 
