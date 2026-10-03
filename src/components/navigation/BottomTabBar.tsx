@@ -1,20 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getRevisionDue } from '../../services/progressService';
+import { usePlayer } from '../../store/PlayerContext';
 import { Icon } from '../common/Icon';
 
-const ExploreIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" /><path d="M15 9l-2 5-4 1 2-5z" />
-  </svg>
-);
-const YouIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-    <circle cx="12" cy="8" r="3.5" /><path d="M5 20c1.5-4 4-5.5 7-5.5S17.5 16 19 20" />
-  </svg>
-);
+const ExploreIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M15 9l-2 5-4 1 2-5z" /></svg>);
+const YouIcon = () => (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 20c1.5-4 4-5.5 7-5.5S17.5 16 19 20" /></svg>);
 
 export function BottomTabBar() {
   const { pathname } = useLocation();
+  const { stats } = usePlayer();
+  const due = getRevisionDue(stats).length;
   const [sheet, setSheet] = useState<null | 'explore' | 'you'>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -37,7 +33,13 @@ export function BottomTabBar() {
       <nav className="tabbar" aria-label="Primary">
         <Link to="/" className={pathname === '/' ? 'on' : ''}><Icon name="home" size={20} /><span>Home</span></Link>
         <Link to="/learn" className={pathname.startsWith('/learn') ? 'on' : ''}><Icon name="learn" size={20} /><span>Learn</span></Link>
-        <Link to="/practice" className={pathname.startsWith('/practice') ? 'on' : ''}><Icon name="practice" size={20} /><span>Practice</span></Link>
+        <Link to="/practice" className={pathname.startsWith('/practice') ? 'on' : ''} aria-label={due ? `Practice, ${due} revision due` : 'Practice'}>
+          <span style={{ position: 'relative' }}>
+            <Icon name="practice" size={20} />
+            {due > 0 && <span className="tb-badge" aria-hidden="true">{due}</span>}
+          </span>
+          <span>Practice</span>
+        </Link>
         <button ref={triggerRef} type="button" className={exploreActive ? 'on' : ''} aria-expanded={sheet === 'explore'} onClick={() => setSheet(sheet === 'explore' ? null : 'explore')}>
           <ExploreIcon /><span>Explore</span>
         </button>
