@@ -19,8 +19,8 @@ export default function VisualizationPage() {
   if (!current) {
     return (
       <div className="ui-panel">
-        <StatementHeader lead="Visualization Lab —" emphasis="no visualizations published yet." />
-        <EmptyState action={<Link className="btn btn-secondary btn-sm" to="/explore">Back to Explore</Link>}>
+        <StatementHeader lead="Visualization Lab" emphasis="no visualizations published yet." />
+        <EmptyState action={<Link className="btn btn-secondary btn-sm" to="/explore">Back to Visualizations</Link>}>
           Interactive visualizations appear here once authored.
         </EmptyState>
       </div>
@@ -29,9 +29,9 @@ export default function VisualizationPage() {
 
   return (
     <>
-      <StatementHeader lead="Visualization Lab —" emphasis={`${current.title}.`} />
+      <StatementHeader lead="Visualization Lab" emphasis={`${current.title}.`} />
 
-      <div className="v4-viz">
+      <div className="v4-viz2">
         <aside className="v4-rail" aria-label="Visualization navigation">
           <div className="ui-index" style={{ marginBottom: 4 }}>Categories</div>
           {categories.map(c => (
@@ -47,36 +47,38 @@ export default function VisualizationPage() {
           ))}
         </aside>
 
-        <div className="v4-canvas" aria-label={`${current.title} canvas`}>
-          {typeof Comp === 'function'
-            ? <Comp />
-            : <EmptyState>This visualization has no runnable component yet.</EmptyState>}
+        <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="v4-canvas" aria-label={`${current.title} canvas`}>
+            {typeof Comp === 'function'
+              ? <Comp />
+              : <EmptyState>This visualization has no runnable component yet.</EmptyState>}
+          </div>
+
+          <div className="v4-below">
+            <div className="ui-pod">
+              <span className="ui-index">About</span>
+              <span className="ui-pod-title">{current.title}</span>
+              <span className="ui-mono ui-muted">{current.category}</span>
+              {(current as any).description && <p className="t-body-sm">{(current as any).description}</p>}
+            </div>
+            <div className="ui-pod">
+              <span className="ui-index">Related concepts</span>
+              {concepts.length === 0
+                ? <span className="ui-mono ui-muted">No linked concepts yet.</span>
+                : (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {concepts.map(c => c && <Link key={c.id} className="chip2" to="/graph">{c.title}</Link>)}
+                  </div>
+                )}
+              {related[0]?.caption && <span className="ui-mono ui-muted">{related[0].caption}</span>}
+            </div>
+          </div>
+
+          <div className="v4-controlbar">
+            <span className="ui-mono ui-muted">Playback controls (play / step / reset) are inside the canvas above.</span>
+            <Link className="btn btn-ghost btn-sm" to="/explore">All visualizations</Link>
+          </div>
         </div>
-
-        <aside className="v4-inspector" aria-label="Inspector">
-          <div className="ui-pod">
-            <span className="ui-index">About</span>
-            <span className="ui-pod-title">{current.title}</span>
-            <span className="ui-mono ui-muted">{current.category}</span>
-            {(current as any).description && <p className="t-body-sm">{(current as any).description}</p>}
-          </div>
-          <div className="ui-pod">
-            <span className="ui-index">Related concepts</span>
-            {concepts.length === 0
-              ? <span className="ui-mono ui-muted">No linked concepts yet.</span>
-              : (
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {concepts.map(c => c && <Link key={c.id} className="chip2" to="/graph">{c.title}</Link>)}
-                </div>
-              )}
-            {related[0]?.caption && <span className="ui-mono ui-muted">{related[0].caption}</span>}
-          </div>
-        </aside>
-      </div>
-
-      <div className="v4-controlbar">
-        <span className="ui-mono ui-muted">Playback controls (play / step / reset) are embedded in the canvas above.</span>
-        <Link className="btn btn-ghost btn-sm" to="/explore">All visualizations</Link>
       </div>
     </>
   );
