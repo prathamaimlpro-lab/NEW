@@ -1,0 +1,46 @@
+/* ============ PHASE 10 — COMPONENT RULES + CONTEXT STATES ============ */
+
+/* Buttons: primary 44px (36px only for dense toolbars on fine pointers), secondary 36px, destructive = red outline */
+.btn { min-height: 36px; }
+.btn-primary, .cta-solid { min-height: 44px; }
+@media (pointer: fine) {
+  .btn-sm { min-height: 32px; }
+  .btn-primary.btn-sm, .cta-solid.btn-sm { min-height: 36px; }
+}
+.btn-destructive { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+.btn-destructive:hover { background: rgba(248, 81, 73, .12); color: var(--danger); }
+
+/* Cards: equal padding (16px xs-sm, 20px otherwise); section gap 24 */
+.ui-panel, .ui-pod, .hm-stat, .hm-col, .cur-card, .pj-card, .pe-card,
+.d8-panel, .d3-chart, .d3-mastery, .d4-panel, .kg-panel, .d3-journey, .d3-projects { padding: 16px; }
+@media (min-width: 768px) {
+  .ui-panel, .ui-pod, .hm-stat, .hm-col, .cur-card, .pj-card, .pe-card,
+  .d8-panel, .d3-chart, .d3-mastery, .d4-panel, .kg-panel, .d3-journey, .d3-projects { padding: 20px; }
+}
+.dash { gap: 24px; }
+
+/* Numbers: tabular everywhere */
+.hm-stat-value, .ui-kpi-value, .pg-tile-value, .pe-score, .d4-metric-value, .hm-topic-val { font-variant-numeric: tabular-nums; }
+
+/* Modals: centred, max 480px on md+ (sheet behaviour below 768 already in profile8.css) */
+.pf-modal { width: min(480px, calc(100vw - 32px)); }
+
+/* Motion: 150–200ms ease, colour/opacity only (no layout animation) */
+.btn, .chip-btn, .q-option, .pt-row, .cur-card, .pj-card, .sb-link, .tab, .ui-tab, .kg-node, .hm-dot {
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+}
+.sheet, .pf-modal, .dialog { animation: pf-in 180ms ease; }
+@keyframes pf-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .sheet, .pf-modal, .dialog { animation: none; } }
+
+/* Toasts: above tab bar + safe area on phones, bottom-right on desktop */
+.toast-stack { position: fixed; right: 16px; bottom: calc(var(--tabbar-h) + 16px + env(safe-area-inset-bottom, 0px)); z-index: var(--z-toast); display: flex; flex-direction: column; gap: 8px; }
+@media (min-width: 768px) { .toast-stack { bottom: 16px; } }
+.toast { background: var(--surface-2); border: 1px solid var(--line-strong); border-left: 3px solid var(--ok); border-radius: var(--r-ctl); padding: 10px 14px; font-size: var(--fs-sm); color: var(--text); box-shadow: var(--elev-2); max-width: 320px; }
+
+/* Tables become stacked lists on xs */
+@media (max-width: 479px) {
+  [role='table'] { display: flex; flex-direction: column; }
+  [role='row'] { display: flex; flex-direction: column; gap: 4px; padding: 8px 0; border-top: 1px solid var(--line); }
+  [role='row']:first-child { border-top: none; }
+}
